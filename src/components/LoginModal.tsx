@@ -13,7 +13,11 @@ import {
   Key, 
   Mail, 
   User as UserIcon,
-  Phone
+  Phone,
+  Crown,
+  Eye,
+  EyeOff,
+  AlertCircle
 } from 'lucide-react';
 
 interface LoginModalProps {
@@ -38,6 +42,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   // Login form state
   const [loginInput, setLoginInput] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
 
   // Register form state
@@ -45,13 +50,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [regUsername, setRegUsername] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
-  const [regRole, setRegRole] = useState<UserRole>('VHV');
-  const [regTambon, setRegTambon] = useState<string>('เปือ');
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
+  const [adminPasscode, setAdminPasscode] = useState('admin2569');
+  const [regRole, setRegRole] = useState<UserRole>('ADMIN');
+  const [regTambon, setRegTambon] = useState<string>('เชียงกลาง');
   const [regVillage, setRegVillage] = useState<string>(
-    CHIANG_KLANG_TAMBONS['เปือ']?.villages[0] || ''
+    CHIANG_KLANG_TAMBONS['เชียงกลาง']?.villages[0] || 'หมู่ 1 บ้านศรีอุดม'
   );
   const [regHospital, setRegHospital] = useState<string>(
-    CHIANG_KLANG_TAMBONS['เปือ']?.hospitals[0] || ''
+    CHIANG_KLANG_TAMBONS['เชียงกลาง']?.hospitals[0] || 'สสอ.เชียงกลาง'
   );
   const [regPhone, setRegPhone] = useState('');
   const [regSuccess, setRegSuccess] = useState('');
@@ -71,6 +80,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     setLoginError('');
 
     const trimmed = loginInput.trim().toLowerCase();
+    if (!trimmed) {
+      setLoginError('กรุณากรอกชื่อผู้ใช้หรืออีเมล');
+      return;
+    }
+
     const userFound = users.find(
       (u) =>
         u.username.toLowerCase() === trimmed ||
@@ -78,13 +92,19 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     );
 
     if (!userFound) {
-      setLoginError('ไม่พบบัญชีผู้ใช้หรืออีเมลนี้ในระบบ');
+      setLoginError('ไม่พบบัญชีผู้ใช้หรืออีเมลนี้ในระบบ กรุณาตรวจสอบหรือลงทะเบียนใหม่');
       return;
     }
 
-    if (userFound.password && loginPassword && userFound.password !== loginPassword) {
-      setLoginError('รหัสผ่านไม่ถูกต้อง (หากลืมสามารถเลือกรหัสผ่านเริ่มต้น password123)');
-      return;
+    if (userFound.password) {
+      if (!loginPassword) {
+        setLoginError('กรุณากรอกรหัสผ่าน');
+        return;
+      }
+      if (userFound.password !== loginPassword) {
+        setLoginError('รหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบรหัสผ่านอีกครั้ง');
+        return;
+      }
     }
 
     onSelectUser(userFound);
@@ -94,40 +114,78 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
+    setRegSuccess('');
 
-    if (!regFullName.trim() || !regUsername.trim()) {
+    const trimmedName = regFullName.trim();
+    const trimmedUsername = regUsername.trim().toLowerCase();
+
+    if (!trimmedName || !trimmedUsername) {
       setLoginError('กรุณากรอกชื่อ-สกุล และชื่อผู้ใช้ (Username)');
+      return;
+    }
+
+    if (trimmedUsername.length < 3) {
+      setLoginError('ชื่อผู้ใช้ (Username) ต้องมีความยาวอย่างน้อย 3 ตัวอักษร');
+      return;
+    }
+
+    if (!regPassword) {
+      setLoginError('กรุณากำหนดรหัสผ่านสำหรับการเข้าสู่ระบบ');
+      return;
+    }
+
+    if (regPassword.length < 4) {
+      setLoginError('รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร');
+      return;
+    }
+
+    if (regPassword !== regConfirmPassword) {
+      setLoginError('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง');
       return;
     }
 
     // Check duplicate
     const exists = users.some(
       (u) =>
-        u.username.toLowerCase() === regUsername.trim().toLowerCase() ||
+        u.username.toLowerCase() === trimmedUsername ||
         (regEmail.trim() && u.email.toLowerCase() === regEmail.trim().toLowerCase())
     );
 
     if (exists) {
-      setLoginError('ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้งานไปแล้ว');
+      setLoginError('ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้งานไปแล้ว กรุณาเลือกชื่อผู้ใช้อื่น');
       return;
     }
 
+    const isAdmin = regRole === 'ADMIN';
+    const isOfficer = regRole === 'HEALTH_OFFICER';
+
     const newUser: User = {
-      id: `user-${Date.now()}`,
-      username: regUsername.trim().toLowerCase(),
-      email: regEmail.trim().toLowerCase() || `${regUsername.trim()}@nanhealth.org`,
-      password: regPassword || 'password123',
-      fullName: regFullName.trim(),
+      id: isAdmin
+        ? `admin-${Date.now()}`
+        : isOfficer
+        ? `officer-${Date.now()}`
+        : `vhv-${Date.now()}`,
+      username: trimmedUsername,
+      email:
+        regEmail.trim().toLowerCase() ||
+        (isAdmin
+          ? `${trimmedUsername}@chiangklang.nan.go.th`
+          : `${trimmedUsername}@nanhealth.org`),
+      password: regPassword,
+      fullName: trimmedName,
       role: regRole,
-      roleLabel:
-        regRole === 'ADMIN'
-          ? 'ผู้ดูแลระบบ สสอ.เชียงกลาง'
-          : regRole === 'HEALTH_OFFICER'
-          ? `เจ้าหน้าที่ ${regHospital} (พี่เลี้ยง)`
-          : `อสม. ประจำ${regVillage}`,
-      tambon: regTambon,
-      village: regRole === 'HEALTH_OFFICER' ? `ทุกหมู่บ้านในตำบล${regTambon}` : regVillage,
-      hospital: regHospital,
+      roleLabel: isAdmin
+        ? 'ผู้ดูแลระบบ สสอ.เชียงกลาง'
+        : isOfficer
+        ? `เจ้าหน้าที่ ${regHospital} (พี่เลี้ยง)`
+        : `อสม. ประจำ${regVillage}`,
+      tambon: isAdmin ? 'ทั้งหมด' : regTambon,
+      village: isAdmin
+        ? 'ทั้งหมด'
+        : isOfficer
+        ? `ทุกหมู่บ้านในตำบล${regTambon}`
+        : regVillage,
+      hospital: isAdmin ? 'สสอ.เชียงกลาง' : regHospital,
       phone: regPhone.trim(),
       createdAt: new Date().toISOString().slice(0, 10),
     };
@@ -137,7 +195,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     setRegSuccess('ลงทะเบียนสำเร็จ เข้าสู่ระบบเรียบร้อยแล้ว!');
     setTimeout(() => {
       onClose();
-    }, 1200);
+    }, 1000);
   };
 
   return (
@@ -207,12 +265,41 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
         {/* Tab 1: LOGIN FORM */}
         {mode === 'LOGIN' && (
-          <form onSubmit={handleLoginSubmit} className="p-5 space-y-4 text-xs sm:text-sm">
+          <form onSubmit={handleLoginSubmit} className="p-5 space-y-3.5 text-xs sm:text-sm">
             {loginError && (
-              <div className="p-3 bg-rose-50 text-rose-800 border border-rose-200 rounded-xl text-xs">
-                {loginError}
+              <div className="p-3 bg-rose-50 text-rose-800 border border-rose-200 rounded-xl text-xs flex items-start gap-1.5">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <span>{loginError}</span>
               </div>
             )}
+
+            {/* Quick Fill Admin Banner */}
+            <div className="p-2.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 rounded-2xl flex items-center justify-between gap-2 shadow-xs">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-7 h-7 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <Crown className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5 truncate">
+                    <span>ผู้ดูแลระบบ (Admin) สสอ.เชียงกลาง</span>
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate">
+                    Username: <span className="font-mono font-bold text-slate-700">admin</span> • รหัส: <span className="font-mono text-slate-700">password123</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginInput('admin');
+                  setLoginPassword('password123');
+                  setLoginError('');
+                }}
+                className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition shadow-xs shrink-0 cursor-pointer"
+              >
+                ใช้บัญชีนี้
+              </button>
+            </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -232,28 +319,61 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                รหัสผ่าน (Password)
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label className="block text-xs font-semibold text-slate-700">
+                  รหัสผ่าน (Password)
+                </label>
+                <span className="text-[11px] text-slate-400">
+                  รหัสเริ่มต้น: password123
+                </span>
+              </div>
               <div className="relative">
                 <Key className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
-                  type="password"
+                  type={showLoginPassword ? 'text' : 'password'}
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  placeholder="กรอกรหัสผ่าน (รหัสเริ่มต้น: password123)"
-                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none"
+                  placeholder="กรอกรหัสผ่านของคุณ..."
+                  className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-slate-500 text-xs">
-              💡 <strong>คำแนะนำ:</strong> สามารถกดแท็บ <strong>"ทดสอบสิทธิ์"</strong> ด้านบน เพื่อเลือกเข้าสู่ระบบทันทีในบทบาท แอดมิน สสอ., จนท. รพ.สต. หรือ อสม.
+            <div className="flex items-center justify-between text-xs pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('REGISTER');
+                  setRegRole('ADMIN');
+                  setLoginError('');
+                }}
+                className="text-amber-700 hover:text-amber-800 font-bold hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <Crown className="w-3.5 h-3.5 text-amber-600" />
+                <span>ลงทะเบียน Admin ใหม่</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('DEMO');
+                  setLoginError('');
+                }}
+                className="text-teal-700 hover:text-teal-800 font-semibold hover:underline cursor-pointer"
+              >
+                ⚡ เลือกบัญชีทดสอบ
+              </button>
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-xs transition text-sm flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-xs transition text-sm flex items-center justify-center gap-1.5 cursor-pointer mt-1"
             >
               <LogIn className="w-4 h-4" />
               <span>เข้าสู่ระบบ</span>
@@ -265,17 +385,93 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         {mode === 'REGISTER' && (
           <form onSubmit={handleRegisterSubmit} className="p-5 space-y-3.5 text-xs sm:text-sm">
             {loginError && (
-              <div className="p-2.5 bg-rose-50 text-rose-800 border border-rose-200 rounded-xl text-xs">
-                {loginError}
+              <div className="p-2.5 bg-rose-50 text-rose-800 border border-rose-200 rounded-xl text-xs flex items-start gap-1.5">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <span>{loginError}</span>
               </div>
             )}
             {regSuccess && (
-              <div className="p-2.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold">
-                {regSuccess}
+              <div className="p-2.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                <span>{regSuccess}</span>
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              {/* Role Selection */}
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  ประเภทสมาชิก / สิทธิ์การใช้งาน <span className="text-rose-500">*</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRegRole('ADMIN')}
+                    className={`p-2.5 rounded-xl border text-xs text-left transition cursor-pointer flex flex-col justify-between ${
+                      regRole === 'ADMIN'
+                        ? 'border-amber-500 bg-amber-50 text-amber-900 font-bold ring-2 ring-amber-400/40 shadow-xs'
+                        : 'border-slate-200 text-slate-600 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-amber-700 font-bold">
+                      <Crown className="w-4 h-4 text-amber-500 shrink-0" />
+                      <span>ผู้ดูแลระบบ (Admin)</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 mt-1">
+                      สสอ.เชียงกลาง
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setRegRole('HEALTH_OFFICER')}
+                    className={`p-2.5 rounded-xl border text-xs text-left transition cursor-pointer flex flex-col justify-between ${
+                      regRole === 'HEALTH_OFFICER'
+                        ? 'border-teal-600 bg-teal-50 text-teal-900 font-bold ring-2 ring-teal-400/40 shadow-xs'
+                        : 'border-slate-200 text-slate-600 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-teal-800 font-bold">
+                      <Building2 className="w-4 h-4 text-teal-600 shrink-0" />
+                      <span>จนท. รพ.สต. (พี่เลี้ยง)</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 mt-1">
+                      ประจำตำบล
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setRegRole('VHV')}
+                    className={`p-2.5 rounded-xl border text-xs text-left transition cursor-pointer flex flex-col justify-between ${
+                      regRole === 'VHV'
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-bold ring-2 ring-emerald-400/40 shadow-xs'
+                        : 'border-slate-200 text-slate-600 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-emerald-800 font-bold">
+                      <UserCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>อสม. ประจำหมู่บ้าน</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 mt-1">
+                      ผู้คัดกรอง 2Q+
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Admin Privileges Info */}
+              {regRole === 'ADMIN' && (
+                <div className="sm:col-span-2 p-2.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-800">
+                    <Crown className="w-3.5 h-3.5 text-amber-600" />
+                    <span>สิทธิ์ผู้ดูแลระบบ สสอ.เชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)</span>
+                  </div>
+                  <p className="text-[11px] text-amber-700">
+                    สามารถเข้าถึงข้อมูลผู้ป่วย สถิติ และสมาชิก อสม. ได้ครบทุกตำบลในอำเภอเชียงกลาง
+                  </p>
+                </div>
+              )}
+
               <div className="sm:col-span-2">
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   ชื่อ - นามสกุล <span className="text-rose-500">*</span>
@@ -285,7 +481,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   required
                   value={regFullName}
                   onChange={(e) => setRegFullName(e.target.value)}
-                  placeholder="เช่น นางดวงใจ ปัญญาวงศ์"
+                  placeholder={regRole === 'ADMIN' ? 'เช่น นายสมศักดิ์ สุทธการ' : 'เช่น นางดวงใจ ปัญญาวงศ์'}
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
@@ -299,8 +495,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   required
                   value={regUsername}
                   onChange={(e) => setRegUsername(e.target.value)}
-                  placeholder="เช่น duangjai_vhv"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder={regRole === 'ADMIN' ? 'เช่น somsak_admin' : 'เช่น duangjai_vhv'}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500 font-mono"
                 />
               </div>
 
@@ -312,25 +508,69 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   type="email"
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
-                  placeholder="เช่น duangjai@gmail.com"
+                  placeholder={regRole === 'ADMIN' ? 'เช่น somsak@chiangklang.nan.go.th' : 'เช่น duangjai@gmail.com'}
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
+              {/* Password & Confirm */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  รหัสผ่าน (Password)
-                </label>
-                <input
-                  type="password"
-                  value={regPassword}
-                  onChange={(e) => setRegPassword(e.target.value)}
-                  placeholder="กำหนดรหัสผ่าน..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
-                />
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    รหัสผ่าน (Password) <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] text-slate-400">อย่างน้อย 4 ตัว</span>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showRegPassword ? 'text' : 'password'}
+                    required
+                    value={regPassword}
+                    onChange={(e) => setRegPassword(e.target.value)}
+                    placeholder="กำหนดรหัสผ่าน..."
+                    className="w-full px-3 pr-8 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegPassword(!showRegPassword)}
+                    className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showRegPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
               </div>
 
               <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    ยืนยันรหัสผ่าน <span className="text-rose-500">*</span>
+                  </label>
+                  {regConfirmPassword && (
+                    <span className={`text-[10px] font-bold ${regPassword === regConfirmPassword ? 'text-emerald-600' : 'text-rose-500'}`}>
+                      {regPassword === regConfirmPassword ? '✓ ตรงกัน' : '✗ ไม่ตรงกัน'}
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    type={showRegConfirmPassword ? 'text' : 'password'}
+                    required
+                    value={regConfirmPassword}
+                    onChange={(e) => setRegConfirmPassword(e.target.value)}
+                    placeholder="พิมพ์ซ้ำอีกครั้ง..."
+                    className="w-full px-3 pr-8 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
+                    className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showRegConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="sm:col-span-2">
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   เบอร์โทรศัพท์
                 </label>
@@ -343,98 +583,80 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 />
               </div>
 
-              {/* Role Selection */}
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  ประเภทสมาชิก / สิทธิ์ในระบบ
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setRegRole('VHV')}
-                    className={`p-2.5 rounded-xl border text-xs text-left transition ${
-                      regRole === 'VHV'
-                        ? 'border-teal-600 bg-teal-50 text-teal-900 font-bold'
-                        : 'border-slate-200 text-slate-700 bg-white'
-                    }`}
-                  >
-                    🌿 อสม. ประจำหมู่บ้าน
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRegRole('HEALTH_OFFICER')}
-                    className={`p-2.5 rounded-xl border text-xs text-left transition ${
-                      regRole === 'HEALTH_OFFICER'
-                        ? 'border-teal-600 bg-teal-50 text-teal-900 font-bold'
-                        : 'border-slate-200 text-slate-700 bg-white'
-                    }`}
-                  >
-                    🏥 เจ้าหน้าที่ประจำ รพ.สต. (พี่เลี้ยง)
-                  </button>
-                </div>
-              </div>
+              {/* Area Scope (Tambon & Village / Hospital) */}
+              {regRole !== 'ADMIN' ? (
+                <>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      ตำบลใน อ.เชียงกลาง
+                    </label>
+                    <select
+                      value={regTambon}
+                      onChange={(e) => handleTambonChange(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none"
+                    >
+                      {Object.keys(CHIANG_KLANG_TAMBONS).map((t) => (
+                        <option key={t} value={t}>
+                          ตำบล{t}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              {/* Area Scope (Tambon & Village) */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  ตำบลใน อ.เชียงกลาง
-                </label>
-                <select
-                  value={regTambon}
-                  onChange={(e) => handleTambonChange(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none"
-                >
-                  {Object.keys(CHIANG_KLANG_TAMBONS).map((t) => (
-                    <option key={t} value={t}>
-                      ตำบล{t}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {regRole === 'VHV' ? (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    หมู่บ้านที่รับผิดชอบ
-                  </label>
-                  <select
-                    value={regVillage}
-                    onChange={(e) => setRegVillage(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none"
-                  >
-                    {CHIANG_KLANG_TAMBONS[regTambon]?.villages.map((v) => (
-                      <option key={v} value={v}>
-                        {v}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  {regRole === 'VHV' ? (
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        หมู่บ้านที่รับผิดชอบ
+                      </label>
+                      <select
+                        value={regVillage}
+                        onChange={(e) => setRegVillage(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none"
+                      >
+                        {CHIANG_KLANG_TAMBONS[regTambon]?.villages.map((v) => (
+                          <option key={v} value={v}>
+                            {v}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        รพ.สต. สังกัด
+                      </label>
+                      <select
+                        value={regHospital}
+                        onChange={(e) => setRegHospital(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none"
+                      >
+                        {CHIANG_KLANG_TAMBONS[regTambon]?.hospitals.map((h) => (
+                          <option key={h} value={h}>
+                            {h}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </>
               ) : (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    รพ.สต. สังกัด
-                  </label>
-                  <select
-                    value={regHospital}
-                    onChange={(e) => setRegHospital(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none"
-                  >
-                    {CHIANG_KLANG_TAMBONS[regTambon]?.hospitals.map((h) => (
-                      <option key={h} value={h}>
-                        {h}
-                      </option>
-                    ))}
-                  </select>
+                <div className="sm:col-span-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 flex items-center justify-between">
+                  <div>
+                    <strong>หน่วยงาน:</strong> สสอ.เชียงกลาง
+                  </div>
+                  <div>
+                    <strong>พื้นที่:</strong> ทั้ง 6 ตำบลใน อ.เชียงกลาง
+                  </div>
                 </div>
               )}
             </div>
 
             <button
               type="submit"
-              className="w-full mt-2 py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-xs transition text-sm flex items-center justify-center gap-1.5"
+              className="w-full mt-2 py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-xs transition text-sm flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
-              <span>ยืนยันการลงทะเบียนและเข้าใช้งาน</span>
+              <span>ยืนยันการลงทะเบียนและเข้าใช้งานทันที</span>
             </button>
           </form>
         )}

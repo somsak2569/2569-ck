@@ -13,7 +13,8 @@ import {
   Mail, 
   UserPlus,
   Key,
-  Database
+  Database,
+  Crown
 } from 'lucide-react';
 
 interface UserManagementViewProps {
@@ -173,17 +174,24 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                     }`}
                   >
                     {u.role === 'ADMIN' ? (
-                      <ShieldCheck className="w-5 h-5 text-amber-700" />
+                      <Crown className="w-5 h-5 text-amber-600" />
                     ) : (
                       <UserCheck className="w-5 h-5 text-teal-700" />
                     )}
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 text-sm truncate max-w-[170px]">
-                      {u.fullName}
-                    </h4>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="font-bold text-slate-900 text-sm truncate max-w-[170px]">
+                        {u.fullName}
+                      </h4>
+                      {u.role === 'ADMIN' && (
+                        <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded-md">
+                          Admin
+                        </span>
+                      )}
+                    </div>
                     <span className="text-[11px] text-slate-500 block truncate">
-                      {u.roleLabel}
+                      {u.roleLabel} • <span className="font-mono text-slate-600">@{u.username}</span>
                     </span>
                   </div>
                 </div>

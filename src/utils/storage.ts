@@ -28,12 +28,12 @@ export const getStoredUsers = (): User[] => {
     }
     const parsed: User[] = JSON.parse(raw);
     const updated = parsed.map((u) => {
-      if (u.id === 'user-admin' || u.role === 'ADMIN') {
+      if (u.id === 'user-admin') {
         return {
           ...u,
-          fullName: 'อรไท พิพิธพัฒน์ไพสิธ',
-          email: 'thaipasit5@gmail.com',
-          phone: '0979184142',
+          fullName: u.fullName || 'อรไท พิพิธพัฒน์ไพสิธ',
+          email: u.email || 'thaipasit5@gmail.com',
+          phone: u.phone || '0979184142',
           hospital: migrateHospitalName(u.hospital),
         };
       }
