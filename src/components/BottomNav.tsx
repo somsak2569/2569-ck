@@ -1,0 +1,90 @@
+import React from 'react';
+import { LayoutDashboard, UserPlus, Users, ShieldAlert, Sparkles } from 'lucide-react';
+import { User } from '../types';
+
+export type ActiveTab = 'dashboard' | 'new_screening' | 'patient_list' | 'members';
+
+interface BottomNavProps {
+  activeTab: ActiveTab;
+  onChangeTab: (tab: ActiveTab) => void;
+  currentUser: User;
+  highRiskCount: number;
+}
+
+export const BottomNav: React.FC<BottomNavProps> = ({
+  activeTab,
+  onChangeTab,
+  currentUser,
+  highRiskCount,
+}) => {
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg px-2 py-1.5 md:hidden">
+      <div className="grid grid-cols-4 max-w-md mx-auto">
+        {/* Dashboard */}
+        <button
+          onClick={() => onChangeTab('dashboard')}
+          className={`flex flex-col items-center justify-center py-1 rounded-xl transition ${
+            activeTab === 'dashboard'
+              ? 'text-teal-700 font-bold bg-teal-50/70'
+              : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          <span className="text-[10px] mt-1">แดชบอร์ด</span>
+        </button>
+
+        {/* New Screening */}
+        <button
+          onClick={() => onChangeTab('new_screening')}
+          className={`flex flex-col items-center justify-center py-1 rounded-xl transition relative ${
+            activeTab === 'new_screening'
+              ? 'text-teal-700 font-bold bg-teal-50/70'
+              : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <div className="relative">
+            <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center shadow-md -mt-2">
+              <UserPlus className="w-4 h-4" />
+            </div>
+          </div>
+          <span className="text-[10px] mt-0.5">คัดกรอง</span>
+        </button>
+
+        {/* Patient List */}
+        <button
+          onClick={() => onChangeTab('patient_list')}
+          className={`flex flex-col items-center justify-center py-1 rounded-xl transition relative ${
+            activeTab === 'patient_list'
+              ? 'text-teal-700 font-bold bg-teal-50/70'
+              : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <div className="relative">
+            <Users className="w-5 h-5" />
+            {highRiskCount > 0 && (
+              <span className="absolute -top-1 -right-2 bg-rose-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
+                {highRiskCount}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] mt-1">คนไข้</span>
+        </button>
+
+        {/* Members / Admin */}
+        <button
+          onClick={() => onChangeTab('members')}
+          className={`flex flex-col items-center justify-center py-1 rounded-xl transition ${
+            activeTab === 'members'
+              ? 'text-teal-700 font-bold bg-teal-50/70'
+              : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <ShieldAlert className="w-5 h-5" />
+          <span className="text-[10px] mt-1">
+            {currentUser.role === 'ADMIN' ? 'สมาชิก' : 'โปรไฟล์'}
+          </span>
+        </button>
+      </div>
+    </nav>
+  );
+};

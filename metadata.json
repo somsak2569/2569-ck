@@ -1,0 +1,6 @@
+{
+  "name": "คนเชียงกลางไม่ทิ้งกัน",
+  "description": "ระบบประเมินเพื่อคัดกรองคนไข้ที่เสี่ยงการฆ่าตัวตาย (2Q Plus และ 8Q) สำนักงานสาธารณสุขอำเภอเชียงกลาง จังหวัดน่าน พัฒนาโดย สมศักดิ์ สุทธการ",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
