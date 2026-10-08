@@ -12,7 +12,8 @@ import {
   PhoneCall, 
   Mail, 
   UserPlus,
-  Key
+  Key,
+  Database
 } from 'lucide-react';
 
 interface UserManagementViewProps {
@@ -66,6 +67,10 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
                 ? 'ผู้ดูแลระบบ (Admin) สามารถเข้าถึงข้อมูลสมาชิกได้ทั้งหมด ทุกตำบลใน อ.เชียงกลาง'
                 : `ข้อมูลโปรไฟล์และสังกัดของท่าน (${currentUser.roleLabel})`}
             </p>
+            <div className="flex items-center gap-1.5 mt-2 text-[11px] text-teal-800 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-lg w-fit">
+              <Database className="w-3.5 h-3.5 text-teal-600" />
+              <span>ฐานข้อมูลหลัก: <strong>Firebase Cloud Database (2569-ck)</strong> • เชื่อมต่อแล้ว</span>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">

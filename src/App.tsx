@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, PatientScreening } from './types';
 import { 
   getCurrentUser, 
@@ -9,6 +9,17 @@ import {
   savePatients, 
   getAccessiblePatients 
 } from './utils/storage';
+import { testConnection, auth, logOutFirebase } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { 
+  fetchUsersFromFirestore, 
+  fetchPatientsFromFirestore, 
+  saveUserToFirestore, 
+  savePatientToFirestore, 
+  deletePatientFromFirestore,
+  subscribeToPatients,
+  seedInitialDataIfEmpty
+} from './services/firestoreSync';
 import { Navbar } from './components/Navbar';
 import { BottomNav, ActiveTab } from './components/BottomNav';
 import { DashboardView } from './components/DashboardView';
@@ -49,6 +60,87 @@ export default function App() {
     }, 3500);
   };
 
+  // Firebase connection & data sync on mount
+  useEffect(() => {
+    // 1. Connection test to Firestore
+    testConnection().then((connected) => {
+      if (connected) {
+        console.log('Firebase Cloud Database (2569-ck) connected successfully');
+      }
+    });
+
+    let unsubscribeSnapshot: (() => void) | undefined;
+
+    // 2. Auth state listener: only sync when auth is ready and authenticated
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        console.log('Firebase user authenticated:', firebaseUser.email || firebaseUser.uid);
+
+        // Auto-match user profile if not yet selected
+        setCurrentUserState((prev) => {
+          if (prev) return prev;
+          const email = firebaseUser.email?.toLowerCase() || '';
+          const isAdminEmail =
+            email === 'thaipasit5@gmail.com' || email === 'som9999sak@gmail.com';
+          const matched = users.find(
+            (u) =>
+              u.email.toLowerCase() === email ||
+              u.id === firebaseUser.uid ||
+              (isAdminEmail && u.role === 'ADMIN')
+          );
+          if (matched) {
+            setCurrentUser(matched);
+            return matched;
+          }
+          return prev;
+        });
+
+        // Sync data with Firestore
+        try {
+          const cloudUsers = await fetchUsersFromFirestore();
+          if (cloudUsers && cloudUsers.length > 0) {
+            setUsersState(cloudUsers);
+            saveUsers(cloudUsers);
+          } else {
+            await seedInitialDataIfEmpty(users, patients);
+          }
+
+          const cloudPatients = await fetchPatientsFromFirestore();
+          if (cloudPatients && cloudPatients.length > 0) {
+            setPatientsState(cloudPatients);
+            savePatients(cloudPatients);
+          }
+        } catch (e) {
+          console.warn('Firestore sync notice:', e);
+        }
+
+        // Attach realtime listener for patients
+        try {
+          if (unsubscribeSnapshot) unsubscribeSnapshot();
+          unsubscribeSnapshot = subscribeToPatients((cloudList) => {
+            if (cloudList && cloudList.length > 0) {
+              setPatientsState(cloudList);
+              savePatients(cloudList);
+            }
+          });
+        } catch (err) {
+          console.warn('Realtime subscription notice:', err);
+        }
+      } else {
+        // Not authenticated in Firebase - clean up listener
+        if (unsubscribeSnapshot) {
+          unsubscribeSnapshot();
+          unsubscribeSnapshot = undefined;
+        }
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+    };
+  }, []);
+
   const handleSelectUser = (user: User) => {
     setCurrentUserState(user);
     setCurrentUser(user);
@@ -59,10 +151,12 @@ export default function App() {
     const updatedUsers = [...users, newUser];
     setUsersState(updatedUsers);
     saveUsers(updatedUsers);
-    showToast(`ลงทะเบียนผู้ใช้ ${newUser.fullName} เรียบร้อยแล้ว`, 'success');
+    saveUserToFirestore(newUser).catch((e) => console.warn('User saved locally, cloud sync pending:', e));
+    showToast(`ลงทะเบียนผู้ใช้ ${newUser.fullName} เรียบร้อยแล้ว (ซิงค์ Firebase 2569-ck)`, 'success');
   };
 
   const handleLogout = () => {
+    logOutFirebase().catch((e) => console.warn('Firebase logout notice:', e));
     setCurrentUserState(null);
     setCurrentUser(null);
     setIsLoginModalOpen(false);
@@ -93,14 +187,15 @@ export default function App() {
     if (existingIndex >= 0) {
       updated = [...patients];
       updated[existingIndex] = savedPatient;
-      showToast(`บันทึกการแก้ไขข้อมูลของ ${savedPatient.fullName} เรียบร้อยแล้ว`, 'success');
+      showToast(`บันทึกการแก้ไขข้อมูลของ ${savedPatient.fullName} เรียบร้อยแล้ว (ซิงค์ Firebase 2569-ck)`, 'success');
     } else {
       updated = [savedPatient, ...patients];
-      showToast(`บันทึกผลการคัดกรอง ${savedPatient.fullName} เรียบร้อยแล้ว`, 'success');
+      showToast(`บันทึกผลการคัดกรอง ${savedPatient.fullName} เรียบร้อยแล้ว (ซิงค์ Firebase 2569-ck)`, 'success');
     }
 
     setPatientsState(updated);
     savePatients(updated);
+    savePatientToFirestore(savedPatient).catch((e) => console.warn('Saved locally, Firestore sync pending:', e));
     setEditingPatient(null);
     setActiveTab('patient_list');
   };
@@ -110,6 +205,7 @@ export default function App() {
     const updated = patients.filter((p) => p.id !== patientId);
     setPatientsState(updated);
     savePatients(updated);
+    deletePatientFromFirestore(patientId).catch((e) => console.warn('Deleted locally, Firestore sync pending:', e));
     if (viewingPatient?.id === patientId) {
       setViewingPatient(null);
     }

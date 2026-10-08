@@ -1,0 +1,76 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default-deny catch-all to prevent unauthorized access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email != null && 
+         (request.auth.token.email == 'som9999sak@gmail.com' || 
+          request.auth.token.email == 'thaipasit5@gmail.com')) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN')
+      );
+    }
+
+    function isValidUser(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.username is string && data.username.size() <= 100 &&
+             data.fullName is string && data.fullName.size() <= 200 &&
+             data.role in ['ADMIN', 'HEALTH_OFFICER', 'VHV'] &&
+             data.tambon is string && data.tambon.size() <= 100 &&
+             data.village is string && data.village.size() <= 150 &&
+             data.hospital is string && data.hospital.size() <= 150;
+    }
+
+    function isValidPatient(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.fullName is string && data.fullName.size() <= 200 &&
+             data.villageName is string && data.villageName.size() <= 150 &&
+             data.tambon is string && data.tambon.size() <= 100 &&
+             data.mentorHospital is string && data.mentorHospital.size() <= 150 &&
+             data.surveyorUserId is string && data.surveyorUserId.size() <= 128;
+    }
+
+    // Connection testing / health check probe
+    match /test/{docId} {
+      allow read: if true;
+    }
+
+    // User management collection
+    match /users/{userId} {
+      allow get, list: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(userId);
+      allow delete: if isAdmin();
+    }
+
+    // Patient mental health & suicide screening collection
+    match /patients/{patientId} {
+      allow get, list: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(patientId);
+      allow delete: if isSignedIn();
+    }
+  }
+}

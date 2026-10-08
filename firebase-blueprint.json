@@ -1,0 +1,69 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and healthcare role information in Chiang Klang district",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "username": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 200 },
+        "fullName": { "type": "string", "maxLength": 200 },
+        "role": { "type": "string", "enum": ["ADMIN", "HEALTH_OFFICER", "VHV"] },
+        "roleLabel": { "type": "string", "maxLength": 100 },
+        "tambon": { "type": "string", "maxLength": 100 },
+        "village": { "type": "string", "maxLength": 150 },
+        "hospital": { "type": "string", "maxLength": 150 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "username", "fullName", "role", "tambon", "village", "hospital"]
+    },
+    "PatientScreening": {
+      "title": "PatientScreening",
+      "description": "Patient depression and suicide risk screening record (2Q Plus and 8Q)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "screeningDate": { "type": "string", "maxLength": 50 },
+        "fullName": { "type": "string", "maxLength": 200 },
+        "idCard": { "type": "string", "maxLength": 30 },
+        "age": { "type": "number" },
+        "gender": { "type": "string", "enum": ["ชาย", "หญิง", "อื่นๆ"] },
+        "addressNo": { "type": "string", "maxLength": 100 },
+        "villageNo": { "type": "string", "maxLength": 20 },
+        "villageName": { "type": "string", "maxLength": 150 },
+        "tambon": { "type": "string", "maxLength": 100 },
+        "district": { "type": "string", "maxLength": 100 },
+        "province": { "type": "string", "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "chronicDiseases": { "type": "array" },
+        "caregiverName": { "type": "string", "maxLength": 200 },
+        "caregiverRelation": { "type": "string", "maxLength": 100 },
+        "caregiverPhone": { "type": "string", "maxLength": 50 },
+        "twoQ": { "type": "object" },
+        "eightQTriggered": { "type": "boolean" },
+        "eightQ": { "type": "object" },
+        "mentorHospital": { "type": "string", "maxLength": 150 },
+        "surveyorName": { "type": "string", "maxLength": 200 },
+        "surveyorRole": { "type": "string", "maxLength": 100 },
+        "surveyorPhone": { "type": "string", "maxLength": 50 },
+        "surveyorUserId": { "type": "string", "maxLength": 128 },
+        "followUpStatus": { "type": "string", "maxLength": 100 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "fullName", "screeningDate", "villageName", "tambon", "mentorHospital", "surveyorUserId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles and jurisdictional settings"
+    },
+    "/patients/{patientId}": {
+      "schema": "PatientScreening",
+      "description": "Patient depression and suicide risk screening records"
+    }
+  }
+}

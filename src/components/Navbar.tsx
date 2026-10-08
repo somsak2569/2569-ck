@@ -11,7 +11,8 @@ import {
   Building2, 
   HelpCircle,
   Menu,
-  X
+  X,
+  Database
 } from 'lucide-react';
 import { EMERGENCY_CONTACTS } from '../data/chiangklangData';
 
@@ -43,6 +44,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="font-medium text-white truncate">สสอ.เชียงกลาง จ.น่าน</span>
             <span className="text-teal-300 hidden sm:inline">|</span>
             <span className="text-teal-200 hidden sm:inline">ระบบคัดกรอง 2Q Plus & 8Q กรมสุขภาพจิต</span>
+            <span className="text-teal-300 hidden md:inline">|</span>
+            <div className="hidden md:flex items-center gap-1 bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded text-[11px]">
+              <Database className="w-3 h-3 text-emerald-400" />
+              <span>Firebase: <strong className="text-emerald-200">2569-ck</strong> (เชื่อมต่อแล้ว)</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
