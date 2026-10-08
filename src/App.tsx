@@ -225,81 +225,23 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans selection:bg-teal-600 selection:text-white">
-      {/* Top Navbar */}
+      {/* Top Navbar with Integrated Responsive Menu Bar */}
       <Navbar
         currentUser={currentUser}
         onOpenLogin={() => setIsLoginModalOpen(true)}
         onLogout={handleLogout}
         onOpenEmergencyGuide={() => setIsEmergencyGuideOpen(true)}
         highRiskCount={highRiskCount}
+        activeTab={activeTab}
+        onChangeTab={(tab) => {
+          if (tab === 'new_screening') {
+            setEditingPatient(null);
+          }
+          setActiveTab(tab);
+        }}
+        accessiblePatientCount={accessiblePatients.length}
+        onStartNewScreening={handleStartScreening}
       />
-
-      {/* Desktop Secondary Navigation Bar */}
-      <div className="hidden md:block bg-white border-b border-slate-200 sticky top-14 z-20 shadow-xs">
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <div className="flex items-center gap-1 py-1">
-            <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`px-4 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 ${
-                activeTab === 'dashboard'
-                  ? 'bg-teal-700 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              <span>แดชบอร์ดสรุปภาพรวม</span>
-            </button>
-
-            <button
-              onClick={handleStartScreening}
-              className={`px-4 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 ${
-                activeTab === 'new_screening'
-                  ? 'bg-teal-700 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>บันทึกแบบคัดกรอง (2Q+ & 8Q)</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('patient_list')}
-              className={`px-4 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 relative ${
-                activeTab === 'patient_list'
-                  ? 'bg-teal-700 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              <span>ทะเบียนคนไข้ ({accessiblePatients.length})</span>
-              {highRiskCount > 0 && (
-                <span className="bg-rose-600 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full ml-1">
-                  {highRiskCount} เสี่ยงสูง
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => setActiveTab('members')}
-              className={`px-4 py-2.5 text-xs font-bold rounded-xl transition flex items-center gap-2 ${
-                activeTab === 'members'
-                  ? 'bg-teal-700 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <ShieldAlert className="w-4 h-4" />
-              <span>
-                {currentUser.role === 'ADMIN' ? 'จัดการสมาชิก สสอ./รพ.สต./อสม.' : 'ข้อมูลสังกัดและสมาชิก'}
-              </span>
-            </button>
-          </div>
-
-          <div className="text-xs text-slate-500 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>สังกัด: <strong>{currentUser.hospital}</strong></span>
-          </div>
-        </div>
-      </div>
 
       {/* Toast Alert */}
       {toastMessage && (

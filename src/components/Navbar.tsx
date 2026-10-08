@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../types';
+import { ActiveTab } from './BottomNav';
 import { 
   HeartHandshake, 
   PhoneCall, 
@@ -12,7 +13,11 @@ import {
   HelpCircle,
   Menu,
   X,
-  Database
+  Database,
+  LayoutDashboard,
+  UserPlus,
+  Users,
+  ShieldAlert
 } from 'lucide-react';
 import { EMERGENCY_CONTACTS } from '../data/chiangklangData';
 
@@ -22,6 +27,10 @@ interface NavbarProps {
   onLogout: () => void;
   onOpenEmergencyGuide: () => void;
   highRiskCount: number;
+  activeTab?: ActiveTab;
+  onChangeTab?: (tab: ActiveTab) => void;
+  accessiblePatientCount?: number;
+  onStartNewScreening?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -30,6 +39,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   onLogout,
   onOpenEmergencyGuide,
   highRiskCount,
+  activeTab = 'dashboard',
+  onChangeTab,
+  accessiblePatientCount = 0,
+  onStartNewScreening,
 }) => {
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -38,69 +51,74 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       <header className="sticky top-0 z-30 bg-teal-800 text-white shadow-md">
         {/* District & Safety emergency strip */}
-        <div className="bg-teal-900 px-3 py-1 text-xs flex justify-between items-center text-teal-100 border-b border-teal-800/60">
-          <div className="flex items-center gap-1.5 truncate">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="font-medium text-white truncate">สสอ.เชียงกลาง จ.น่าน</span>
-            <span className="text-teal-300 hidden sm:inline">|</span>
-            <span className="text-teal-200 hidden sm:inline">ระบบคัดกรอง 2Q Plus & 8Q กรมสุขภาพจิต</span>
-            <span className="text-teal-300 hidden md:inline">|</span>
-            <div className="hidden md:flex items-center gap-1 bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded text-[11px]">
-              <Database className="w-3 h-3 text-emerald-400" />
-              <span>Firebase: <strong className="text-emerald-200">2569-ck</strong> (เชื่อมต่อแล้ว)</span>
+        <div className="bg-teal-900 px-2 sm:px-4 py-1 text-xs flex justify-between items-center text-teal-100 border-b border-teal-800/60">
+          <div className="flex items-center gap-1.5 truncate min-w-0 mr-1.5">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+            <span className="font-semibold text-white truncate text-[11px] sm:text-xs">
+              สสอ.เชียงกลาง
+            </span>
+            <span className="text-teal-400/60 hidden sm:inline">|</span>
+            <span className="text-teal-200 hidden md:inline text-[11px]">
+              คัดกรอง 2Q+ & 8Q กรมสุขภาพจิต
+            </span>
+            <span className="text-teal-400/60 hidden sm:inline">|</span>
+            <div className="flex items-center gap-1 bg-emerald-950/70 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] shrink-0">
+              <Database className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400 shrink-0" />
+              <span>Firebase: <strong className="text-emerald-200">2569-ck</strong></span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => setShowEmergencyModal(true)}
-              className="flex items-center gap-1 bg-rose-600/90 hover:bg-rose-600 text-white px-2 py-0.5 rounded text-xs font-medium transition shadow-xs"
+              className="flex items-center gap-1 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white px-2 py-0.5 rounded-lg text-[10px] sm:text-xs font-bold transition shadow-xs shrink-0 cursor-pointer"
+              title="เบอร์โทรฉุกเฉินและประสานงานด่วน สายด่วน 1323"
             >
-              <PhoneCall className="w-3 h-3 animate-bounce" />
+              <PhoneCall className="w-3 h-3 animate-bounce shrink-0" />
               <span>สายด่วน 1323</span>
               {highRiskCount > 0 && (
-                <span className="bg-white text-rose-700 font-bold px-1 rounded-full text-[10px] ml-0.5">
+                <span className="bg-white text-rose-700 font-extrabold px-1 rounded-full text-[9px] sm:text-[10px] ml-0.5 animate-pulse">
                   {highRiskCount}
                 </span>
               )}
             </button>
             <button
               onClick={onOpenEmergencyGuide}
-              className="hidden xs:flex items-center gap-0.5 text-teal-200 hover:text-white transition px-1 py-0.5"
+              className="flex items-center gap-1 text-teal-200 hover:text-white bg-teal-800/80 hover:bg-teal-800 border border-teal-700/60 rounded-lg px-1.5 py-0.5 transition shrink-0 cursor-pointer text-[10px] sm:text-[11px]"
               title="คู่มือช่วยเหลือ 3 ส."
             >
-              <HelpCircle className="w-3.5 h-3.5" />
-              <span className="text-[11px]">คู่มือ 3ส.</span>
+              <HelpCircle className="w-3 h-3 text-amber-300 shrink-0" />
+              <span>คู่มือ 3ส.</span>
             </button>
           </div>
         </div>
 
         {/* Main App Bar */}
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 py-2 flex items-center justify-between gap-2">
           {/* Logo & District Branding */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-md text-white border border-teal-400/30">
-              <HeartHandshake className="w-6 h-6 text-white" />
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-md text-white border border-teal-400/30 shrink-0">
+              <HeartHandshake className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-bold text-base sm:text-lg leading-tight tracking-tight text-white flex items-center gap-1">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-bold text-sm sm:text-base md:text-lg leading-tight tracking-tight text-white truncate">
                   คนเชียงกลางไม่ทิ้งกัน
                 </h1>
-                <span className="text-[10px] bg-teal-700/80 text-teal-200 px-1.5 py-0.5 rounded border border-teal-600 font-normal">
+                <span className="text-[9px] sm:text-[10px] bg-teal-700/90 text-teal-200 px-1.5 py-0.2 rounded border border-teal-600/80 font-normal shrink-0">
                   v2.0
                 </span>
               </div>
-              <p className="text-xs text-teal-200/90 leading-tight truncate">
+              <p className="text-[10px] sm:text-xs text-teal-200/90 leading-tight truncate">
                 สสอ.เชียงกลาง • ดูแลใจด้วยใจ
               </p>
             </div>
           </div>
 
-          {/* User Status & Jurisdiction Badge */}
-          <div className="flex items-center gap-2">
-            {/* Jurisdiction Tag */}
-            <div className="hidden md:flex flex-col items-end text-xs">
+          {/* User Status & Action Controls */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Jurisdiction Tag (Desktop) */}
+            <div className="hidden lg:flex flex-col items-end text-xs mr-1">
               <div className="flex items-center gap-1 text-teal-100">
                 <MapPin className="w-3.5 h-3.5 text-amber-300" />
                 <span className="font-medium">
@@ -109,38 +127,40 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
               <div className="flex items-center gap-1 text-teal-300 text-[11px]">
                 <Building2 className="w-3 h-3" />
-                <span>{currentUser.hospital}</span>
+                <span className="truncate max-w-[140px]">{currentUser.hospital}</span>
               </div>
             </div>
 
-            {/* Prominent Direct Logout Button */}
+            {/* Logout Button */}
             <button
               onClick={onLogout}
-              className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-xs px-2.5 sm:px-3 py-1.5 rounded-xl shadow-xs transition border border-rose-500 cursor-pointer"
+              className="flex items-center gap-1 sm:gap-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-[11px] sm:text-xs px-2 sm:px-2.5 py-1.5 rounded-xl shadow-xs transition border border-rose-500 shrink-0 cursor-pointer"
               title="ออกจากระบบ เพื่อกลับไปหน้าเข้าสู่ระบบ"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>ออกจากระบบ</span>
+              <LogOut className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden xs:inline">ออกจากระบบ</span>
+              <span className="xs:hidden">ออก</span>
             </button>
 
             {/* Profile Dropdown / Switcher Button */}
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-2 bg-teal-700/70 hover:bg-teal-700 border border-teal-600/80 rounded-lg px-2.5 py-1.5 transition text-left"
+                className="flex items-center gap-1.5 sm:gap-2 bg-teal-700/80 hover:bg-teal-700 border border-teal-600/90 rounded-xl px-2 sm:px-2.5 py-1.5 transition text-left cursor-pointer"
+                title={`บัญชี: ${currentUser.fullName} (${currentUser.roleLabel})`}
               >
-                <div className="w-7 h-7 rounded-full bg-teal-500 flex items-center justify-center text-white text-xs font-bold shadow-inner">
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-teal-500 flex items-center justify-center text-white text-xs font-bold shadow-inner shrink-0">
                   {currentUser.role === 'ADMIN' ? (
-                    <ShieldCheck className="w-4 h-4 text-amber-300" />
+                    <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300" />
                   ) : (
-                    <UserCheck className="w-4 h-4 text-emerald-200" />
+                    <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-200" />
                   )}
                 </div>
                 <div className="hidden sm:block text-left">
-                  <div className="text-xs font-semibold leading-none truncate max-w-[130px]">
+                  <div className="text-xs font-semibold leading-none truncate max-w-[110px] md:max-w-[130px]">
                     {currentUser.fullName}
                   </div>
-                  <div className="text-[10px] text-teal-200 leading-tight mt-0.5 truncate max-w-[130px]">
+                  <div className="text-[10px] text-teal-200 leading-tight mt-0.5 truncate max-w-[110px] md:max-w-[130px]">
                     {currentUser.role === 'ADMIN'
                       ? 'แอดมิน สสอ.'
                       : currentUser.role === 'HEALTH_OFFICER'
@@ -148,7 +168,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       : 'อสม. ประจำหมู่บ้าน'}
                   </div>
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-teal-300 ml-0.5" />
+                <ChevronDown className="w-3.5 h-3.5 text-teal-300 shrink-0" />
               </button>
 
               {/* User Menu Modal / Dropdown */}
@@ -203,6 +223,103 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Menu Bar in Frame Header */}
+        <div className="bg-white border-t border-b border-slate-200 shadow-xs">
+          <div className="max-w-7xl mx-auto px-2 sm:px-4 py-1.5 flex items-center justify-between gap-1 sm:gap-3">
+            {/* The 4 Responsive Menu Buttons */}
+            <nav className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar py-0.5">
+              {/* Button 1: แดชบอร์ด */}
+              <button
+                onClick={() => onChangeTab && onChangeTab('dashboard')}
+                className={`flex-1 sm:flex-initial shrink-0 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeTab === 'dashboard'
+                    ? 'bg-teal-700 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 bg-slate-50 sm:bg-transparent hover:bg-slate-100'
+                }`}
+                title="แดชบอร์ดสรุปภาพรวม"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span>แดชบอร์ด</span>
+                <span className="hidden md:inline">สรุปภาพรวม</span>
+              </button>
+
+              {/* Button 2: บันทึกคัดกรอง */}
+              <button
+                onClick={() => {
+                  if (onStartNewScreening) {
+                    onStartNewScreening();
+                  } else if (onChangeTab) {
+                    onChangeTab('new_screening');
+                  }
+                }}
+                className={`flex-1 sm:flex-initial shrink-0 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeTab === 'new_screening'
+                    ? 'bg-teal-700 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 bg-slate-50 sm:bg-transparent hover:bg-slate-100'
+                }`}
+                title="บันทึกแบบคัดกรอง (2Q+ & 8Q)"
+              >
+                <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span>บันทึกคัดกรอง</span>
+                <span className="hidden lg:inline">(2Q+ & 8Q)</span>
+              </button>
+
+              {/* Button 3: ทะเบียนคนไข้ */}
+              <button
+                onClick={() => onChangeTab && onChangeTab('patient_list')}
+                className={`flex-1 sm:flex-initial shrink-0 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 sm:gap-1.5 relative cursor-pointer ${
+                  activeTab === 'patient_list'
+                    ? 'bg-teal-700 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 bg-slate-50 sm:bg-transparent hover:bg-slate-100'
+                }`}
+                title="ทะเบียนคนไข้ที่ได้รับการคัดกรอง"
+              >
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span>ทะเบียนคนไข้</span>
+                {accessiblePatientCount > 0 && (
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                    activeTab === 'patient_list' ? 'bg-teal-800 text-teal-100' : 'bg-slate-200 text-slate-700'
+                  }`}>
+                    {accessiblePatientCount}
+                  </span>
+                )}
+                {highRiskCount > 0 && (
+                  <span className="bg-rose-600 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded-full animate-pulse shrink-0">
+                    {highRiskCount} <span className="hidden sm:inline">เสี่ยงสูง</span>
+                  </span>
+                )}
+              </button>
+
+              {/* Button 4: สมาชิก/แอดมิน */}
+              <button
+                onClick={() => onChangeTab && onChangeTab('members')}
+                className={`flex-1 sm:flex-initial shrink-0 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                  activeTab === 'members'
+                    ? 'bg-teal-700 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 bg-slate-50 sm:bg-transparent hover:bg-slate-100'
+                }`}
+                title={currentUser.role === 'ADMIN' ? 'จัดการสมาชิก สสอ./รพ.สต./อสม.' : 'ข้อมูลสังกัดและสมาชิก'}
+              >
+                <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <span>
+                  {currentUser.role === 'ADMIN' ? 'จัดการสมาชิก' : 'ข้อมูลสมาชิก'}
+                </span>
+                {currentUser.role === 'ADMIN' && (
+                  <span className="hidden lg:inline text-[10px] opacity-80">(สสอ./รพ.สต./อสม.)</span>
+                )}
+              </button>
+            </nav>
+
+            {/* Jurisdiction info badge on right for tablets/desktop */}
+            <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-500 shrink-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span className="truncate max-w-[200px]">
+                สังกัด: <strong className="text-slate-700">{currentUser.hospital}</strong>
+              </span>
             </div>
           </div>
         </div>
