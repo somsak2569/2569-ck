@@ -115,6 +115,16 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
       return;
     }
 
+    if (username.trim().length < 2) {
+      setError('ชื่อผู้ใช้ (Username) ต้องมีความยาวอย่างน้อย 2 ตัวอักษร');
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_\-\u0E00-\u0E7F]+$/.test(username.trim())) {
+      setError('ชื่อผู้ใช้สามารถใช้ตัวอักษรภาษาไทย ภาษาอังกฤษ ตัวเลข ขีดล่าง หรือยัติภังค์ (ห้ามเว้นวรรค)');
+      return;
+    }
+
     // Check duplicate username with other users
     const isDuplicate = allUsers.some(
       (u) => u.id !== user.id && u.username.toLowerCase() === username.trim().toLowerCase()
@@ -270,8 +280,8 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
-                  placeholder="เช่น user_ck"
+                  className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                  placeholder="เช่น somsak หรือ แอดมินสสอ"
                   required
                 />
                 <UserIcon className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />

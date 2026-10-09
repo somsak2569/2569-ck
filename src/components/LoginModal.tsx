@@ -47,7 +47,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   // Register form state
   const [regFullName, setRegFullName] = useState('');
   const [regUsername, setRegUsername] = useState('');
-  const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [showRegPassword, setShowRegPassword] = useState(false);
@@ -116,15 +115,21 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     setRegSuccess('');
 
     const trimmedName = regFullName.trim();
-    const trimmedUsername = regUsername.trim().toLowerCase();
+    const trimmedUsername = regUsername.trim();
 
     if (!trimmedName || !trimmedUsername) {
       setLoginError('กรุณากรอกชื่อ-สกุล และชื่อผู้ใช้ (Username)');
       return;
     }
 
-    if (trimmedUsername.length < 3) {
-      setLoginError('ชื่อผู้ใช้ (Username) ต้องมีความยาวอย่างน้อย 3 ตัวอักษร');
+    if (trimmedUsername.length < 2) {
+      setLoginError('ชื่อผู้ใช้ (Username) ต้องมีความยาวอย่างน้อย 2 ตัวอักษร');
+      return;
+    }
+
+    // Allow Thai alphabet, English letters, digits, underscore, hyphen (no whitespace)
+    if (!/^[a-zA-Z0-9_\-\u0E00-\u0E7F]+$/.test(trimmedUsername)) {
+      setLoginError('ชื่อผู้ใช้สามารถใช้ตัวอักษรภาษาไทย ภาษาอังกฤษ ตัวเลข ขีดล่าง หรือยัติภังค์ (ห้ามเว้นวรรค)');
       return;
     }
 
@@ -145,13 +150,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
     // Check duplicate
     const exists = users.some(
-      (u) =>
-        u.username.toLowerCase() === trimmedUsername ||
-        (regEmail.trim() && u.email.toLowerCase() === regEmail.trim().toLowerCase())
+      (u) => u.username.toLowerCase() === trimmedUsername.toLowerCase()
     );
 
     if (exists) {
-      setLoginError('ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้งานไปแล้ว กรุณาเลือกชื่อผู้ใช้อื่น');
+      setLoginError('ชื่อผู้ใช้นี้ถูกใช้งานไปแล้ว กรุณาเลือกชื่อผู้ใช้อื่น');
       return;
     }
 
@@ -165,11 +168,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         ? `officer-${Date.now()}`
         : `vhv-${Date.now()}`,
       username: trimmedUsername,
-      email:
-        regEmail.trim().toLowerCase() ||
-        (isAdmin
-          ? `${trimmedUsername}@chiangklang.nan.go.th`
-          : `${trimmedUsername}@nanhealth.org`),
+      email: '',
       password: regPassword,
       fullName: trimmedName,
       role: regRole,
@@ -260,7 +259,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                ชื่อผู้ใช้งาน (Username) หรือ อีเมล (E-mail)
+                ชื่อผู้ใช้งาน (Username)
               </label>
               <div className="relative">
                 <UserIcon className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -269,7 +268,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   required
                   value={loginInput}
                   onChange={(e) => setLoginInput(e.target.value)}
-                  placeholder="เช่น admin หรือ username ที่ลงทะเบียน"
+                  placeholder="เช่น admin หรือ ชื่อผู้ใช้ที่ลงทะเบียน"
                   className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none"
                 />
               </div>
@@ -444,29 +443,21 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  ชื่อผู้ใช้ (Username) <span className="text-rose-500">*</span>
-                </label>
+              <div className="sm:col-span-2">
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    ชื่อผู้ใช้ (Username) <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md font-medium border border-teal-200">
+                    ใช้ภาษาไทย ภาษาอังกฤษ หรือตัวเลขได้
+                  </span>
+                </div>
                 <input
                   type="text"
                   required
                   value={regUsername}
                   onChange={(e) => setRegUsername(e.target.value)}
-                  placeholder={regRole === 'ADMIN' ? 'เช่น somsak_admin' : 'เช่น duangjai_vhv'}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500 font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  อีเมล (E-mail)
-                </label>
-                <input
-                  type="email"
-                  value={regEmail}
-                  onChange={(e) => setRegEmail(e.target.value)}
-                  placeholder={regRole === 'ADMIN' ? 'เช่น somsak@chiangklang.nan.go.th' : 'เช่น duangjai@gmail.com'}
+                  placeholder={regRole === 'ADMIN' ? 'เช่น แอดมินสสอ หรือ somsak_admin' : 'เช่น อสมดวงใจ หรือ duangjai_vhv'}
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
