@@ -130,36 +130,61 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
 
-        {/* Filter bar for Tambon (Admin can choose) */}
-        {currentUser.role === 'ADMIN' && (
-          <div className="mt-4 pt-4 border-t border-teal-700/60 flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-teal-200 flex items-center gap-1">
-              <Filter className="w-3.5 h-3.5" />
-              แสดงข้อมูลตำบล:
-            </span>
+        {/* Filter bar for Tambon (Admin & Health Officers can choose) */}
+        {(currentUser.role === 'ADMIN' || currentUser.role === 'HEALTH_OFFICER') && (
+          <div className="mt-4 pt-3.5 border-t border-teal-600/70 flex flex-wrap items-center gap-2 text-xs">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-950/80 border-2 border-teal-400 text-amber-300 font-bold shadow-xs shrink-0">
+              <Filter className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+              <span>แสดงข้อมูลตำบล:</span>
+            </div>
+
+            {/* Button: ทั้งหมด (6 ตำบล) with clear distinct colored border */}
             <button
               onClick={() => setSelectedTambonFilter('ทั้งหมด')}
-              className={`px-3 py-1 rounded-lg transition font-medium ${
+              className={`px-3 py-1.5 rounded-xl transition-all font-bold border-2 cursor-pointer shadow-xs flex items-center gap-1 shrink-0 ${
                 selectedTambonFilter === 'ทั้งหมด'
-                  ? 'bg-white text-teal-900 shadow-xs'
-                  : 'bg-teal-900/50 text-teal-100 hover:bg-teal-900'
+                  ? 'bg-white text-teal-950 border-amber-400 shadow-md ring-2 ring-amber-300/70 scale-[1.03]'
+                  : 'bg-teal-950/70 text-teal-100 hover:text-white border-teal-400/90 hover:border-teal-200 hover:bg-teal-900'
               }`}
             >
-              ทั้งหมด (6 ตำบล)
+              <span>ทั้งหมด (6 ตำบล)</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-0.5 ${
+                selectedTambonFilter === 'ทั้งหมด'
+                  ? 'bg-teal-900 text-teal-100'
+                  : 'bg-teal-800 text-teal-200'
+              }`}>
+                {patients.length}
+              </span>
             </button>
-            {Object.keys(CHIANG_KLANG_TAMBONS).map((t) => (
-              <button
-                key={t}
-                onClick={() => setSelectedTambonFilter(t)}
-                className={`px-3 py-1 rounded-lg transition font-medium ${
-                  selectedTambonFilter === t
-                    ? 'bg-white text-teal-900 shadow-xs'
-                    : 'bg-teal-900/50 text-teal-100 hover:bg-teal-900'
-                }`}
-              >
-                ต.{t}
-              </button>
-            ))}
+
+            {/* Buttons for each of the 6 Tambons with clear distinct colored borders */}
+            {Object.keys(CHIANG_KLANG_TAMBONS).map((t) => {
+              const countInTambon = patients.filter((p) => p.tambon === t).length;
+              const isSelected = selectedTambonFilter === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setSelectedTambonFilter(t)}
+                  className={`px-3 py-1.5 rounded-xl transition-all font-bold border-2 cursor-pointer shadow-xs flex items-center gap-1 shrink-0 ${
+                    isSelected
+                      ? 'bg-white text-teal-950 border-amber-400 shadow-md ring-2 ring-amber-300/70 scale-[1.03]'
+                      : 'bg-teal-950/70 text-teal-100 hover:text-white border-teal-400/90 hover:border-teal-200 hover:bg-teal-900'
+                  }`}
+                  title={`แสดงข้อมูลเฉพาะตำบล${t} (${countInTambon} คน)`}
+                >
+                  <span>ต.{t}</span>
+                  {countInTambon > 0 && (
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-0.5 ${
+                      isSelected
+                        ? 'bg-teal-900 text-teal-100'
+                        : 'bg-teal-800/90 text-teal-200'
+                    }`}>
+                      {countInTambon}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -471,30 +496,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-            {tambonStats.map((item) => (
-              <div
-                key={item.name}
-                className="bg-slate-50 hover:bg-teal-50/50 p-3 rounded-xl border border-slate-200 transition text-center"
-              >
-                <div className="text-xs font-bold text-slate-800 truncate">
-                  ต.{item.name}
-                </div>
-                <div className="text-xl font-extrabold text-teal-800 mt-1">
-                  {item.total}
-                </div>
-                <div className="text-[10px] text-slate-500">ผู้รับการประเมิน</div>
+            {tambonStats.map((item) => {
+              const isSelected = selectedTambonFilter === item.name;
+              return (
+                <button
+                  type="button"
+                  key={item.name}
+                  onClick={() => setSelectedTambonFilter(isSelected ? 'ทั้งหมด' : item.name)}
+                  className={`p-3 rounded-2xl border-2 transition text-center cursor-pointer shadow-xs ${
+                    isSelected
+                      ? 'bg-teal-50 border-teal-600 shadow-md ring-2 ring-teal-400/60 scale-[1.03]'
+                      : 'bg-white hover:bg-teal-50/60 border-teal-500/80 hover:border-teal-600'
+                  }`}
+                  title={`คลิกเพื่อกรองข้อมูลเฉพาะ ต.${item.name}`}
+                >
+                  <div className="text-xs font-bold text-slate-800 truncate">
+                    ต.{item.name}
+                  </div>
+                  <div className="text-xl font-extrabold text-teal-850 mt-1">
+                    {item.total}
+                  </div>
+                  <div className="text-[10px] text-slate-500">ผู้รับการประเมิน</div>
 
-                {item.high > 0 ? (
-                  <div className="mt-2 text-[10px] font-bold text-rose-700 bg-rose-100 py-0.5 px-1.5 rounded-full inline-block">
-                    เสี่ยงรุนแรง {item.high}
-                  </div>
-                ) : (
-                  <div className="mt-2 text-[10px] font-medium text-emerald-700 bg-emerald-50 py-0.5 px-1.5 rounded-full inline-block">
-                    ปลอดภัย
-                  </div>
-                )}
-              </div>
-            ))}
+                  {item.high > 0 ? (
+                    <div className="mt-2 text-[10px] font-bold text-rose-700 bg-rose-100 py-0.5 px-2 rounded-full inline-block border border-rose-300">
+                      เสี่ยงรุนแรง {item.high}
+                    </div>
+                  ) : (
+                    <div className="mt-2 text-[10px] font-medium text-emerald-700 bg-emerald-50 py-0.5 px-2 rounded-full inline-block border border-emerald-300">
+                      ปลอดภัย
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

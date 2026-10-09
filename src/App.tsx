@@ -15,6 +15,7 @@ import {
   fetchUsersFromFirestore, 
   fetchPatientsFromFirestore, 
   saveUserToFirestore, 
+  deleteUserFromFirestore,
   savePatientToFirestore, 
   deletePatientFromFirestore,
   subscribeToPatients,
@@ -153,6 +154,27 @@ export default function App() {
     saveUsers(updatedUsers);
     saveUserToFirestore(newUser).catch((e) => console.warn('User saved locally, cloud sync pending:', e));
     showToast(`ลงทะเบียนผู้ใช้ ${newUser.fullName} เรียบร้อยแล้ว (ซิงค์ Firebase 2569-ck)`, 'success');
+  };
+
+  const handleUpdateUser = (updatedUser: User) => {
+    const updatedUsers = users.map((u) => (u.id === updatedUser.id ? updatedUser : u));
+    setUsersState(updatedUsers);
+    saveUsers(updatedUsers);
+    saveUserToFirestore(updatedUser).catch((e) => console.warn('User updated locally, cloud sync pending:', e));
+    if (currentUser?.id === updatedUser.id) {
+      setCurrentUserState(updatedUser);
+      setCurrentUser(updatedUser);
+    }
+    showToast(`อัปเดตข้อมูลของ ${updatedUser.fullName} (${updatedUser.roleLabel}) สำเร็จ`, 'success');
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    const userToDelete = users.find((u) => u.id === userId);
+    const updatedUsers = users.filter((u) => u.id !== userId);
+    setUsersState(updatedUsers);
+    saveUsers(updatedUsers);
+    deleteUserFromFirestore(userId).catch((e) => console.warn('User deleted locally, cloud sync pending:', e));
+    showToast(`ลบข้อมูล ${userToDelete ? userToDelete.fullName : 'ผู้ใช้งาน'} เรียบร้อยแล้ว`, 'info');
   };
 
   const handleLogout = () => {
@@ -305,6 +327,8 @@ export default function App() {
             currentUser={currentUser}
             users={users}
             onOpenRegister={() => setIsLoginModalOpen(true)}
+            onUpdateUser={handleUpdateUser}
+            onDeleteUser={handleDeleteUser}
           />
         )}
       </main>

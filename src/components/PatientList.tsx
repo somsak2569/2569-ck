@@ -163,12 +163,12 @@ export const PatientList: React.FC<PatientListProps> = ({
               <select
                 value={tambonFilter}
                 onChange={(e) => setTambonFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-white font-medium text-slate-700"
+                className="w-full px-3 py-2 rounded-xl border-2 border-teal-500 hover:border-teal-600 focus:border-teal-700 text-xs focus:ring-2 focus:ring-teal-400 outline-none bg-teal-50/50 font-bold text-teal-900 shadow-2xs"
               >
-                <option value="ALL">ทุกตำบล (6 ตำบล)</option>
+                <option value="ALL">📍 แสดงข้อมูลทุกตำบล (6 ตำบล)</option>
                 {Object.keys(CHIANG_KLANG_TAMBONS).map((t) => (
                   <option key={t} value={t}>
-                    ตำบล{t}
+                    📍 ข้อมูลตำบล{t}
                   </option>
                 ))}
               </select>

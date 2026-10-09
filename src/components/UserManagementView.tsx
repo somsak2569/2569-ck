@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { User } from '../types';
+import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
 import { exportMembersToExcel } from '../utils/excelExport';
+import { UserDetailModal } from './UserDetailModal';
+import { UserEditModal } from './UserEditModal';
+import { UserDeleteModal } from './UserDeleteModal';
 import { 
   Users, 
   ShieldCheck, 
@@ -12,87 +16,198 @@ import {
   PhoneCall, 
   Mail, 
   UserPlus,
-  Key,
+  Crown,
+  Eye,
+  Edit3,
+  Trash2,
   Database,
-  Crown
+  Filter
 } from 'lucide-react';
 
 interface UserManagementViewProps {
   currentUser: User;
   users: User[];
   onOpenRegister: () => void;
+  onUpdateUser: (updatedUser: User) => void;
+  onDeleteUser: (userId: string) => void;
 }
 
 export const UserManagementView: React.FC<UserManagementViewProps> = ({
   currentUser,
   users,
   onOpenRegister,
+  onUpdateUser,
+  onDeleteUser,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
+  const [tambonFilter, setTambonFilter] = useState<string>('ALL');
+
+  // Modals state
+  const [selectedUserForDetail, setSelectedUserForDetail] = useState<User | null>(null);
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState<User | null>(null);
+  const [selectedUserForDelete, setSelectedUserForDelete] = useState<User | null>(null);
+
+  const isAdmin = currentUser.role === 'ADMIN';
+
+  // Counts by role
+  const adminCount = users.filter((u) => u.role === 'ADMIN').length;
+  const officerCount = users.filter((u) => u.role === 'HEALTH_OFFICER').length;
+  const vhvCount = users.filter((u) => u.role === 'VHV').length;
 
   const filteredUsers = users.filter((u) => {
     const matchSearch =
       !searchTerm ||
       u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.tambon.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.village.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.hospital.toLowerCase().includes(searchTerm.toLowerCase());
+      (u.tambon && u.tambon.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (u.village && u.village.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (u.hospital && u.hospital.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchRole = roleFilter === 'ALL' || u.role === roleFilter;
+    const matchTambon =
+      tambonFilter === 'ALL' ||
+      u.tambon === tambonFilter ||
+      u.tambon === 'ทั้งหมด';
 
-    return matchSearch && matchRole;
+    return matchSearch && matchRole && matchTambon;
   });
 
   const handleExportMembers = () => {
     exportMembersToExcel(filteredUsers, 'ทะเบียนสมาชิกและเจ้าหน้าที่_สสอ_เชียงกลาง');
   };
 
-  const isAdmin = currentUser.role === 'ADMIN';
+  const handleSaveUserEdit = (updatedUser: User) => {
+    onUpdateUser(updatedUser);
+    setSelectedUserForEdit(null);
+    if (selectedUserForDetail && selectedUserForDetail.id === updatedUser.id) {
+      setSelectedUserForDetail(updatedUser);
+    }
+  };
+
+  const handleConfirmUserDelete = (userId: string) => {
+    onDeleteUser(userId);
+    setSelectedUserForDelete(null);
+    if (selectedUserForDetail && selectedUserForDetail.id === userId) {
+      setSelectedUserForDetail(null);
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5 pb-24">
-      {/* Top Banner */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5">
+      {/* Top Banner & Actions */}
+      <div className="bg-white rounded-2xl shadow-xs border border-slate-200 p-4 sm:p-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
               <h2 className="text-lg sm:text-xl font-bold text-slate-900">
-                ข้อมูลสมาชิกและเจ้าหน้าที่ในระบบ
+                ข้อมูลและจัดการสมาชิกในระบบ
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              {isAdmin
-                ? 'ผู้ดูแลระบบ (Admin) สามารถเข้าถึงข้อมูลสมาชิกได้ทั้งหมด ทุกตำบลใน อ.เชียงกลาง'
-                : `ข้อมูลโปรไฟล์และสังกัดของท่าน (${currentUser.roleLabel})`}
+              หน้าต่างข้อมูลและจัดการแก้ไขหรือลบข้อมูล: ผู้ดูแลระบบ (Admin), เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง) และ อสม.ประจำหมู่บ้าน
             </p>
             <div className="flex items-center gap-1.5 mt-2 text-[11px] text-teal-800 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-lg w-fit">
               <Database className="w-3.5 h-3.5 text-teal-600" />
-              <span>ฐานข้อมูลหลัก: <strong>Firebase Cloud Database (2569-ck)</strong> • เชื่อมต่อแล้ว</span>
+              <span>ฐานข้อมูล: <strong>Firebase Cloud Database (2569-ck)</strong> • ซิงค์เรียลไทม์</span>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleExportMembers}
-              className="px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              <span>ดาวน์โหลดรายชื่อสมาชิก Excel (.xlsx)</span>
+              <span>ส่งออก Excel (.xlsx)</span>
             </button>
             <button
               onClick={onOpenRegister}
-              className="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold transition flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
-              <span>+ เพิ่ม/ลงทะเบียนสมาชิก</span>
+              <span>+ ลงทะเบียนสมาชิกใหม่</span>
             </button>
           </div>
         </div>
 
-        {/* Filters */}
+        {/* 4 Role Summary Stat Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mt-4 pt-4 border-t border-slate-100">
+          {/* Total Members */}
+          <button
+            onClick={() => setRoleFilter('ALL')}
+            className={`p-3 rounded-xl border text-left transition cursor-pointer ${
+              roleFilter === 'ALL'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-800'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium opacity-80">สมาชิกทั้งหมด</span>
+              <Users className="w-4 h-4 opacity-70" />
+            </div>
+            <div className="text-xl sm:text-2xl font-black mt-1">
+              {users.length} <span className="text-xs font-normal opacity-80">คน</span>
+            </div>
+          </button>
+
+          {/* Admin Count */}
+          <button
+            onClick={() => setRoleFilter('ADMIN')}
+            className={`p-3 rounded-xl border text-left transition cursor-pointer ${
+              roleFilter === 'ADMIN'
+                ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                : 'bg-amber-50/80 border-amber-200 hover:bg-amber-100/70 text-amber-950'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium opacity-90">ผู้ดูแลระบบ (Admin)</span>
+              <Crown className="w-4 h-4 text-amber-600" />
+            </div>
+            <div className="text-xl sm:text-2xl font-black mt-1">
+              {adminCount} <span className="text-xs font-normal opacity-80">คน</span>
+            </div>
+          </button>
+
+          {/* Health Officer Count */}
+          <button
+            onClick={() => setRoleFilter('HEALTH_OFFICER')}
+            className={`p-3 rounded-xl border text-left transition cursor-pointer ${
+              roleFilter === 'HEALTH_OFFICER'
+                ? 'bg-teal-700 text-white border-teal-700 shadow-xs'
+                : 'bg-teal-50/80 border-teal-200 hover:bg-teal-100/70 text-teal-950'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium opacity-90">เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง)</span>
+              <ShieldCheck className="w-4 h-4 text-teal-600" />
+            </div>
+            <div className="text-xl sm:text-2xl font-black mt-1">
+              {officerCount} <span className="text-xs font-normal opacity-80">คน</span>
+            </div>
+          </button>
+
+          {/* VHV Count */}
+          <button
+            onClick={() => setRoleFilter('VHV')}
+            className={`p-3 rounded-xl border text-left transition cursor-pointer ${
+              roleFilter === 'VHV'
+                ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs'
+                : 'bg-emerald-50/80 border-emerald-200 hover:bg-emerald-100/70 text-emerald-950'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium opacity-90">อสม. ประจำหมู่บ้าน</span>
+              <UserCheck className="w-4 h-4 text-emerald-600" />
+            </div>
+            <div className="text-xl sm:text-2xl font-black mt-1">
+              {vhvCount} <span className="text-xs font-normal opacity-80">คน</span>
+            </div>
+          </button>
+        </div>
+
+        {/* Filters & Search */}
         <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
@@ -100,150 +215,276 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="ค้นหาชื่อสมาชิก, ตำบล, หมู่บ้าน, สังกัด รพ.สต...."
+              placeholder="ค้นหาชื่อ-นามสกุล, ชื่อผู้ใช้, ตำบล, หมู่บ้าน, สังกัด รพ.สต...."
               className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
             />
           </div>
 
-          <div className="w-full sm:w-48">
+          {/* Role Filter */}
+          <div className="w-full sm:w-52 flex items-center gap-1.5">
+            <Filter className="w-4 h-4 text-slate-400 shrink-0" />
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none font-medium text-slate-700"
+              className="w-full px-3 py-2 rounded-xl border-2 border-slate-300 hover:border-teal-400 text-xs bg-white outline-none font-semibold text-slate-700 shadow-2xs"
             >
-              <option value="ALL">ทุกสิทธิ์การใช้งาน</option>
-              <option value="ADMIN">ผู้ดูแลระบบ (Admin)</option>
-              <option value="HEALTH_OFFICER">เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง)</option>
-              <option value="VHV">อสม. ประจำหมู่บ้าน</option>
+              <option value="ALL">แสดงทุกกลุ่มสมาชิก ({users.length})</option>
+              <option value="ADMIN">👑 ผู้ดูแลระบบ (Admin) ({adminCount})</option>
+              <option value="HEALTH_OFFICER">🩺 เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง) ({officerCount})</option>
+              <option value="VHV">🤝 อสม. ประจำหมู่บ้าน ({vhvCount})</option>
+            </select>
+          </div>
+
+          {/* Tambon Filter with Clear Colored Border */}
+          <div className="w-full sm:w-48 flex items-center gap-1.5">
+            <MapPin className="w-4 h-4 text-teal-600 shrink-0" />
+            <select
+              value={tambonFilter}
+              onChange={(e) => setTambonFilter(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl border-2 border-teal-500 hover:border-teal-600 focus:border-teal-700 text-xs outline-none font-bold text-teal-900 bg-teal-50/60 shadow-2xs"
+            >
+              <option value="ALL">📍 แสดงข้อมูลทุกตำบล</option>
+              {Object.keys(CHIANG_KLANG_TAMBONS).map((t) => (
+                <option key={t} value={t}>
+                  📍 ข้อมูลตำบล{t}
+                </option>
+              ))}
             </select>
           </div>
         </div>
       </div>
 
-      {/* Current User Profile Card */}
-      <div className="bg-gradient-to-br from-teal-50 to-emerald-50/60 rounded-2xl p-4 sm:p-5 border border-teal-200 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-teal-700 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-              {currentUser.fullName.charAt(0)}
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-slate-900 text-base">{currentUser.fullName}</h3>
-                <span className="text-[11px] bg-teal-700 text-white px-2 py-0.5 rounded-full font-medium">
-                  {currentUser.role === 'ADMIN' ? 'ผู้ดูแลระบบสูงสุด' : currentUser.roleLabel}
-                </span>
-              </div>
-              <p className="text-xs text-slate-600 mt-0.5">
-                Username: <span className="font-mono font-semibold">{currentUser.username}</span> • Email: {currentUser.email}
-              </p>
-            </div>
+      {/* Current User Quick Bar */}
+      <div className="bg-gradient-to-r from-teal-50 via-emerald-50/50 to-teal-50 rounded-2xl p-3.5 sm:p-4 border border-teal-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-teal-700 text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+            {currentUser.fullName.charAt(0)}
           </div>
-
-          <div className="text-xs text-slate-600 bg-white/80 p-2.5 rounded-xl border border-teal-200/80">
-            <div>
-              <strong>เขตรับผิดชอบ:</strong> {currentUser.tambon === 'ทั้งหมด' ? 'ทุกตำบลในอำเภอเชียงกลาง' : `ตำบล${currentUser.tambon}`}
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-slate-900 text-sm truncate">{currentUser.fullName}</span>
+              <span className="text-[10px] bg-teal-700 text-white px-2 py-0.5 rounded-full font-medium shrink-0">
+                {currentUser.role === 'ADMIN' ? 'ผู้ดูแลระบบสูงสุด' : currentUser.roleLabel}
+              </span>
             </div>
-            <div>
-              <strong>รพ.สต. พี่เลี้ยง:</strong> {currentUser.hospital}
-            </div>
+            <p className="text-[11px] text-slate-500 font-mono">
+              @{currentUser.username} • {currentUser.hospital}
+            </p>
           </div>
         </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setSelectedUserForDetail(currentUser)}
+            className="px-3 py-1.5 rounded-xl bg-white hover:bg-teal-50 border border-teal-200 text-teal-800 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+          >
+            <Eye className="w-3.5 h-3.5 text-teal-600" />
+            <span>หน้าต่างข้อมูลของฉัน</span>
+          </button>
+          <button
+            onClick={() => setSelectedUserForEdit(currentUser)}
+            className="px-3 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+            <span>แก้ไขโปรไฟล์</span>
+          </button>
+        </div>
       </div>
+
+      {/* Empty State */}
+      {filteredUsers.length === 0 && (
+        <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center space-y-2">
+          <p className="text-sm font-semibold text-slate-600">ไม่พบข้อมูลสมาชิกที่ตรงกับเงื่อนไขการค้นหา</p>
+          <p className="text-xs text-slate-400">ลองเปลี่ยนคำค้นหา หรือเลือกตัวกรองกลุ่มสมาชิกใหม่</p>
+        </div>
+      )}
 
       {/* Member Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {filteredUsers.map((u) => {
           const isCurrentUser = u.id === currentUser.id;
+          const canManage = isAdmin || isCurrentUser;
+
           return (
             <div
               key={u.id}
-              className={`bg-white rounded-2xl p-4 border transition shadow-xs space-y-3 ${
+              className={`bg-white rounded-2xl p-4 border transition shadow-xs space-y-3 flex flex-col justify-between ${
                 isCurrentUser ? 'border-teal-500 ring-2 ring-teal-500/20' : 'border-slate-200 hover:border-slate-300'
               }`}
             >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                      u.role === 'ADMIN'
-                        ? 'bg-amber-100 text-amber-800'
-                        : u.role === 'HEALTH_OFFICER'
-                        ? 'bg-teal-100 text-teal-800'
-                        : 'bg-emerald-100 text-emerald-800'
-                    }`}
-                  >
-                    {u.role === 'ADMIN' ? (
-                      <Crown className="w-5 h-5 text-amber-600" />
-                    ) : (
-                      <UserCheck className="w-5 h-5 text-teal-700" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="font-bold text-slate-900 text-sm truncate max-w-[170px]">
-                        {u.fullName}
-                      </h4>
-                      {u.role === 'ADMIN' && (
-                        <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded-md">
-                          Admin
-                        </span>
+              <div className="space-y-3">
+                {/* Card Header */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs ${
+                        u.role === 'ADMIN'
+                          ? 'bg-amber-100 text-amber-800'
+                          : u.role === 'HEALTH_OFFICER'
+                          ? 'bg-teal-100 text-teal-800'
+                          : 'bg-emerald-100 text-emerald-800'
+                      }`}
+                    >
+                      {u.role === 'ADMIN' ? (
+                        <Crown className="w-5 h-5 text-amber-600" />
+                      ) : u.role === 'HEALTH_OFFICER' ? (
+                        <ShieldCheck className="w-5 h-5 text-teal-700" />
+                      ) : (
+                        <UserCheck className="w-5 h-5 text-emerald-700" />
                       )}
                     </div>
-                    <span className="text-[11px] text-slate-500 block truncate">
-                      {u.roleLabel} • <span className="font-mono text-slate-600">@{u.username}</span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="font-bold text-slate-900 text-sm truncate">
+                          {u.fullName}
+                        </h4>
+                      </div>
+                      <span className="text-[11px] text-slate-500 block truncate">
+                        <span className="font-semibold text-slate-700">{u.roleLabel}</span> • <span className="font-mono text-slate-500">@{u.username}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    {u.role === 'ADMIN' && (
+                      <span className="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-md border border-amber-200">
+                        Admin
+                      </span>
+                    )}
+                    {isCurrentUser && (
+                      <span className="text-[9px] bg-teal-100 text-teal-800 font-bold px-1.5 py-0.5 rounded-full">
+                        คุณ
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Jurisdiction Info */}
+                <div className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-100 text-xs space-y-1 text-slate-600">
+                  <div className="flex items-center gap-1.5 truncate">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="text-slate-400">พื้นที่:</span>
+                    <span className="font-medium text-slate-800 truncate">
+                      {u.tambon === 'ทั้งหมด' ? 'ทุกตำบล (ทั้งอำเภอ)' : `ตำบล${u.tambon}`}
                     </span>
                   </div>
-                </div>
-
-                {isCurrentUser && (
-                  <span className="text-[10px] bg-teal-100 text-teal-800 font-bold px-2 py-0.5 rounded-full shrink-0">
-                    บัญชีของคุณ
-                  </span>
-                )}
-              </div>
-
-              {/* Jurisdiction Details */}
-              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs space-y-1 text-slate-600">
-                <div className="flex items-center gap-1.5 truncate">
-                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span className="text-slate-400">พื้นที่:</span>
-                  <span className="font-medium text-slate-800 truncate">
-                    {u.tambon === 'ทั้งหมด' ? 'ทุกตำบล (ทั้งอำเภอ)' : `ตำบล${u.tambon}`}
-                  </span>
-                </div>
-                {u.village && u.village !== 'ทั้งหมด' && (
-                  <div className="flex items-center gap-1.5 truncate pl-5">
-                    <span className="text-slate-500 truncate">{u.village}</span>
+                  {u.village && u.village !== 'ทั้งหมด' && (
+                    <div className="flex items-center gap-1.5 truncate pl-5">
+                      <span className="text-slate-500 truncate">{u.village}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1.5 truncate">
+                    <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="text-slate-400">สังกัด:</span>
+                    <span className="font-medium text-slate-800 truncate">{u.hospital}</span>
                   </div>
-                )}
-                <div className="flex items-center gap-1.5 truncate">
-                  <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span className="text-slate-400">สังกัด/พี่เลี้ยง:</span>
-                  <span className="font-medium text-slate-800 truncate">{u.hospital}</span>
+                </div>
+
+                {/* Contact snippet */}
+                <div className="flex items-center justify-between text-xs text-slate-500 px-0.5">
+                  <div className="flex items-center gap-1 truncate max-w-[140px]">
+                    <Mail className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span className="truncate font-mono text-[11px]">{u.email || '-'}</span>
+                  </div>
+                  {u.phone ? (
+                    <a
+                      href={`tel:${u.phone}`}
+                      className="text-teal-700 font-medium hover:underline flex items-center gap-0.5 shrink-0"
+                    >
+                      <PhoneCall className="w-3 h-3" />
+                      <span>{u.phone}</span>
+                    </a>
+                  ) : (
+                    <span className="text-[11px] text-slate-400">-</span>
+                  )}
                 </div>
               </div>
 
-              {/* Contact info */}
-              <div className="pt-1 flex items-center justify-between text-xs text-slate-500">
-                <div className="flex items-center gap-1">
-                  <Mail className="w-3 h-3 text-slate-400" />
-                  <span className="truncate max-w-[130px] font-mono text-[11px]">{u.email}</span>
-                </div>
-                {u.phone && (
-                  <a
-                    href={`tel:${u.phone}`}
-                    className="text-teal-700 font-medium hover:underline flex items-center gap-0.5"
-                  >
-                    <PhoneCall className="w-3 h-3" />
-                    <span>{u.phone}</span>
-                  </a>
-                )}
+              {/* Action Buttons: ดูข้อมูล, แก้ไข, ลบ */}
+              <div className="pt-2 border-t border-slate-100 grid grid-cols-3 gap-1.5">
+                {/* 1. ดูหน้าต่างข้อมูล */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedUserForDetail(u)}
+                  className="px-2 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-teal-50 hover:border-teal-300 hover:text-teal-800 text-slate-700 text-xs font-semibold transition flex items-center justify-center gap-1 cursor-pointer"
+                  title="เปิดหน้าต่างข้อมูลสมาชิก"
+                >
+                  <Eye className="w-3.5 h-3.5 text-teal-600" />
+                  <span>ดูข้อมูล</span>
+                </button>
+
+                {/* 2. แก้ไขข้อมูล */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedUserForEdit(u)}
+                  disabled={!canManage}
+                  className={`px-2 py-1.5 rounded-xl border text-xs font-semibold transition flex items-center justify-center gap-1 cursor-pointer ${
+                    canManage
+                      ? 'border-slate-200 bg-slate-50 hover:bg-amber-50 hover:border-amber-300 hover:text-amber-800 text-slate-700'
+                      : 'border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed'
+                  }`}
+                  title={canManage ? 'แก้ไขข้อมูล' : 'เฉพาะผู้ดูแลระบบหรือเจ้าของบัญชี'}
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-amber-600" />
+                  <span>แก้ไข</span>
+                </button>
+
+                {/* 3. ลบข้อมูล */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedUserForDelete(u)}
+                  disabled={!isAdmin}
+                  className={`px-2 py-1.5 rounded-xl border text-xs font-semibold transition flex items-center justify-center gap-1 cursor-pointer ${
+                    isAdmin
+                      ? 'border-slate-200 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-800 text-slate-700'
+                      : 'border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed'
+                  }`}
+                  title={isAdmin ? 'ลบข้อมูล' : 'เฉพาะผู้ดูแลระบบเท่านั้นที่ลบได้'}
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                  <span>ลบ</span>
+                </button>
               </div>
             </div>
           );
         })}
       </div>
+
+      {/* 1. User Detail Modal (หน้าต่างข้อมูล) */}
+      <UserDetailModal
+        user={selectedUserForDetail}
+        isOpen={Boolean(selectedUserForDetail)}
+        currentUser={currentUser}
+        onClose={() => setSelectedUserForDetail(null)}
+        onEdit={(targetUser) => {
+          setSelectedUserForDetail(null);
+          setSelectedUserForEdit(targetUser);
+        }}
+        onDelete={(targetUser) => {
+          setSelectedUserForDetail(null);
+          setSelectedUserForDelete(targetUser);
+        }}
+      />
+
+      {/* 2. User Edit Modal (หน้าต่างแก้ไขข้อมูล) */}
+      <UserEditModal
+        user={selectedUserForEdit}
+        isOpen={Boolean(selectedUserForEdit)}
+        currentUser={currentUser}
+        allUsers={users}
+        onClose={() => setSelectedUserForEdit(null)}
+        onSave={handleSaveUserEdit}
+      />
+
+      {/* 3. User Delete Confirm Modal (หน้าต่างยืนยันการลบ) */}
+      <UserDeleteModal
+        user={selectedUserForDelete}
+        isOpen={Boolean(selectedUserForDelete)}
+        currentUser={currentUser}
+        allUsers={users}
+        onClose={() => setSelectedUserForDelete(null)}
+        onConfirmDelete={handleConfirmUserDelete}
+      />
     </div>
   );
 };

@@ -19,6 +19,9 @@ const migrateHospitalName = (name: string): string => {
   return name;
 };
 
+const TEST_USER_IDS = new Set(['user-officer-puea', 'user-officer-ngiew', 'user-vhv-puea2', 'user-vhv-ck1']);
+const TEST_USERNAMES = new Set(['officer_puea', 'officer_ngiew', 'vhv_puea', 'vhv_ck']);
+
 export const getStoredUsers = (): User[] => {
   try {
     const raw = localStorage.getItem(USERS_STORAGE_KEY);
@@ -27,22 +30,35 @@ export const getStoredUsers = (): User[] => {
       return INITIAL_USERS;
     }
     const parsed: User[] = JSON.parse(raw);
-    const updated = parsed.map((u) => {
-      if (u.id === 'user-admin') {
+    const cleaned = parsed
+      .filter((u) => !TEST_USER_IDS.has(u.id) && !TEST_USERNAMES.has(u.username))
+      .map((u) => {
+        if (u.id === 'user-admin') {
+          return {
+            ...u,
+            fullName: u.fullName || 'อรไท พิพิธพัฒน์ไพสิธ',
+            email: u.email || 'thaipasit5@gmail.com',
+            phone: u.phone || '0979184142',
+            hospital: migrateHospitalName(u.hospital),
+          };
+        }
         return {
           ...u,
-          fullName: u.fullName || 'อรไท พิพิธพัฒน์ไพสิธ',
-          email: u.email || 'thaipasit5@gmail.com',
-          phone: u.phone || '0979184142',
           hospital: migrateHospitalName(u.hospital),
         };
-      }
-      return {
-        ...u,
-        hospital: migrateHospitalName(u.hospital),
-      };
-    });
-    return updated;
+      });
+
+    // If test accounts were purged or list is empty, ensure default admin is present
+    if (cleaned.length === 0) {
+      saveUsers(INITIAL_USERS);
+      return INITIAL_USERS;
+    }
+
+    if (cleaned.length !== parsed.length) {
+      saveUsers(cleaned);
+    }
+
+    return cleaned;
   } catch (e) {
     console.error('Error reading users from localStorage', e);
     return INITIAL_USERS;

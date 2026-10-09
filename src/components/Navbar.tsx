@@ -17,7 +17,8 @@ import {
   LayoutDashboard,
   UserPlus,
   Users,
-  ShieldAlert
+  ShieldAlert,
+  Eye
 } from 'lucide-react';
 import { EMERGENCY_CONTACTS } from '../data/chiangklangData';
 
@@ -134,10 +135,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Logout Button */}
             <button
               onClick={onLogout}
-              className="flex items-center gap-1 sm:gap-1.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-[11px] sm:text-xs px-2 sm:px-2.5 py-1.5 rounded-xl shadow-xs transition border border-rose-500 shrink-0 cursor-pointer"
+              className="flex items-center gap-1 sm:gap-1.5 bg-slate-800/80 hover:bg-slate-700 active:bg-slate-900 text-slate-100 hover:text-white font-semibold text-[11px] sm:text-xs px-2.5 sm:px-3 py-1.5 rounded-xl shadow-xs transition border-2 border-slate-600/90 hover:border-slate-400 shrink-0 cursor-pointer"
               title="ออกจากระบบ เพื่อกลับไปหน้าเข้าสู่ระบบ"
             >
-              <LogOut className="w-3.5 h-3.5 shrink-0" />
+              <LogOut className="w-3.5 h-3.5 text-slate-300 group-hover:text-white shrink-0" />
               <span className="hidden xs:inline">ออกจากระบบ</span>
               <span className="xs:hidden">ออก</span>
             </button>
@@ -209,16 +210,36 @@ export const Navbar: React.FC<NavbarProps> = ({
                     </div>
                   </div>
 
-                  <div className="pt-2">
+                  <div className="pt-2 space-y-1">
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        if (onChangeTab) onChangeTab('members');
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition text-left cursor-pointer"
+                    >
+                      <Eye className="w-4 h-4 text-teal-600 shrink-0" />
+                      <span>หน้าต่างข้อมูล & จัดการสมาชิก</span>
+                    </button>
                     <button
                       onClick={() => {
                         setShowUserMenu(false);
                         onOpenLogin();
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-teal-700 hover:bg-teal-50 rounded-lg transition"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-teal-700 hover:bg-teal-50 rounded-lg transition text-left cursor-pointer"
                     >
-                      <UserCheck className="w-4 h-4" />
+                      <UserCheck className="w-4 h-4 shrink-0" />
                       <span>สลับบัญชีผู้ใช้ / ลงทะเบียนใหม่</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        onLogout();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 border-t border-slate-100 mt-1 rounded-lg transition text-left cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4 text-slate-500 shrink-0" />
+                      <span>ออกจากระบบ</span>
                     </button>
                   </div>
                 </div>
@@ -230,24 +251,24 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Navigation Menu Bar in Frame Header */}
         <div className="bg-white border-t border-b border-slate-200 shadow-xs">
           <div className="max-w-7xl mx-auto px-2 sm:px-4 py-1.5 flex items-center justify-between gap-1 sm:gap-3">
-            {/* The 4 Responsive Menu Buttons */}
+            {/* The 4 Responsive Menu Buttons with Distinct Colored Borders */}
             <nav className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar py-0.5">
-              {/* Button 1: แดชบอร์ด */}
+              {/* Button 1: แดชบอร์ด สรุปภาพรวม (Teal Colored Border) */}
               <button
                 onClick={() => onChangeTab && onChangeTab('dashboard')}
-                className={`flex-1 sm:flex-initial shrink-0 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`flex-1 sm:flex-initial shrink-0 px-2 sm:px-3 py-1.5 sm:py-2 text-[10.5px] xs:text-[11px] sm:text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 border-2 cursor-pointer shadow-2xs ${
                   activeTab === 'dashboard'
-                    ? 'bg-teal-700 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 bg-slate-50 sm:bg-transparent hover:bg-slate-100'
+                    ? 'bg-teal-700 text-white border-teal-900 shadow-sm ring-2 ring-teal-400/50'
+                    : 'text-teal-900 bg-teal-50/70 border-teal-500 hover:bg-teal-100 hover:border-teal-700'
                 }`}
                 title="แดชบอร์ดสรุปภาพรวม"
               >
-                <LayoutDashboard className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <LayoutDashboard className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'dashboard' ? 'text-white' : 'text-teal-700'}`} />
                 <span>แดชบอร์ด</span>
                 <span className="hidden md:inline">สรุปภาพรวม</span>
               </button>
 
-              {/* Button 2: บันทึกคัดกรอง */}
+              {/* Button 2: บันทึกคัดกรอง (2Q+&8Q) (Emerald Colored Border) */}
               <button
                 onClick={() => {
                   if (onStartNewScreening) {
@@ -256,60 +277,62 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onChangeTab('new_screening');
                   }
                 }}
-                className={`flex-1 sm:flex-initial shrink-0 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`flex-1 sm:flex-initial shrink-0 px-2 sm:px-3 py-1.5 sm:py-2 text-[10.5px] xs:text-[11px] sm:text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 border-2 cursor-pointer shadow-2xs ${
                   activeTab === 'new_screening'
-                    ? 'bg-teal-700 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 bg-slate-50 sm:bg-transparent hover:bg-slate-100'
+                    ? 'bg-emerald-700 text-white border-emerald-900 shadow-sm ring-2 ring-emerald-400/50'
+                    : 'text-emerald-900 bg-emerald-50/70 border-emerald-500 hover:bg-emerald-100 hover:border-emerald-700'
                 }`}
                 title="บันทึกแบบคัดกรอง (2Q+ & 8Q)"
               >
-                <UserPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <UserPlus className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'new_screening' ? 'text-white' : 'text-emerald-700'}`} />
                 <span>บันทึกคัดกรอง</span>
-                <span className="hidden lg:inline">(2Q+ & 8Q)</span>
+                <span className="hidden sm:inline text-[10px] sm:text-[11px]">(2Q+&8Q)</span>
               </button>
 
-              {/* Button 3: ทะเบียนคนไข้ */}
+              {/* Button 3: ทะเบียนคนไข้ (Blue Colored Border) */}
               <button
                 onClick={() => onChangeTab && onChangeTab('patient_list')}
-                className={`flex-1 sm:flex-initial shrink-0 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-xl transition flex items-center justify-center gap-1 sm:gap-1.5 relative cursor-pointer ${
+                className={`flex-1 sm:flex-initial shrink-0 px-2 sm:px-3 py-1.5 sm:py-2 text-[10.5px] xs:text-[11px] sm:text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 border-2 relative cursor-pointer shadow-2xs ${
                   activeTab === 'patient_list'
-                    ? 'bg-teal-700 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 bg-slate-50 sm:bg-transparent hover:bg-slate-100'
+                    ? 'bg-blue-700 text-white border-blue-900 shadow-sm ring-2 ring-blue-400/50'
+                    : 'text-blue-900 bg-blue-50/70 border-blue-500 hover:bg-blue-100 hover:border-blue-700'
                 }`}
                 title="ทะเบียนคนไข้ที่ได้รับการคัดกรอง"
               >
-                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <Users className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'patient_list' ? 'text-white' : 'text-blue-700'}`} />
                 <span>ทะเบียนคนไข้</span>
                 {accessiblePatientCount > 0 && (
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                    activeTab === 'patient_list' ? 'bg-teal-800 text-teal-100' : 'bg-slate-200 text-slate-700'
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold border ${
+                    activeTab === 'patient_list' 
+                      ? 'bg-blue-900/90 text-blue-100 border-blue-400/40' 
+                      : 'bg-white text-blue-800 border-blue-300 shadow-2xs'
                   }`}>
                     {accessiblePatientCount}
                   </span>
                 )}
                 {highRiskCount > 0 && (
-                  <span className="bg-rose-600 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded-full animate-pulse shrink-0">
+                  <span className="bg-rose-600 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded-full animate-pulse shrink-0 border border-rose-700 shadow-2xs">
                     {highRiskCount} <span className="hidden sm:inline">เสี่ยงสูง</span>
                   </span>
                 )}
               </button>
 
-              {/* Button 4: สมาชิก/แอดมิน */}
+              {/* Button 4: จัดการสมาชิก (Purple Colored Border) */}
               <button
                 onClick={() => onChangeTab && onChangeTab('members')}
-                className={`flex-1 sm:flex-initial shrink-0 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`flex-1 sm:flex-initial shrink-0 px-2 sm:px-3 py-1.5 sm:py-2 text-[10.5px] xs:text-[11px] sm:text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 border-2 cursor-pointer shadow-2xs ${
                   activeTab === 'members'
-                    ? 'bg-teal-700 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 bg-slate-50 sm:bg-transparent hover:bg-slate-100'
+                    ? 'bg-purple-700 text-white border-purple-900 shadow-sm ring-2 ring-purple-400/50'
+                    : 'text-purple-900 bg-purple-50/70 border-purple-500 hover:bg-purple-100 hover:border-purple-700'
                 }`}
                 title={currentUser.role === 'ADMIN' ? 'จัดการสมาชิก สสอ./รพ.สต./อสม.' : 'ข้อมูลสังกัดและสมาชิก'}
               >
-                <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                <ShieldAlert className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'members' ? 'text-white' : 'text-purple-700'}`} />
                 <span>
                   {currentUser.role === 'ADMIN' ? 'จัดการสมาชิก' : 'ข้อมูลสมาชิก'}
                 </span>
                 {currentUser.role === 'ADMIN' && (
-                  <span className="hidden lg:inline text-[10px] opacity-80">(สสอ./รพ.สต./อสม.)</span>
+                  <span className="hidden lg:inline text-[10px] opacity-90">(สสอ./รพ.สต./อสม.)</span>
                 )}
               </button>
             </nav>

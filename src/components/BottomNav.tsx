@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, UserPlus, Users, ShieldAlert, Sparkles } from 'lucide-react';
+import { LayoutDashboard, UserPlus, Users, ShieldAlert } from 'lucide-react';
 import { User } from '../types';
 
 export type ActiveTab = 'dashboard' | 'new_screening' | 'patient_list' | 'members';
@@ -23,9 +23,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         {/* Dashboard */}
         <button
           onClick={() => onChangeTab('dashboard')}
-          className={`flex flex-col items-center justify-center py-1 rounded-xl transition ${
+          className={`flex flex-col items-center justify-center py-1 mx-0.5 rounded-xl transition ${
             activeTab === 'dashboard'
-              ? 'text-teal-700 font-bold bg-teal-50/70'
+              ? 'text-teal-700 font-bold bg-teal-50 border border-teal-400 shadow-2xs'
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -36,14 +36,14 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         {/* New Screening */}
         <button
           onClick={() => onChangeTab('new_screening')}
-          className={`flex flex-col items-center justify-center py-1 rounded-xl transition relative ${
+          className={`flex flex-col items-center justify-center py-1 mx-0.5 rounded-xl transition relative ${
             activeTab === 'new_screening'
-              ? 'text-teal-700 font-bold bg-teal-50/70'
+              ? 'text-emerald-700 font-bold bg-emerald-50 border border-emerald-400 shadow-2xs'
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center shadow-md -mt-2">
+            <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-md -mt-2">
               <UserPlus className="w-4 h-4" />
             </div>
           </div>
@@ -53,9 +53,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         {/* Patient List */}
         <button
           onClick={() => onChangeTab('patient_list')}
-          className={`flex flex-col items-center justify-center py-1 rounded-xl transition relative ${
+          className={`flex flex-col items-center justify-center py-1 mx-0.5 rounded-xl transition relative ${
             activeTab === 'patient_list'
-              ? 'text-teal-700 font-bold bg-teal-50/70'
+              ? 'text-blue-700 font-bold bg-blue-50 border border-blue-400 shadow-2xs'
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -73,9 +73,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         {/* Members / Admin */}
         <button
           onClick={() => onChangeTab('members')}
-          className={`flex flex-col items-center justify-center py-1 rounded-xl transition ${
+          className={`flex flex-col items-center justify-center py-1 mx-0.5 rounded-xl transition ${
             activeTab === 'members'
-              ? 'text-teal-700 font-bold bg-teal-50/70'
+              ? 'text-purple-700 font-bold bg-purple-50 border border-purple-400 shadow-2xs'
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >

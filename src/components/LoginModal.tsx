@@ -6,7 +6,6 @@ import {
   LogIn, 
   UserPlus, 
   ShieldCheck, 
-  Sparkles, 
   UserCheck, 
   Building2, 
   MapPin, 
@@ -37,7 +36,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onSelectUser,
   onRegisterUser,
 }) => {
-  const [mode, setMode] = useState<'LOGIN' | 'REGISTER' | 'DEMO'>('LOGIN');
+  const [mode, setMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
 
   // Login form state
   const [loginInput, setLoginInput] = useState('');
@@ -218,7 +217,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         </div>
 
         {/* Tab switcher */}
-        <div className="grid grid-cols-3 border-b border-slate-200 bg-slate-50 text-xs font-semibold">
+        <div className="grid grid-cols-2 border-b border-slate-200 bg-slate-50 text-xs font-semibold">
           <button
             onClick={() => {
               setMode('LOGIN');
@@ -247,20 +246,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <UserPlus className="w-3.5 h-3.5 inline mr-1" />
             ลงทะเบียนใหม่
           </button>
-          <button
-            onClick={() => {
-              setMode('DEMO');
-              setLoginError('');
-            }}
-            className={`py-3 text-center transition ${
-              mode === 'DEMO'
-                ? 'bg-white text-teal-800 border-b-2 border-teal-600 font-bold'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 inline mr-1 text-amber-500" />
-            ทดสอบสิทธิ์
-          </button>
         </div>
 
         {/* Tab 1: LOGIN FORM */}
@@ -273,34 +258,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               </div>
             )}
 
-            {/* Quick Fill Admin Banner */}
-            <div className="p-2.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 rounded-2xl flex items-center justify-between gap-2 shadow-xs">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-7 h-7 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-                  <Crown className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-bold text-slate-800 flex items-center gap-1.5 truncate">
-                    <span>ผู้ดูแลระบบ (Admin) สสอ.เชียงกลาง</span>
-                  </div>
-                  <div className="text-[11px] text-slate-500 truncate">
-                    Username: <span className="font-mono font-bold text-slate-700">admin</span> • รหัส: <span className="font-mono text-slate-700">password123</span>
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setLoginInput('admin');
-                  setLoginPassword('password123');
-                  setLoginError('');
-                }}
-                className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition shadow-xs shrink-0 cursor-pointer"
-              >
-                ใช้บัญชีนี้
-              </button>
-            </div>
-
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 ชื่อผู้ใช้งาน (Username) หรือ อีเมล (E-mail)
@@ -312,7 +269,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   required
                   value={loginInput}
                   onChange={(e) => setLoginInput(e.target.value)}
-                  placeholder="เช่น admin, officer_puea, หรือ thaipasit5@gmail.com"
+                  placeholder="เช่น admin หรือ username ที่ลงทะเบียน"
                   className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none"
                 />
               </div>
@@ -324,7 +281,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   รหัสผ่าน (Password)
                 </label>
                 <span className="text-[11px] text-slate-400">
-                  รหัสเริ่มต้น: password123
+                  รหัสผ่านของคุณ
                 </span>
               </div>
               <div className="relative">
@@ -346,7 +303,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs pt-1">
+            <button
+              type="submit"
+              className="w-full py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-xs transition text-sm flex items-center justify-center gap-1.5 cursor-pointer mt-1"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>เข้าสู่ระบบ</span>
+            </button>
+
+            <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => {
@@ -362,22 +327,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <button
                 type="button"
                 onClick={() => {
-                  setMode('DEMO');
+                  setMode('REGISTER');
+                  setRegRole('VHV');
                   setLoginError('');
                 }}
                 className="text-teal-700 hover:text-teal-800 font-semibold hover:underline cursor-pointer"
               >
-                ⚡ เลือกบัญชีทดสอบ
+                + ลงทะเบียน อสม./จนท.
               </button>
             </div>
-
-            <button
-              type="submit"
-              className="w-full py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-xs transition text-sm flex items-center justify-center gap-1.5 cursor-pointer mt-1"
-            >
-              <LogIn className="w-4 h-4" />
-              <span>เข้าสู่ระบบ</span>
-            </button>
           </form>
         )}
 
@@ -659,70 +617,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <span>ยืนยันการลงทะเบียนและเข้าใช้งานทันที</span>
             </button>
           </form>
-        )}
-
-        {/* Tab 3: QUICK DEMO ACCOUNTS */}
-        {mode === 'DEMO' && (
-          <div className="p-5 space-y-3">
-            <p className="text-xs text-slate-600">
-              คลิกเพื่อสลับเข้าใช้งานในบทบาทต่างๆ เพื่อทดสอบระบบสิทธิ์การเข้าถึงข้อมูลตามโจทย์:
-            </p>
-
-            <div className="space-y-2">
-              {users.map((u) => {
-                const isCurrent = u.id === currentUser.id;
-                return (
-                  <div
-                    key={u.id}
-                    onClick={() => {
-                      onSelectUser(u);
-                      onClose();
-                    }}
-                    className={`p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between ${
-                      isCurrent
-                        ? 'border-teal-500 bg-teal-50/70 shadow-xs'
-                        : 'border-slate-200 hover:border-teal-300 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs ${
-                          u.role === 'ADMIN'
-                            ? 'bg-amber-100 text-amber-800'
-                            : u.role === 'HEALTH_OFFICER'
-                            ? 'bg-teal-100 text-teal-800'
-                            : 'bg-emerald-100 text-emerald-800'
-                        }`}
-                      >
-                        {u.role === 'ADMIN' ? (
-                          <ShieldCheck className="w-5 h-5" />
-                        ) : (
-                          <UserCheck className="w-5 h-5" />
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-1.5">
-                          <span>{u.fullName}</span>
-                          {isCurrent && (
-                            <span className="text-[10px] bg-teal-600 text-white px-1.5 py-0.2 rounded-full">
-                              ใช้งานอยู่
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[11px] text-slate-500">
-                          {u.roleLabel} • {u.tambon === 'ทั้งหมด' ? 'ทั้งอำเภอเชียงกลาง' : `ต.${u.tambon}`}
-                        </div>
-                      </div>
-                    </div>
-
-                    <span className="text-xs font-semibold text-teal-700 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-2xs">
-                      เลือกบัญชีนี้
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         )}
       </div>
     </div>

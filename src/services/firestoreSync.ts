@@ -44,6 +44,22 @@ export async function saveUserToFirestore(user: User): Promise<void> {
 }
 
 /**
+ * Delete a user from Firestore
+ */
+export async function deleteUserFromFirestore(userId: string): Promise<void> {
+  if (!auth.currentUser) {
+    console.info('Not signed in to Firebase; user deletion performed locally.');
+    return;
+  }
+  const path = `${USERS_COLLECTION}/${userId}`;
+  try {
+    await deleteDoc(doc(db, USERS_COLLECTION, userId));
+  } catch (err) {
+    handleFirestoreError(err, OperationType.DELETE, path);
+  }
+}
+
+/**
  * Fetch all patient screenings from Firestore (only when authenticated)
  */
 export async function fetchPatientsFromFirestore(): Promise<PatientScreening[]> {
