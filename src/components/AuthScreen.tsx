@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { User, UserRole } from '../types';
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
 import { isUserSomsak } from '../utils/storage';
+import { PWAInstallButton } from './PWAInstallButton';
 import { 
   HeartHandshake, 
   LogIn, 
@@ -663,6 +664,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             )}
           </div>
         </div>
+
+        {/* PWA Cross-Platform Install Card */}
+        <PWAInstallButton variant="card" />
 
         {/* Emergency Hotline Strip */}
         <div className="bg-teal-950/60 backdrop-blur-md rounded-2xl p-3 border border-teal-700/50 flex items-center justify-between text-xs text-teal-100">

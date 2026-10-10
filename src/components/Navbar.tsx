@@ -21,6 +21,7 @@ import {
   Eye
 } from 'lucide-react';
 import { EMERGENCY_CONTACTS } from '../data/chiangklangData';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface NavbarProps {
   currentUser: User;
@@ -132,6 +133,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             </div>
 
+            {/* PWA Install Button */}
+            <PWAInstallButton variant="navbar" />
+
             {/* Logout Button */}
             <button
               onClick={onLogout}
@@ -139,8 +143,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               title="ออกจากระบบ เพื่อกลับไปหน้าเข้าสู่ระบบ"
             >
               <LogOut className="w-3.5 h-3.5 text-slate-300 group-hover:text-white shrink-0" />
-              <span className="hidden xs:inline">ออกจากระบบ</span>
-              <span className="xs:hidden">ออก</span>
+              <span>ออกจากระบบ</span>
             </button>
 
             {/* Profile Dropdown / Switcher Button */}

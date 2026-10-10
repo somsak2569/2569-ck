@@ -34,6 +34,7 @@ import { AuthScreen } from './components/AuthScreen';
 import { UserManagementView } from './components/UserManagementView';
 import { EmergencyGuideModal } from './components/EmergencyGuideModal';
 import { Footer } from './components/Footer';
+import { OfflineIndicator } from './components/PWAInstallButton';
 import { 
   LayoutDashboard, 
   UserPlus, 
@@ -202,11 +203,14 @@ export default function App() {
   // If user is not logged in, show AuthScreen (Login / Register / Demo) as the entry page
   if (!currentUser) {
     return (
-      <AuthScreen
-        users={users}
-        onLoginSuccess={handleSelectUser}
-        onRegisterUser={handleRegisterUser}
-      />
+      <>
+        <OfflineIndicator />
+        <AuthScreen
+          users={users}
+          onLoginSuccess={handleSelectUser}
+          onRegisterUser={handleRegisterUser}
+        />
+      </>
     );
   }
 
@@ -260,7 +264,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans selection:bg-teal-600 selection:text-white">
+    <div className="min-h-screen bg-slate-100 flex flex-col font-sans selection:bg-teal-600 selection:text-white pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+      <OfflineIndicator />
       {/* Top Navbar with Integrated Responsive Menu Bar */}
       <Navbar
         currentUser={currentUser}

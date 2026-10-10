@@ -18,25 +18,25 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   highRiskCount,
 }) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg px-2 py-1.5 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom,0px))] md:hidden">
       <div className="grid grid-cols-4 max-w-md mx-auto">
         {/* Dashboard */}
         <button
           onClick={() => onChangeTab('dashboard')}
-          className={`flex flex-col items-center justify-center py-1 mx-0.5 rounded-xl transition ${
+          className={`flex flex-col items-center justify-center py-1.5 mx-0.5 rounded-xl transition min-h-[48px] cursor-pointer ${
             activeTab === 'dashboard'
               ? 'text-teal-700 font-bold bg-teal-50 border border-teal-400 shadow-2xs'
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <LayoutDashboard className="w-5 h-5" />
-          <span className="text-[10px] mt-1">แดชบอร์ด</span>
+          <span className="text-[10px] mt-0.5">แดชบอร์ด</span>
         </button>
 
         {/* New Screening */}
         <button
           onClick={() => onChangeTab('new_screening')}
-          className={`flex flex-col items-center justify-center py-1 mx-0.5 rounded-xl transition relative ${
+          className={`flex flex-col items-center justify-center py-1.5 mx-0.5 rounded-xl transition relative min-h-[48px] cursor-pointer ${
             activeTab === 'new_screening'
               ? 'text-emerald-700 font-bold bg-emerald-50 border border-emerald-400 shadow-2xs'
               : 'text-slate-500 hover:text-slate-800'
@@ -53,7 +53,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         {/* Patient List */}
         <button
           onClick={() => onChangeTab('patient_list')}
-          className={`flex flex-col items-center justify-center py-1 mx-0.5 rounded-xl transition relative ${
+          className={`flex flex-col items-center justify-center py-1.5 mx-0.5 rounded-xl transition relative min-h-[48px] cursor-pointer ${
             activeTab === 'patient_list'
               ? 'text-blue-700 font-bold bg-blue-50 border border-blue-400 shadow-2xs'
               : 'text-slate-500 hover:text-slate-800'
@@ -67,20 +67,20 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               </span>
             )}
           </div>
-          <span className="text-[10px] mt-1">คนไข้</span>
+          <span className="text-[10px] mt-0.5">คนไข้</span>
         </button>
 
         {/* Members / Admin */}
         <button
           onClick={() => onChangeTab('members')}
-          className={`flex flex-col items-center justify-center py-1 mx-0.5 rounded-xl transition ${
+          className={`flex flex-col items-center justify-center py-1.5 mx-0.5 rounded-xl transition min-h-[48px] cursor-pointer ${
             activeTab === 'members'
               ? 'text-purple-700 font-bold bg-purple-50 border border-purple-400 shadow-2xs'
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
           <ShieldAlert className="w-5 h-5" />
-          <span className="text-[10px] mt-1">
+          <span className="text-[10px] mt-0.5">
             {currentUser.role === 'ADMIN' ? 'สมาชิก' : 'โปรไฟล์'}
           </span>
         </button>
