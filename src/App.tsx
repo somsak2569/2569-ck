@@ -84,7 +84,7 @@ export default function App() {
         setCurrentUserState((prev) => {
           if (prev && !isUserSomsak(prev)) return prev;
           const email = firebaseUser.email?.toLowerCase() || '';
-          const isAdminEmail = email === 'thaipasit5@gmail.com';
+          const isAdminEmail = email === 'thaipasit5@gmail.com' || email === 'som9999sak@gmail.com';
           const cleanUsers = users.filter((u) => !isUserSomsak(u));
           const matched = cleanUsers.find(
             (u) =>

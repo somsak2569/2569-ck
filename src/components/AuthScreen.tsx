@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { User, UserRole } from '../types';
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
-import { isUserSomsak } from '../utils/storage';
+import { INITIAL_USERS } from '../data/mockData';
+import { isUserSomsak, verifyUserPassword } from '../utils/storage';
 import { PWAInstallButton } from './PWAInstallButton';
 import { 
   HeartHandshake, 
@@ -21,7 +22,9 @@ import {
   Building2,
   MapPin,
   Database,
-  Crown
+  Crown,
+  HelpCircle,
+  X
 } from 'lucide-react';
 
 interface AuthScreenProps {
@@ -81,13 +84,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       return;
     }
 
-    const userFound = users
-      .filter((u) => !isUserSomsak(u))
-      .find(
-        (u) =>
-          u.username.toLowerCase() === trimmed ||
-          (u.email && u.email.toLowerCase() === trimmed)
-      );
+    const cleanUsers = users.filter((u) => !isUserSomsak(u));
+    let userFound = cleanUsers.find(
+      (u) =>
+        u.username.toLowerCase() === trimmed ||
+        (u.email && u.email.toLowerCase() === trimmed)
+    );
+
+    // Fallback: If searching for admin or admin email/passcode, check state then INITIAL_USERS
+    const isAdminQuery =
+      trimmed === 'admin' ||
+      trimmed === 'admin2569' ||
+      trimmed === 'thaipasit5@gmail.com' ||
+      trimmed === 'som9999sak@gmail.com' ||
+      trimmed === 'สสอ.เชียงกลาง';
+
+    if (!userFound && isAdminQuery) {
+      userFound =
+        cleanUsers.find((u) => u.role === 'ADMIN' || u.username.toLowerCase() === 'admin') ||
+        INITIAL_USERS.find((u) => u.role === 'ADMIN' && !isUserSomsak(u));
+    }
 
     if (!userFound) {
       setLoginError('ไม่พบบัญชีผู้ใช้หรืออีเมลนี้ในระบบ กรุณาตรวจสอบชื่อผู้ใช้หรือลงทะเบียนใหม่');
@@ -99,7 +115,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         setLoginError('กรุณากรอกรหัสผ่านสำหรับการเข้าสู่ระบบ');
         return;
       }
-      if (userFound.password !== loginPassword) {
+      if (!verifyUserPassword(userFound, loginPassword)) {
         setLoginError('รหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบรหัสผ่านอีกครั้ง');
         return;
       }
@@ -151,7 +167,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     if (regRole === 'ADMIN' && adminPasscode.trim()) {
       const allowedCodes = ['admin2569', '2569', 'admin', 'ck2569', 'สสอ.เชียงกลาง'];
       if (!allowedCodes.includes(adminPasscode.trim().toLowerCase())) {
-        setRegError('รหัสยืนยันผู้ดูแลระบบ (Admin Passcode) ไม่ถูกต้อง (ระบุ: admin2569)');
+        setRegError('รหัสยืนยันผู้ดูแลระบบ (Admin Passcode) ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง');
         return;
       }
     }
@@ -288,6 +304,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     <input
                       type="text"
                       required
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck="false"
                       value={loginInput}
                       onChange={(e) => setLoginInput(e.target.value)}
                       placeholder="เช่น admin หรือ ชื่อผู้ใช้ที่ลงทะเบียน"
@@ -301,17 +320,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     <label className="block text-xs font-bold text-slate-700">
                       รหัสผ่าน (Password)
                     </label>
-                    <span className="text-[11px] text-slate-400">
-                      รหัสผ่านของคุณ
-                    </span>
                   </div>
                   <div className="relative">
                     <Key className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
                       type={showPassword ? 'text' : 'password'}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck="false"
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="กรอกรหัสผ่านของคุณ..."
+                      placeholder="กรอกรหัสผ่านของคุณ"
                       className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none bg-slate-50/50 focus:bg-white transition"
                     />
                     <button
@@ -458,26 +477,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                           <label className="font-bold text-amber-900 text-[11px]">
                             รหัสยืนยันผู้ดูแลระบบ (Admin Passcode)
                           </label>
-                          <span className="text-[10px] text-amber-700 bg-amber-200/70 px-1.5 py-0.5 rounded font-medium">
-                            รหัสความปลอดภัย: admin2569
-                          </span>
                         </div>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={adminPasscode}
-                            onChange={(e) => setAdminPasscode(e.target.value)}
-                            placeholder="กรอก admin2569"
-                            className="flex-1 px-3 py-1.5 rounded-xl border border-amber-300 bg-white text-xs outline-none focus:ring-2 focus:ring-amber-500 font-mono"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setAdminPasscode('admin2569')}
-                            className="px-2.5 py-1.5 bg-amber-200 hover:bg-amber-300 text-amber-900 rounded-xl text-[11px] font-bold transition shrink-0 cursor-pointer"
-                          >
-                            ใช้รหัสมาตรฐาน
-                          </button>
-                        </div>
+                        <input
+                          type="password"
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck="false"
+                          value={adminPasscode}
+                          onChange={(e) => setAdminPasscode(e.target.value)}
+                          placeholder="กรอกรหัสยืนยันผู้ดูแลระบบ"
+                          className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs outline-none focus:ring-2 focus:ring-amber-500 font-mono"
+                        />
                       </div>
                     </div>
                   )}

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { User, UserRole } from '../types';
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
-import { isUserSomsak } from '../utils/storage';
+import { INITIAL_USERS } from '../data/mockData';
+import { isUserSomsak, verifyUserPassword } from '../utils/storage';
 import { 
   X, 
   LogIn, 
@@ -12,11 +13,11 @@ import {
   MapPin, 
   Key, 
   Mail, 
-  User as UserIcon,
-  Phone,
-  Crown,
-  Eye,
-  EyeOff,
+  User as UserIcon, 
+  Phone, 
+  Crown, 
+  Eye, 
+  EyeOff, 
   AlertCircle
 } from 'lucide-react';
 
@@ -84,13 +85,26 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       return;
     }
 
-    const userFound = users
-      .filter((u) => !isUserSomsak(u))
-      .find(
-        (u) =>
-          u.username.toLowerCase() === trimmed ||
-          (u.email && u.email.toLowerCase() === trimmed)
-      );
+    const cleanUsers = users.filter((u) => !isUserSomsak(u));
+    let userFound = cleanUsers.find(
+      (u) =>
+        u.username.toLowerCase() === trimmed ||
+        (u.email && u.email.toLowerCase() === trimmed)
+    );
+
+    // Fallback: If searching for admin or admin email/passcode, check state then INITIAL_USERS
+    const isAdminQuery =
+      trimmed === 'admin' ||
+      trimmed === 'admin2569' ||
+      trimmed === 'thaipasit5@gmail.com' ||
+      trimmed === 'som9999sak@gmail.com' ||
+      trimmed === 'สสอ.เชียงกลาง';
+
+    if (!userFound && isAdminQuery) {
+      userFound =
+        cleanUsers.find((u) => u.role === 'ADMIN' || u.username.toLowerCase() === 'admin') ||
+        INITIAL_USERS.find((u) => u.role === 'ADMIN' && !isUserSomsak(u));
+    }
 
     if (!userFound) {
       setLoginError('ไม่พบบัญชีผู้ใช้หรืออีเมลนี้ในระบบ กรุณาตรวจสอบหรือลงทะเบียนใหม่');
@@ -102,7 +116,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         setLoginError('กรุณากรอกรหัสผ่าน');
         return;
       }
-      if (userFound.password !== loginPassword) {
+      if (!verifyUserPassword(userFound, loginPassword)) {
         setLoginError('รหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบรหัสผ่านอีกครั้ง');
         return;
       }
@@ -269,6 +283,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <input
                   type="text"
                   required
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                   value={loginInput}
                   onChange={(e) => setLoginInput(e.target.value)}
                   placeholder="เช่น admin หรือ ชื่อผู้ใช้ที่ลงทะเบียน"
@@ -282,17 +299,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <label className="block text-xs font-semibold text-slate-700">
                   รหัสผ่าน (Password)
                 </label>
-                <span className="text-[11px] text-slate-400">
-                  รหัสผ่านของคุณ
-                </span>
               </div>
               <div className="relative">
                 <Key className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
                   type={showLoginPassword ? 'text' : 'password'}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  placeholder="กรอกรหัสผ่านของคุณ..."
+                  placeholder="กรอกรหัสผ่านของคุณ"
                   className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none"
                 />
                 <button
