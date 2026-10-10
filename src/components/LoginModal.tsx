@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User, UserRole } from '../types';
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
+import { isUserSomsak } from '../utils/storage';
 import { 
   X, 
   LogIn, 
@@ -83,11 +84,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       return;
     }
 
-    const userFound = users.find(
-      (u) =>
-        u.username.toLowerCase() === trimmed ||
-        u.email.toLowerCase() === trimmed
-    );
+    const userFound = users
+      .filter((u) => !isUserSomsak(u))
+      .find(
+        (u) =>
+          u.username.toLowerCase() === trimmed ||
+          (u.email && u.email.toLowerCase() === trimmed)
+      );
 
     if (!userFound) {
       setLoginError('ไม่พบบัญชีผู้ใช้หรืออีเมลนี้ในระบบ กรุณาตรวจสอบหรือลงทะเบียนใหม่');
@@ -438,7 +441,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   required
                   value={regFullName}
                   onChange={(e) => setRegFullName(e.target.value)}
-                  placeholder={regRole === 'ADMIN' ? 'เช่น นายสมศักดิ์ สุทธการ' : 'เช่น นางดวงใจ ปัญญาวงศ์'}
+                  placeholder={regRole === 'ADMIN' ? 'เช่น นายอนุชา บริสุทธิ์' : 'เช่น นางดวงใจ ปัญญาวงศ์'}
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>

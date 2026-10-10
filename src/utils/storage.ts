@@ -22,16 +22,32 @@ const migrateHospitalName = (name: string): string => {
 const TEST_USER_IDS = new Set(['user-officer-puea', 'user-officer-ngiew', 'user-vhv-puea2', 'user-vhv-ck1']);
 const TEST_USERNAMES = new Set(['officer_puea', 'officer_ngiew', 'vhv_puea', 'vhv_ck']);
 
+/**
+ * Filter out any admin or user named สมศักดิ์ สุทธการ as requested
+ */
+export const isUserSomsak = (u: Partial<User> | null | undefined): boolean => {
+  if (!u) return false;
+  const fullName = (u.fullName || '').trim();
+  const username = (u.username || '').trim();
+  return (
+    fullName.includes('สมศักดิ์ สุทธการ') ||
+    fullName === 'สมศักดิ์ สุทธการ' ||
+    username === 'สมศักดิ์ สุทธการ' ||
+    (u.role === 'ADMIN' && (fullName.includes('สมศักดิ์') || username.toLowerCase() === 'somsak'))
+  );
+};
+
 export const getStoredUsers = (): User[] => {
   try {
     const raw = localStorage.getItem(USERS_STORAGE_KEY);
     if (!raw) {
-      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_USERS));
-      return INITIAL_USERS;
+      const initialClean = INITIAL_USERS.filter((u) => !isUserSomsak(u));
+      localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(initialClean));
+      return initialClean;
     }
     const parsed: User[] = JSON.parse(raw);
     const cleaned = parsed
-      .filter((u) => !TEST_USER_IDS.has(u.id) && !TEST_USERNAMES.has(u.username))
+      .filter((u) => !TEST_USER_IDS.has(u.id) && !TEST_USERNAMES.has(u.username) && !isUserSomsak(u))
       .map((u) => {
         if (u.id === 'user-admin') {
           return {
@@ -50,8 +66,9 @@ export const getStoredUsers = (): User[] => {
 
     // If test accounts were purged or list is empty, ensure default admin is present
     if (cleaned.length === 0) {
-      saveUsers(INITIAL_USERS);
-      return INITIAL_USERS;
+      const initialClean = INITIAL_USERS.filter((u) => !isUserSomsak(u));
+      saveUsers(initialClean);
+      return initialClean;
     }
 
     if (cleaned.length !== parsed.length) {
@@ -61,12 +78,13 @@ export const getStoredUsers = (): User[] => {
     return cleaned;
   } catch (e) {
     console.error('Error reading users from localStorage', e);
-    return INITIAL_USERS;
+    return INITIAL_USERS.filter((u) => !isUserSomsak(u));
   }
 };
 
 export const saveUsers = (users: User[]) => {
-  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+  const sanitized = users.filter((u) => !isUserSomsak(u));
+  localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(sanitized));
 };
 
 export const getStoredPatients = (): PatientScreening[] => {
@@ -98,7 +116,7 @@ export const getCurrentUser = (): User | null => {
 };
 
 export const setCurrentUser = (user: User | null) => {
-  if (!user) {
+  if (!user || isUserSomsak(user)) {
     localStorage.removeItem(CURRENT_USER_KEY);
   } else {
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));

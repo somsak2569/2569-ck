@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { User } from '../types';
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
 import { exportMembersToExcel } from '../utils/excelExport';
+import { isUserSomsak } from '../utils/storage';
 import { UserDetailModal } from './UserDetailModal';
 import { UserEditModal } from './UserEditModal';
 import { UserDeleteModal } from './UserDeleteModal';
@@ -50,12 +51,14 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
 
   const isAdmin = currentUser.role === 'ADMIN';
 
-  // Counts by role
-  const adminCount = users.filter((u) => u.role === 'ADMIN').length;
-  const officerCount = users.filter((u) => u.role === 'HEALTH_OFFICER').length;
-  const vhvCount = users.filter((u) => u.role === 'VHV').length;
+  const cleanUsers = users.filter((u) => !isUserSomsak(u));
 
-  const filteredUsers = users.filter((u) => {
+  // Counts by role
+  const adminCount = cleanUsers.filter((u) => u.role === 'ADMIN').length;
+  const officerCount = cleanUsers.filter((u) => u.role === 'HEALTH_OFFICER').length;
+  const vhvCount = cleanUsers.filter((u) => u.role === 'VHV').length;
+
+  const filteredUsers = cleanUsers.filter((u) => {
     const matchSearch =
       !searchTerm ||
       u.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -148,7 +151,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
               <Users className="w-4 h-4 opacity-70" />
             </div>
             <div className="text-xl sm:text-2xl font-black mt-1">
-              {users.length} <span className="text-xs font-normal opacity-80">คน</span>
+              {cleanUsers.length} <span className="text-xs font-normal opacity-80">คน</span>
             </div>
           </button>
 

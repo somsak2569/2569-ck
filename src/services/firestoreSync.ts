@@ -8,9 +8,29 @@ import {
 } from 'firebase/firestore';
 import { db, auth, handleFirestoreError, OperationType } from '../firebase';
 import { PatientScreening, User } from '../types';
+import { isUserSomsak } from '../utils/storage';
 
 const USERS_COLLECTION = 'users';
 const PATIENTS_COLLECTION = 'patients';
+
+/**
+ * Automatically purge any document corresponding to admin สมศักดิ์ สุทธการ from Firestore
+ */
+export async function purgeSomsakAdminFromFirestore(): Promise<void> {
+  if (!auth.currentUser) return;
+  try {
+    const snap = await getDocs(collection(db, USERS_COLLECTION));
+    for (const d of snap.docs) {
+      const u = d.data() as User;
+      if (isUserSomsak(u) || d.id === 'user-somsak') {
+        await deleteDoc(doc(db, USERS_COLLECTION, d.id));
+        console.info(`Successfully deleted user ${u.fullName || d.id} from Firestore`);
+      }
+    }
+  } catch (err) {
+    console.warn('purgeSomsakAdminFromFirestore notice:', err);
+  }
+}
 
 /**
  * Fetch all users from Firestore (only when authenticated)
@@ -21,7 +41,19 @@ export async function fetchUsersFromFirestore(): Promise<User[]> {
   }
   try {
     const snap = await getDocs(collection(db, USERS_COLLECTION));
-    return snap.docs.map((d) => d.data() as User);
+    const cleanUsers: User[] = [];
+    for (const d of snap.docs) {
+      const u = d.data() as User;
+      if (isUserSomsak(u) || d.id === 'user-somsak') {
+        // Asynchronously delete from Firestore to keep cloud clean
+        deleteDoc(doc(db, USERS_COLLECTION, d.id)).catch((e) =>
+          console.warn('Could not delete user doc from Firestore:', e)
+        );
+      } else {
+        cleanUsers.push(u);
+      }
+    }
+    return cleanUsers;
   } catch (err) {
     handleFirestoreError(err, OperationType.GET, USERS_COLLECTION);
   }
@@ -31,6 +63,9 @@ export async function fetchUsersFromFirestore(): Promise<User[]> {
  * Save / Update a user in Firestore
  */
 export async function saveUserToFirestore(user: User): Promise<void> {
+  if (isUserSomsak(user)) {
+    return;
+  }
   if (!auth.currentUser) {
     console.info('Not signed in to Firebase; user saved to local storage.');
     return;
@@ -143,7 +178,9 @@ export async function seedInitialDataIfEmpty(initialUsers: User[], initialPatien
     const userSnap = await getDocs(collection(db, USERS_COLLECTION));
     if (userSnap.empty && initialUsers.length > 0) {
       for (const u of initialUsers) {
-        await setDoc(doc(db, USERS_COLLECTION, u.id), u);
+        if (!isUserSomsak(u)) {
+          await setDoc(doc(db, USERS_COLLECTION, u.id), u);
+        }
       }
     }
 

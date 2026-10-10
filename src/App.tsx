@@ -7,7 +7,8 @@ import {
   saveUsers, 
   getStoredPatients, 
   savePatients, 
-  getAccessiblePatients 
+  getAccessiblePatients,
+  isUserSomsak
 } from './utils/storage';
 import { testConnection, auth, logOutFirebase } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -19,7 +20,8 @@ import {
   savePatientToFirestore, 
   deletePatientFromFirestore,
   subscribeToPatients,
-  seedInitialDataIfEmpty
+  seedInitialDataIfEmpty,
+  purgeSomsakAdminFromFirestore
 } from './services/firestoreSync';
 import { Navbar } from './components/Navbar';
 import { BottomNav, ActiveTab } from './components/BottomNav';
@@ -79,13 +81,13 @@ export default function App() {
 
         // Auto-match user profile if not yet selected
         setCurrentUserState((prev) => {
-          if (prev) return prev;
+          if (prev && !isUserSomsak(prev)) return prev;
           const email = firebaseUser.email?.toLowerCase() || '';
-          const isAdminEmail =
-            email === 'thaipasit5@gmail.com' || email === 'som9999sak@gmail.com';
-          const matched = users.find(
+          const isAdminEmail = email === 'thaipasit5@gmail.com';
+          const cleanUsers = users.filter((u) => !isUserSomsak(u));
+          const matched = cleanUsers.find(
             (u) =>
-              u.email.toLowerCase() === email ||
+              (u.email && u.email.toLowerCase() === email) ||
               u.id === firebaseUser.uid ||
               (isAdminEmail && u.role === 'ADMIN')
           );
@@ -93,17 +95,20 @@ export default function App() {
             setCurrentUser(matched);
             return matched;
           }
-          return prev;
+          return null;
         });
 
-        // Sync data with Firestore
+        // Sync data with Firestore & purge target admin
         try {
+          await purgeSomsakAdminFromFirestore();
           const cloudUsers = await fetchUsersFromFirestore();
           if (cloudUsers && cloudUsers.length > 0) {
-            setUsersState(cloudUsers);
-            saveUsers(cloudUsers);
+            const cleanCloudUsers = cloudUsers.filter((u) => !isUserSomsak(u));
+            setUsersState(cleanCloudUsers);
+            saveUsers(cleanCloudUsers);
           } else {
-            await seedInitialDataIfEmpty(users, patients);
+            const cleanUsers = users.filter((u) => !isUserSomsak(u));
+            await seedInitialDataIfEmpty(cleanUsers, patients);
           }
 
           const cloudPatients = await fetchPatientsFromFirestore();
@@ -143,13 +148,18 @@ export default function App() {
   }, []);
 
   const handleSelectUser = (user: User) => {
+    if (isUserSomsak(user)) {
+      showToast('ไม่พบบัญชีผู้ใช้นี้ในระบบ', 'error');
+      return;
+    }
     setCurrentUserState(user);
     setCurrentUser(user);
     showToast(`เข้าสู่ระบบในชื่อ: ${user.fullName} (${user.roleLabel})`, 'info');
   };
 
   const handleRegisterUser = (newUser: User) => {
-    const updatedUsers = [...users, newUser];
+    const cleanCurrent = users.filter((u) => !isUserSomsak(u));
+    const updatedUsers = [...cleanCurrent, newUser];
     setUsersState(updatedUsers);
     saveUsers(updatedUsers);
     saveUserToFirestore(newUser).catch((e) => console.warn('User saved locally, cloud sync pending:', e));
@@ -157,7 +167,11 @@ export default function App() {
   };
 
   const handleUpdateUser = (updatedUser: User) => {
-    const updatedUsers = users.map((u) => (u.id === updatedUser.id ? updatedUser : u));
+    if (isUserSomsak(updatedUser)) {
+      handleDeleteUser(updatedUser.id);
+      return;
+    }
+    const updatedUsers = users.filter((u) => !isUserSomsak(u)).map((u) => (u.id === updatedUser.id ? updatedUser : u));
     setUsersState(updatedUsers);
     saveUsers(updatedUsers);
     saveUserToFirestore(updatedUser).catch((e) => console.warn('User updated locally, cloud sync pending:', e));
