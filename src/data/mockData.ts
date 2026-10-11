@@ -107,6 +107,13 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
     caregiverName: 'นางบัวลอย วงศ์เมืองน่าน',
     caregiverRelation: 'ภรรยา',
     caregiverPhone: '089-112-3345',
+    stressAssessment: {
+      level: 'SEVERE',
+      score: 5,
+      label: 'เครียดรุนแรงมาก',
+      emoji: '😫',
+      description: 'เครียดจนหมดพลัง ท้อแท้สิ้นหวัง กินไม่ได้นอนไม่หลับ ปวดศีรษะหรือแน่นหน้าอก เสี่ยงต่อภาวะซึมเศร้า ควรได้รับการดูแลช่วยเหลือทันที',
+    },
     twoQ: {
       q1Depressed: true,
       q2Anhedonia: true,
@@ -154,6 +161,13 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
     caregiverName: 'นายประสิทธิ์ สุริยะ',
     caregiverRelation: 'บุตรชาย (ทำงานต่างจังหวัด)',
     caregiverPhone: '086-778-9900',
+    stressAssessment: {
+      level: 'MODERATE',
+      score: 4,
+      label: 'เครียดสูง',
+      emoji: '😟',
+      description: 'วิตกกังวลสูง นอนไม่ค่อยหลับ หงุดหงิดง่าย สมาธิลดลง เริ่มส่งผลกระทบต่อสุขภาพ การทำงาน และการใช้ชีวิตประจำวัน',
+    },
     twoQ: {
       q1Depressed: true,
       q2Anhedonia: true,
@@ -201,6 +215,13 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
     caregiverName: 'นางคำเอ้ย เมืองปัน',
     caregiverRelation: 'ภรรยา',
     caregiverPhone: '085-667-8890',
+    stressAssessment: {
+      level: 'MILD',
+      score: 3,
+      label: 'เครียดปานกลาง',
+      emoji: '😐',
+      description: 'มีความกังวลหรือตึงเครียดจากภาระหน้าที่/ปัญหาชีวิต เริ่มเหนื่อยล้า แต่ยังสามารถควบคุมอารมณ์และดำเนินชีวิตได้',
+    },
     twoQ: {
       q1Depressed: true,
       q2Anhedonia: false,
@@ -248,6 +269,13 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
     caregiverName: 'นายจำลอง อินต๊ะเสน',
     caregiverRelation: 'สามี',
     caregiverPhone: '082-345-6780',
+    stressAssessment: {
+      level: 'LOW',
+      score: 2,
+      label: 'เครียดน้อย',
+      emoji: '😊',
+      description: 'จิตใจผ่องใส มีความกังวลหรือเหนื่อยล้าเพียงเล็กน้อย สามารถปรับตัวรับมือกับชีวิตประจำวันได้ดี พักผ่อนและผ่อนคลายได้ด้วยตนเอง',
+    },
     twoQ: {
       q1Depressed: false,
       q2Anhedonia: false,
@@ -282,6 +310,13 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
     caregiverName: 'นางคำใส ใจหาญ',
     caregiverRelation: 'มารดา',
     caregiverPhone: '083-221-9989',
+    stressAssessment: {
+      level: 'SEVERE',
+      score: 5,
+      label: 'เครียดรุนแรงมาก',
+      emoji: '😫',
+      description: 'เครียดจนหมดพลัง ท้อแท้สิ้นหวัง กินไม่ได้นอนไม่หลับ ปวดศีรษะหรือแน่นหน้าอก เสี่ยงต่อภาวะซึมเศร้า ควรได้รับการดูแลช่วยเหลือทันที',
+    },
     twoQ: {
       q1Depressed: true,
       q2Anhedonia: true,
@@ -329,6 +364,13 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
     caregiverName: 'นางสาวนงนุช สิทธิราช',
     caregiverRelation: 'บุตรสาว',
     caregiverPhone: '084-556-1123',
+    stressAssessment: {
+      level: 'LOW',
+      score: 2,
+      label: 'เครียดน้อย',
+      emoji: '😊',
+      description: 'จิตใจผ่องใส มีความกังวลหรือเหนื่อยล้าเพียงเล็กน้อย สามารถปรับตัวรับมือกับชีวิตประจำวันได้ดี พักผ่อนและผ่อนคลายได้ด้วยตนเอง',
+    },
     twoQ: {
       q1Depressed: true,
       q2Anhedonia: false,
@@ -376,6 +418,13 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
     caregiverName: 'นางรัตนา ปัญญาแก้ว',
     caregiverRelation: 'ภรรยา',
     caregiverPhone: '086-119-4434',
+    stressAssessment: {
+      level: 'MODERATE',
+      score: 4,
+      label: 'เครียดสูง',
+      emoji: '😟',
+      description: 'วิตกกังวลสูง นอนไม่ค่อยหลับ หงุดหงิดง่าย สมาธิลดลง เริ่มส่งผลกระทบต่อสุขภาพ การทำงาน และการใช้ชีวิตประจำวัน',
+    },
     twoQ: {
       q1Depressed: true,
       q2Anhedonia: true,
@@ -423,6 +472,13 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
     caregiverName: 'นางสมศรี ดวงตา',
     caregiverRelation: 'ภรรยา',
     caregiverPhone: '087-889-1123',
+    stressAssessment: {
+      level: 'NONE',
+      score: 1,
+      label: 'ไม่เครียด',
+      emoji: '😃',
+      description: 'อารมณ์ดี มีความสุข สดชื่นแจ่มใส ไม่มีเรื่องวิตกกังวล สภาพจิตใจปกติ ใช้ชีวิตประจำวันได้อย่างราบรื่นและผ่อนคลาย',
+    },
     twoQ: {
       q1Depressed: false,
       q2Anhedonia: false,
@@ -457,6 +513,13 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
     caregiverName: 'นางสุดา ส้อเมือง',
     caregiverRelation: 'ภรรยา',
     caregiverPhone: '089-445-5668',
+    stressAssessment: {
+      level: 'MILD',
+      score: 3,
+      label: 'เครียดปานกลาง',
+      emoji: '😐',
+      description: 'มีความกังวลหรือตึงเครียดจากภาระหน้าที่/ปัญหาชีวิต เริ่มเหนื่อยล้า แต่ยังสามารถควบคุมอารมณ์และดำเนินชีวิตได้',
+    },
     twoQ: {
       q1Depressed: true,
       q2Anhedonia: false,
@@ -504,6 +567,13 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
     caregiverName: 'นายสนอง ผาน้ำใส',
     caregiverRelation: 'สามี',
     caregiverPhone: '088-776-6555',
+    stressAssessment: {
+      level: 'NONE',
+      score: 1,
+      label: 'ไม่เครียด',
+      emoji: '😃',
+      description: 'อารมณ์ดี มีความสุข สดชื่นแจ่มใส ไม่มีเรื่องวิตกกังวล สภาพจิตใจปกติ ใช้ชีวิตประจำวันได้อย่างราบรื่นและผ่อนคลาย',
+    },
     twoQ: {
       q1Depressed: false,
       q2Anhedonia: false,

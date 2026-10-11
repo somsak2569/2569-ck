@@ -1,4 +1,86 @@
-import { EightQAnswers, RiskLevel, TwoQPlusAnswers } from '../types';
+import { EightQAnswers, RiskLevel, TwoQPlusAnswers, StressLevel, StressAssessment } from '../types';
+
+export interface StressLevelOption {
+  level: StressLevel;
+  score: number;
+  label: string;
+  emoji: string;
+  title: string;
+  description: string;
+  color: string;
+  badgeClass: string;
+  bgClass: string;
+  borderClass: string;
+}
+
+// 5 ระดับความเครียดตามเกณฑ์มาตรฐานกรมสุขภาพจิต (Mental Health Check-in / ST-5)
+export const STRESS_LEVEL_OPTIONS: StressLevelOption[] = [
+  {
+    level: 'NONE',
+    score: 1,
+    label: 'ไม่เครียด',
+    title: 'ระดับที่ 1: ไม่เครียด (No Stress)',
+    emoji: '😃',
+    description: 'อารมณ์ดี มีความสุข สดชื่นแจ่มใส ไม่มีเรื่องวิตกกังวล สภาพจิตใจปกติ ใช้ชีวิตประจำวันได้อย่างราบรื่นและผ่อนคลาย',
+    color: '#10b981', // emerald-500
+    badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    bgClass: 'bg-emerald-50/80',
+    borderClass: 'border-emerald-300',
+  },
+  {
+    level: 'LOW',
+    score: 2,
+    label: 'เครียดน้อย',
+    title: 'ระดับที่ 2: เครียดน้อย (Low Stress)',
+    emoji: '😊',
+    description: 'จิตใจผ่องใส มีความกังวลหรือเหนื่อยล้าเพียงเล็กน้อย สามารถปรับตัวรับมือกับชีวิตประจำวันได้ดี พักผ่อนและผ่อนคลายได้ด้วยตนเอง',
+    color: '#06b6d4', // cyan-500
+    badgeClass: 'bg-cyan-100 text-cyan-800 border-cyan-300',
+    bgClass: 'bg-cyan-50/80',
+    borderClass: 'border-cyan-300',
+  },
+  {
+    level: 'MILD',
+    score: 3,
+    label: 'เครียดปานกลาง',
+    title: 'ระดับที่ 3: เครียดปานกลาง (Mild/Moderate Stress)',
+    emoji: '😐',
+    description: 'มีความกังวลหรือตึงเครียดจากภาระหน้าที่/ปัญหาชีวิต เริ่มเหนื่อยล้า แต่ยังสามารถควบคุมอารมณ์และดำเนินชีวิตได้',
+    color: '#3b82f6', // blue-500
+    badgeClass: 'bg-blue-100 text-blue-800 border-blue-300',
+    bgClass: 'bg-blue-50/80',
+    borderClass: 'border-blue-300',
+  },
+  {
+    level: 'MODERATE',
+    score: 4,
+    label: 'เครียดสูง',
+    title: 'ระดับที่ 4: เครียดสูง (High Stress)',
+    emoji: '😟',
+    description: 'วิตกกังวลสูง นอนไม่ค่อยหลับ หงุดหงิดง่าย สมาธิลดลง เริ่มส่งผลกระทบต่อสุขภาพ การทำงาน และการใช้ชีวิตประจำวัน',
+    color: '#f59e0b', // amber-500
+    badgeClass: 'bg-amber-100 text-amber-900 border-amber-300',
+    bgClass: 'bg-amber-50/80',
+    borderClass: 'border-amber-300',
+  },
+  {
+    level: 'SEVERE',
+    score: 5,
+    label: 'เครียดรุนแรงมาก',
+    title: 'ระดับที่ 5: เครียดรุนแรงมาก (Severe Stress)',
+    emoji: '😫',
+    description: 'เครียดจนหมดพลัง ท้อแท้สิ้นหวัง กินไม่ได้นอนไม่หลับ ปวดศีรษะหรือแน่นหน้าอก เสี่ยงต่อภาวะซึมเศร้า ควรได้รับการดูแลช่วยเหลือทันที',
+    color: '#ef4444', // red-500
+    badgeClass: 'bg-rose-100 text-rose-900 border-rose-300',
+    bgClass: 'bg-rose-50/80',
+    borderClass: 'border-rose-300',
+  },
+];
+
+export const getStressLevelDetails = (level?: StressLevel): StressLevelOption => {
+  const found = STRESS_LEVEL_OPTIONS.find((opt) => opt.level === level);
+  return found || STRESS_LEVEL_OPTIONS[0];
+};
 
 export interface QuestionItem {
   id: string;

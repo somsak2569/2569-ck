@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { PatientScreening, User, RiskLevel } from '../types';
+import { PatientScreening, User, RiskLevel, StressLevel } from '../types';
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
-import { getRiskColorBadge } from '../utils/assessment';
+import { getRiskColorBadge, STRESS_LEVEL_OPTIONS } from '../utils/assessment';
 import { exportPatientDataToExcel } from '../utils/excelExport';
 import { 
   Users, 
@@ -19,7 +19,8 @@ import {
   ChevronRight,
   ShieldCheck,
   Building2,
-  Eye
+  Eye,
+  Smile
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -58,6 +59,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const mediumRiskCount = mediumRiskPatients.length;
   const lowRiskCount = lowRiskPatients.length;
   const noneRiskCount = noneRiskPatients.length;
+
+  // Stress Level distribution according to Department of Mental Health standard (5 ระดับ)
+  const stressStats: Record<StressLevel, number> = {
+    NONE: displayPatients.filter((p) => (p.stressAssessment?.level || 'NONE') === 'NONE').length,
+    LOW: displayPatients.filter((p) => p.stressAssessment?.level === 'LOW').length,
+    MILD: displayPatients.filter((p) => p.stressAssessment?.level === 'MILD').length,
+    MODERATE: displayPatients.filter((p) => p.stressAssessment?.level === 'MODERATE').length,
+    SEVERE: displayPatients.filter((p) => p.stressAssessment?.level === 'SEVERE').length,
+  };
 
   // Chronic Disease distribution
   const diseaseFrequency: Record<string, number> = {};
@@ -588,6 +598,88 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             );
           })()}
+        </div>
+
+        {/* Chart 1.5: แบบจัดระดับความเครียดตามเกณฑ์มาตรฐานกรมสุขภาพจิต (อิโมจิ) */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h3 className="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-1.5">
+                <Smile className="w-4 h-4 text-amber-500" />
+                สรุปภาพรวมระดับความเครียด (กรมสุขภาพจิต)
+              </h3>
+              <p className="text-xs text-slate-500">
+                สถิติการจัดระดับความเครียดและสภาวะอารมณ์เบื้องต้น พร้อมไอคอนอิโมจิ
+              </p>
+            </div>
+            <span className="text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-0.5 rounded-full">
+              Mental Health
+            </span>
+          </div>
+
+          {/* Emoji Level Cards Grid (5 ระดับ) */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+            {STRESS_LEVEL_OPTIONS.map((opt) => {
+              const count = stressStats[opt.level] || 0;
+              const percent = totalCount > 0 ? (count / totalCount) * 100 : 0;
+              return (
+                <div
+                  key={opt.level}
+                  className={`p-3 rounded-2xl border text-center transition flex flex-col items-center justify-between shadow-2xs ${opt.bgClass} ${opt.borderClass}`}
+                >
+                  <span className="text-2xl sm:text-3xl filter hover:scale-110 transition-transform">
+                    {opt.emoji}
+                  </span>
+                  <div className="mt-1.5">
+                    <div className="text-xs font-bold text-slate-800 leading-tight">
+                      {opt.label}
+                    </div>
+                    <div className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">
+                      {count} <span className="text-xs font-normal text-slate-500">คน</span>
+                    </div>
+                  </div>
+                  <div className="mt-1 text-[10px] font-semibold text-slate-600 bg-white/80 px-2 py-0.5 rounded-full border border-slate-200/70">
+                    {percent.toFixed(1)}%
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Progress Distribution Bar */}
+          <div className="space-y-2 pt-1">
+            <div className="flex justify-between items-center text-xs text-slate-600">
+              <span className="font-medium">สัดส่วนการกระจายระดับความเครียด (5 ระดับ):</span>
+              <span className="font-bold text-slate-800">{totalCount} ราย</span>
+            </div>
+
+            <div className="h-5 w-full rounded-full bg-slate-100 overflow-hidden flex shadow-inner">
+              {STRESS_LEVEL_OPTIONS.map((opt) => {
+                const count = stressStats[opt.level] || 0;
+                if (count === 0) return null;
+                const widthPercent = totalCount > 0 ? (count / totalCount) * 100 : 0;
+                return (
+                  <div
+                    key={opt.level}
+                    style={{ width: `${widthPercent}%`, backgroundColor: opt.color }}
+                    className="h-full transition-all flex items-center justify-center text-[10px] text-white font-bold"
+                    title={`${opt.label}: ${count} คน (${widthPercent.toFixed(1)}%)`}
+                  >
+                    {widthPercent > 12 && `${widthPercent.toFixed(0)}%`}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-1.5 pt-0.5 text-[11px] text-slate-500">
+              {STRESS_LEVEL_OPTIONS.map((opt) => (
+                <span key={opt.level} className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: opt.color }}></span>
+                  <span>{opt.emoji} {opt.label}</span>
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Chart 2: Top Chronic Diseases & Risk Factors */}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PatientScreening, User, RiskLevel } from '../types';
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
-import { getRiskColorBadge } from '../utils/assessment';
+import { getRiskColorBadge, getStressLevelDetails } from '../utils/assessment';
 import { exportPatientDataToExcel } from '../utils/excelExport';
 import { canUserModifyPatient } from '../utils/storage';
 import { 
@@ -224,6 +224,18 @@ export const PatientList: React.FC<PatientListProps> = ({
                       >
                         {patient.eightQ ? `8Q: ${patient.eightQ.totalScore} คะแนน (${riskBadge.label})` : '2Q ปกติ'}
                       </span>
+                      {(() => {
+                        const stress = getStressLevelDetails(patient.stressAssessment?.level || 'NONE');
+                        return (
+                          <span
+                            className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${stress.badgeClass} flex items-center gap-1`}
+                            title={`ระดับความเครียด: ${stress.label}`}
+                          >
+                            <span>{stress.emoji}</span>
+                            <span>{stress.label}</span>
+                          </span>
+                        );
+                      })()}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">

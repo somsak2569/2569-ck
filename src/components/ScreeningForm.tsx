@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { 
   PatientScreening, 
   User, 
-  RiskLevel 
+  RiskLevel,
+  StressLevel,
+  StressAssessment
 } from '../types';
 import { 
   CHIANG_KLANG_TAMBONS, 
@@ -12,7 +14,9 @@ import {
   EIGHT_Q_QUESTIONS, 
   evaluateTwoQ, 
   calculateEightQ, 
-  getRiskColorBadge 
+  getRiskColorBadge,
+  STRESS_LEVEL_OPTIONS,
+  getStressLevelDetails
 } from '../utils/assessment';
 import { 
   UserCheck, 
@@ -25,7 +29,9 @@ import {
   X, 
   ArrowRight,
   Info,
-  HeartHandshake
+  HeartHandshake,
+  Smile,
+  Activity
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -75,6 +81,11 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
   const [caregiverName, setCaregiverName] = useState(editingPatient?.caregiverName || '');
   const [caregiverRelation, setCaregiverRelation] = useState(editingPatient?.caregiverRelation || '');
   const [caregiverPhone, setCaregiverPhone] = useState(editingPatient?.caregiverPhone || '');
+
+  // 1.5 Stress Level State (เกณฑ์มาตรฐานกรมสุขภาพจิต พร้อมอิโมจิ ก่อนหัวข้อ 2Q Plus)
+  const [selectedStressLevel, setSelectedStressLevel] = useState<StressLevel>(
+    editingPatient?.stressAssessment?.level || 'NONE'
+  );
 
   // 2. 2Q Plus State
   const [q1Depressed, setQ1Depressed] = useState<boolean>(editingPatient?.twoQ.q1Depressed || false);
@@ -185,6 +196,17 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
       caregiverName: caregiverName.trim(),
       caregiverRelation: caregiverRelation.trim(),
       caregiverPhone: caregiverPhone.trim(),
+
+      stressAssessment: (() => {
+        const details = getStressLevelDetails(selectedStressLevel);
+        return {
+          level: selectedStressLevel,
+          score: details.score,
+          label: details.label,
+          emoji: details.emoji,
+          description: details.description,
+        };
+      })(),
 
       twoQ: twoQResult,
       eightQTriggered: is8QTriggered,
@@ -481,6 +503,135 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                 />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* SECTION 1.5: แบบจัดระดับความเครียดตามเกณฑ์มาตรฐานกรมสุขภาพจิต (ไอคอนอิโมจิ) ก่อน 2Q Plus */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-800 font-bold text-xs flex items-center justify-center">
+                ★
+              </span>
+              <div>
+                <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
+                  <span>แบบจัดระดับความเครียดตามเกณฑ์มาตรฐานกรมสุขภาพจิต</span>
+                  <span className="text-xs font-normal text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                    Mental Health Check-in
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  ประเมินระดับความเครียดในเบื้องต้นเพื่อสังเกตสัญญาณสุขภาพจิต ก่อนทำแบบประเมิน 2Q Plus
+                </p>
+              </div>
+            </div>
+
+            {/* Current Selected Badge */}
+            {(() => {
+              const current = getStressLevelDetails(selectedStressLevel);
+              return (
+                <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${current.badgeClass}`}>
+                    <span className="text-base">{current.emoji}</span>
+                    <span>{current.label}</span>
+                  </span>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Emoji Selection Grid */}
+          <div className="space-y-3">
+            <div className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+              <span>เลือกไอคอนอิโมจิที่ตรงกับสภาวะอารมณ์/ความเครียดของผู้รับการประเมิน:</span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              {STRESS_LEVEL_OPTIONS.map((opt) => {
+                const isSelected = selectedStressLevel === opt.level;
+                return (
+                  <button
+                    type="button"
+                    key={opt.level}
+                    onClick={() => setSelectedStressLevel(opt.level)}
+                    className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer text-left flex flex-col justify-between group relative ${
+                      isSelected
+                        ? `${opt.bgClass} ${opt.borderClass} shadow-md ring-2 ring-teal-500/40 scale-[1.02]`
+                        : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {/* Top Emoji & Check */}
+                    <div className="flex items-start justify-between">
+                      <div className="text-3xl sm:text-4xl filter group-hover:scale-110 transition-transform">
+                        {opt.emoji}
+                      </div>
+                      {isSelected && (
+                        <span className="w-5 h-5 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs shadow-2xs font-bold">
+                          ✓
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Level Label */}
+                    <div className="mt-3">
+                      <div className="font-bold text-xs sm:text-sm text-slate-900 leading-snug">
+                        {opt.label}
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5 leading-tight line-clamp-3">
+                        {opt.description}
+                      </div>
+                    </div>
+
+                    {/* Level bar indicator */}
+                    <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                      <span className="text-slate-400 font-medium">ระดับ {opt.score}/5</span>
+                      <span
+                        className="font-bold px-1.5 py-0.2 rounded"
+                        style={{ color: opt.color, backgroundColor: `${opt.color}15` }}
+                      >
+                        {isSelected ? 'เลือกอยู่' : 'คลิกเลือก'}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Recommendation note according to Department of Mental Health */}
+            {(() => {
+              const current = getStressLevelDetails(selectedStressLevel);
+              return (
+                <div className={`p-3.5 rounded-xl border text-xs flex items-start gap-3 transition-all ${
+                  selectedStressLevel === 'SEVERE'
+                    ? 'bg-rose-50 border-rose-200 text-rose-900'
+                    : selectedStressLevel === 'MODERATE'
+                    ? 'bg-amber-50 border-amber-200 text-amber-900'
+                    : selectedStressLevel === 'MILD'
+                    ? 'bg-blue-50 border-blue-200 text-blue-900'
+                    : selectedStressLevel === 'LOW'
+                    ? 'bg-cyan-50 border-cyan-200 text-cyan-900'
+                    : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                }`}>
+                  <span className="text-2xl shrink-0 mt-0.5">{current.emoji}</span>
+                  <div className="space-y-1">
+                    <span className="font-bold text-sm block">{current.title}:</span>
+                    <p className="text-slate-700 leading-relaxed">
+                      {current.description}
+                    </p>
+                    {selectedStressLevel === 'SEVERE' && (
+                      <span className="text-rose-700 font-bold block pt-1">
+                        ⚠️ ผู้รับการประเมินมีความเครียดระดับสูงมาก ควรให้ความสำคัญเป็นพิเศษในการประเมินแบบ 2Q Plus และ 8Q ถัดไป
+                      </span>
+                    )}
+                    {selectedStressLevel === 'MODERATE' && (
+                      <span className="text-amber-700 font-bold block pt-1">
+                        ⚠️ มีความเครียดสูง ควรสอบถามปัจจัยกระตุ้นและเฝ้าระวังความเสี่ยงโรคซึมเศร้าในหัวข้อถัดไป
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
 

@@ -18,6 +18,17 @@ export interface User {
 
 export type RiskLevel = 'NONE' | 'LOW' | 'MEDIUM' | 'HIGH';
 
+// ระดับความเครียดตามเกณฑ์มาตรฐานกรมสุขภาพจิต (5 ระดับ)
+export type StressLevel = 'NONE' | 'LOW' | 'MILD' | 'MODERATE' | 'SEVERE';
+
+export interface StressAssessment {
+  level: StressLevel;
+  score?: number; // ระดับ 1-5 หรือคะแนนประเมิน
+  label: string; // ไม่เครียด, เครียดน้อย, เครียดปานกลาง, เครียดสูง, เครียดรุนแรงมาก
+  emoji: string; // 😃, 😊, 😐, 😟, 😫
+  description: string;
+}
+
 export interface TwoQPlusAnswers {
   q1Depressed: boolean; // รู้สึกหดหู่ เศร้า ท้อแท้
   q2Anhedonia: boolean; // เบื่อ ทำอะไรไม่เพลิดเพลิน
@@ -61,6 +72,9 @@ export interface PatientScreening {
   caregiverName: string;
   caregiverRelation: string;
   caregiverPhone: string;
+
+  // Stress Level assessment (เกณฑ์มาตรฐานกรมสุขภาพจิต พร้อมอิโมจิ)
+  stressAssessment?: StressAssessment;
 
   // 2Q Plus assessment
   twoQ: TwoQPlusAnswers;

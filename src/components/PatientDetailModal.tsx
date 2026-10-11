@@ -1,6 +1,6 @@
 import React from 'react';
 import { PatientScreening, User } from '../types';
-import { getRiskColorBadge, EIGHT_Q_QUESTIONS } from '../utils/assessment';
+import { getRiskColorBadge, EIGHT_Q_QUESTIONS, getStressLevelDetails } from '../utils/assessment';
 import { 
   X, 
   PhoneCall, 
@@ -12,7 +12,8 @@ import {
   Calendar, 
   UserCheck, 
   Building2,
-  HeartPulse
+  HeartPulse,
+  Smile
 } from 'lucide-react';
 
 interface PatientDetailModalProps {
@@ -187,6 +188,34 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Section: Stress Level Assessment (ระดับความเครียด กรมสุขภาพจิต 5 ระดับ) */}
+          {(() => {
+            const stress = getStressLevelDetails(patient.stressAssessment?.level || 'NONE');
+            return (
+              <div className={`p-4 rounded-2xl border space-y-2 ${stress.bgClass} ${stress.borderClass}`}>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{stress.emoji}</span>
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
+                        ระดับความเครียด (กรมสุขภาพจิต)
+                      </h3>
+                      <p className="text-[11px] text-slate-500">
+                        Mental Health Check-in (ระดับ {stress.score}/5)
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`text-xs px-2.5 py-1 rounded-full font-bold border ${stress.badgeClass}`}>
+                    {stress.emoji} {stress.label}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-700 pt-1 leading-relaxed border-t border-slate-200/60">
+                  {stress.description}
+                </p>
+              </div>
+            );
+          })()}
 
           {/* Section: 2Q Plus Answers Breakdown */}
           <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
