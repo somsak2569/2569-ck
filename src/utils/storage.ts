@@ -113,7 +113,7 @@ export const getStoredUsers = (): User[] => {
     }
     const parsed: User[] = JSON.parse(raw);
     const cleaned = parsed
-      .filter((u) => !TEST_USER_IDS.has(u.id) && !TEST_USERNAMES.has(u.username) && !isUserSomsak(u))
+      .filter((u) => !isUserSomsak(u))
       .map((u) => {
         if (u.id === 'user-admin' || u.username?.toLowerCase() === 'admin') {
           return {

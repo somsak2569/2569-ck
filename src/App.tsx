@@ -20,6 +20,7 @@ import {
   savePatientToFirestore, 
   deletePatientFromFirestore,
   subscribeToPatients,
+  subscribeToUsers,
   seedInitialDataIfEmpty,
   purgeSomsakAdminFromFirestore
 } from './services/firestoreSync';
@@ -73,14 +74,49 @@ export default function App() {
       }
     });
 
-    let unsubscribeSnapshot: (() => void) | undefined;
+    // 2. Immediate Firestore synchronization on mount for all devices
+    const syncCloudData = async () => {
+      try {
+        await purgeSomsakAdminFromFirestore();
+        const cloudUsers = await fetchUsersFromFirestore();
+        if (cloudUsers && cloudUsers.length > 0) {
+          const cleanCloudUsers = cloudUsers.filter((u) => !isUserSomsak(u));
+          setUsersState(cleanCloudUsers);
+          saveUsers(cleanCloudUsers);
+        } else {
+          await seedInitialDataIfEmpty(users, patients);
+        }
 
-    // 2. Auth state listener: only sync when auth is ready and authenticated
+        const cloudPatients = await fetchPatientsFromFirestore();
+        if (cloudPatients && cloudPatients.length > 0) {
+          setPatientsState(cloudPatients);
+          savePatients(cloudPatients);
+        }
+      } catch (e) {
+        console.warn('Initial cloud sync notice:', e);
+      }
+    };
+    syncCloudData();
+
+    // 3. Attach realtime listeners for both users and patients across all devices
+    const unsubscribeUsers = subscribeToUsers((cloudUsers) => {
+      if (cloudUsers && cloudUsers.length > 0) {
+        setUsersState(cloudUsers);
+        saveUsers(cloudUsers);
+      }
+    });
+
+    const unsubscribePatients = subscribeToPatients((cloudPatients) => {
+      if (cloudPatients && cloudPatients.length > 0) {
+        setPatientsState(cloudPatients);
+        savePatients(cloudPatients);
+      }
+    });
+
+    // 4. Optional Firebase Auth listener for Google OAuth auto-matching
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         console.log('Firebase user authenticated:', firebaseUser.email || firebaseUser.uid);
-
-        // Auto-match user profile if not yet selected
         setCurrentUserState((prev) => {
           if (prev && !isUserSomsak(prev)) return prev;
           const email = firebaseUser.email?.toLowerCase() || '';
@@ -98,53 +134,13 @@ export default function App() {
           }
           return null;
         });
-
-        // Sync data with Firestore & purge target admin
-        try {
-          await purgeSomsakAdminFromFirestore();
-          const cloudUsers = await fetchUsersFromFirestore();
-          if (cloudUsers && cloudUsers.length > 0) {
-            const cleanCloudUsers = cloudUsers.filter((u) => !isUserSomsak(u));
-            setUsersState(cleanCloudUsers);
-            saveUsers(cleanCloudUsers);
-          } else {
-            const cleanUsers = users.filter((u) => !isUserSomsak(u));
-            await seedInitialDataIfEmpty(cleanUsers, patients);
-          }
-
-          const cloudPatients = await fetchPatientsFromFirestore();
-          if (cloudPatients && cloudPatients.length > 0) {
-            setPatientsState(cloudPatients);
-            savePatients(cloudPatients);
-          }
-        } catch (e) {
-          console.warn('Firestore sync notice:', e);
-        }
-
-        // Attach realtime listener for patients
-        try {
-          if (unsubscribeSnapshot) unsubscribeSnapshot();
-          unsubscribeSnapshot = subscribeToPatients((cloudList) => {
-            if (cloudList && cloudList.length > 0) {
-              setPatientsState(cloudList);
-              savePatients(cloudList);
-            }
-          });
-        } catch (err) {
-          console.warn('Realtime subscription notice:', err);
-        }
-      } else {
-        // Not authenticated in Firebase - clean up listener
-        if (unsubscribeSnapshot) {
-          unsubscribeSnapshot();
-          unsubscribeSnapshot = undefined;
-        }
       }
     });
 
     return () => {
+      unsubscribeUsers();
+      unsubscribePatients();
       unsubscribeAuth();
-      if (unsubscribeSnapshot) unsubscribeSnapshot();
     };
   }, []);
 

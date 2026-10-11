@@ -3,6 +3,7 @@ import { User, UserRole } from '../types';
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
 import { INITIAL_USERS } from '../data/mockData';
 import { isUserSomsak, verifyUserPassword } from '../utils/storage';
+import { fetchUsersFromFirestore } from '../services/firestoreSync';
 import { PWAInstallButton } from './PWAInstallButton';
 import { 
   HeartHandshake, 
@@ -74,11 +75,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     setRegHospital(hList[0] || '');
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
 
-    const trimmed = loginInput.trim().toLowerCase();
+    const rawInput = loginInput.trim();
+    const trimmed = rawInput.toLowerCase();
     if (!trimmed) {
       setLoginError('กรุณากรอกชื่อผู้ใช้หรืออีเมล');
       return;
@@ -88,7 +90,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     let userFound = cleanUsers.find(
       (u) =>
         u.username.toLowerCase() === trimmed ||
-        (u.email && u.email.toLowerCase() === trimmed)
+        (u.email && u.email.toLowerCase() === trimmed) ||
+        (u.fullName && u.fullName.toLowerCase() === trimmed) ||
+        (u.phone && u.phone.replace(/[^0-9]/g, '') === rawInput.replace(/[^0-9]/g, '') && rawInput.length >= 8)
     );
 
     // Fallback: If searching for admin or admin email/passcode, check state then INITIAL_USERS
@@ -103,6 +107,25 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       userFound =
         cleanUsers.find((u) => u.role === 'ADMIN' || u.username.toLowerCase() === 'admin') ||
         INITIAL_USERS.find((u) => u.role === 'ADMIN' && !isUserSomsak(u));
+    }
+
+    // Direct Firestore fallback in case initial websocket sync was delayed on new device
+    if (!userFound) {
+      try {
+        const cloudUsers = await fetchUsersFromFirestore();
+        if (cloudUsers && cloudUsers.length > 0) {
+          const freshClean = cloudUsers.filter((u) => !isUserSomsak(u));
+          userFound = freshClean.find(
+            (u) =>
+              u.username.toLowerCase() === trimmed ||
+              (u.email && u.email.toLowerCase() === trimmed) ||
+              (u.fullName && u.fullName.toLowerCase() === trimmed) ||
+              (u.phone && u.phone.replace(/[^0-9]/g, '') === rawInput.replace(/[^0-9]/g, '') && rawInput.length >= 8)
+          );
+        }
+      } catch (err) {
+        console.warn('Direct Firestore fetch check error:', err);
+      }
     }
 
     if (!userFound) {

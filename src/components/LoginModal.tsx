@@ -3,6 +3,7 @@ import { User, UserRole } from '../types';
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
 import { INITIAL_USERS } from '../data/mockData';
 import { isUserSomsak, verifyUserPassword } from '../utils/storage';
+import { fetchUsersFromFirestore } from '../services/firestoreSync';
 import { 
   X, 
   LogIn, 
@@ -75,11 +76,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     setRegHospital(hList[0] || '');
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
 
-    const trimmed = loginInput.trim().toLowerCase();
+    const rawInput = loginInput.trim();
+    const trimmed = rawInput.toLowerCase();
     if (!trimmed) {
       setLoginError('กรุณากรอกชื่อผู้ใช้หรืออีเมล');
       return;
@@ -89,7 +91,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     let userFound = cleanUsers.find(
       (u) =>
         u.username.toLowerCase() === trimmed ||
-        (u.email && u.email.toLowerCase() === trimmed)
+        (u.email && u.email.toLowerCase() === trimmed) ||
+        (u.fullName && u.fullName.toLowerCase() === trimmed) ||
+        (u.phone && u.phone.replace(/[^0-9]/g, '') === rawInput.replace(/[^0-9]/g, '') && rawInput.length >= 8)
     );
 
     // Fallback: If searching for admin or admin email/passcode, check state then INITIAL_USERS
@@ -104,6 +108,25 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       userFound =
         cleanUsers.find((u) => u.role === 'ADMIN' || u.username.toLowerCase() === 'admin') ||
         INITIAL_USERS.find((u) => u.role === 'ADMIN' && !isUserSomsak(u));
+    }
+
+    // Direct Firestore fallback
+    if (!userFound) {
+      try {
+        const cloudUsers = await fetchUsersFromFirestore();
+        if (cloudUsers && cloudUsers.length > 0) {
+          const freshClean = cloudUsers.filter((u) => !isUserSomsak(u));
+          userFound = freshClean.find(
+            (u) =>
+              u.username.toLowerCase() === trimmed ||
+              (u.email && u.email.toLowerCase() === trimmed) ||
+              (u.fullName && u.fullName.toLowerCase() === trimmed) ||
+              (u.phone && u.phone.replace(/[^0-9]/g, '') === rawInput.replace(/[^0-9]/g, '') && rawInput.length >= 8)
+          );
+        }
+      } catch (err) {
+        console.warn('Direct Firestore fetch fallback error in modal:', err);
+      }
     }
 
     if (!userFound) {
