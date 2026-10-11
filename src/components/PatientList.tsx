@@ -49,7 +49,7 @@ export const PatientList: React.FC<PatientListProps> = ({
     const matchSearch =
       !searchTerm ||
       p.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.idCard.includes(searchTerm) ||
+      (p.idCard && p.idCard.includes(searchTerm)) ||
       p.villageName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.phone.includes(searchTerm) ||
       (p.caregiverName && p.caregiverName.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -239,6 +239,12 @@ export const PatientList: React.FC<PatientListProps> = ({
                     </div>
 
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                      {patient.idCard && (
+                        <span className="inline-flex items-center gap-1 text-slate-500">
+                          <span className="text-slate-400">เลขบัตร:</span>
+                          <span className="font-mono text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">{patient.idCard}</span>
+                        </span>
+                      )}
                       <span className="flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 text-slate-400" />
                         {patient.villageName}, ต.{patient.tambon}

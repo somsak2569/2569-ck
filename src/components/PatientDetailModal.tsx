@@ -108,7 +108,7 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
               <div>
                 <span className="text-slate-400">เลขประจำตัวประชาชน: </span>
-                <span className="font-medium text-slate-800">{patient.idCard || 'ไม่ได้ระบุ'}</span>
+                <span className="font-medium text-slate-800">{patient.idCard || 'ไม่ได้ระบุ (ถ้ามี / ไม่บังคับ)'}</span>
               </div>
               <div>
                 <span className="text-slate-400">เบอร์โทรศัพท์: </span>

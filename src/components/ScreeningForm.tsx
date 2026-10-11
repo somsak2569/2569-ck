@@ -54,6 +54,29 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
   const [age, setAge] = useState<number | ''>(editingPatient ? editingPatient.age : '');
   const [gender, setGender] = useState<'ชาย' | 'หญิง' | 'อื่นๆ'>(editingPatient?.gender || 'ชาย');
   const [addressNo, setAddressNo] = useState(editingPatient?.addressNo || '');
+
+  // Handle ID card change (พิมพ์เลขประชาชนก็ได้ ถ้ามี - จัดรูปแบบเลขอัตโนมัติและไม่บังคับกรอก)
+  const handleIdCardChange = (val: string) => {
+    if (!val) {
+      setIdCard('');
+      return;
+    }
+    const digits = val.replace(/\D/g, '');
+    const hasLetters = /[a-zA-Z]/.test(val);
+
+    // หากเป็นตัวเลขล้วน จัดรูปแบบ 1-4-5-2-1 อัตโนมัติ (สูงสุด 13 หลัก)
+    if (!hasLetters && digits.length > 0) {
+      const trimmed = digits.slice(0, 13);
+      let formatted = trimmed.slice(0, 1);
+      if (trimmed.length > 1) formatted += '-' + trimmed.slice(1, Math.min(5, trimmed.length));
+      if (trimmed.length > 5) formatted += '-' + trimmed.slice(5, Math.min(10, trimmed.length));
+      if (trimmed.length > 10) formatted += '-' + trimmed.slice(10, Math.min(12, trimmed.length));
+      if (trimmed.length > 12) formatted += '-' + trimmed.slice(12, 13);
+      setIdCard(formatted);
+    } else {
+      setIdCard(val.slice(0, 20));
+    }
+  };
   
   // Tambon & Village
   const defaultTambon = editingPatient?.tambon 
@@ -322,14 +345,15 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
             {/* ID Card */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                เลขประจำตัวประชาชน (13 หลัก)
+                เลขประจำตัวประชาชน <span className="text-slate-400 font-normal">(ถ้ามี / ไม่บังคับ)</span>
               </label>
               <input
                 type="text"
                 value={idCard}
-                onChange={(e) => setIdCard(e.target.value)}
-                placeholder="เช่น 3-5503-xxxxx-xx-x"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition"
+                onChange={(e) => handleIdCardChange(e.target.value)}
+                placeholder="ถ้ามี / ไม่บังคับ"
+                maxLength={17}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition placeholder:text-slate-400"
               />
             </div>
 
