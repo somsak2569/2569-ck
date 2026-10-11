@@ -1,45 +1,43 @@
 import React, { useState } from 'react';
-import { User, UserRole } from '../types';
-import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
+import {
+  LogIn,
+  HeartHandshake,
+  Key,
+  Eye,
+  EyeOff,
+  User as UserIcon,
+  AlertCircle,
+  PhoneCall,
+  ShieldCheck,
+  UserPlus,
+  ArrowLeft,
+  Building2,
+  MapPin,
+  Crown,
+  CheckCircle2,
+} from 'lucide-react';
+import { User } from '../types';
 import { INITIAL_USERS } from '../data/mockData';
 import { isUserSomsak, verifyUserPassword } from '../utils/storage';
 import { fetchUsersFromFirestore } from '../services/firestoreSync';
+import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
 import { PWAInstallButton } from './PWAInstallButton';
-import { 
-  HeartHandshake, 
-  LogIn, 
-  UserPlus, 
-  ShieldCheck, 
-  UserCheck, 
-  Key, 
-  Mail, 
-  User as UserIcon, 
-  PhoneCall, 
-  CheckCircle2, 
-  AlertCircle,
-  Eye,
-  EyeOff,
-  Code,
-  Building2,
-  MapPin,
-  Database,
-  Crown,
-  HelpCircle,
-  X
-} from 'lucide-react';
 
 interface AuthScreenProps {
   users: User[];
   onLoginSuccess: (user: User) => void;
-  onRegisterUser: (newUser: User) => void;
+  onRegisterUser?: (newUser: User) => void;
 }
+
+type AuthMode = 'LOGIN' | 'REGISTER_ADMIN' | 'REGISTER_OFFICER_VHV';
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({
   users,
   onLoginSuccess,
   onRegisterUser,
 }) => {
-  const [activeTab, setActiveTab] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
+  // Current view mode: LOGIN, REGISTER_ADMIN, or REGISTER_OFFICER_VHV
+  const [authMode, setAuthMode] = useState<AuthMode>('LOGIN');
 
   // Login form state
   const [loginInput, setLoginInput] = useState('');
@@ -48,31 +46,29 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const [loginError, setLoginError] = useState('');
 
   // Register form state
+  const [regRole, setRegRole] = useState<'ADMIN' | 'HEALTH_OFFICER' | 'VHV'>('HEALTH_OFFICER');
   const [regFullName, setRegFullName] = useState('');
   const [regUsername, setRegUsername] = useState('');
+  const [regPhone, setRegPhone] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
-  const [adminPasscode, setAdminPasscode] = useState('admin2569');
-  const [regRole, setRegRole] = useState<UserRole>('ADMIN');
-  const [regTambon, setRegTambon] = useState<string>('เชียงกลาง');
-  const [regVillage, setRegVillage] = useState<string>(
+  const [regTambon, setRegTambon] = useState('เชียงกลาง');
+  const [regVillage, setRegVillage] = useState(
     CHIANG_KLANG_TAMBONS['เชียงกลาง']?.villages[0] || 'หมู่ 1 บ้านศรีอุดม'
   );
-  const [regHospital, setRegHospital] = useState<string>(
-    CHIANG_KLANG_TAMBONS['เชียงกลาง']?.hospitals[0] || 'สสอ.เชียงกลาง'
+  const [regHospital, setRegHospital] = useState(
+    CHIANG_KLANG_TAMBONS['เชียงกลาง']?.hospitals[0] || 'รพ.สต.บ้านงิ้ว'
   );
-  const [regPhone, setRegPhone] = useState('');
-  const [regError, setRegError] = useState('');
   const [regSuccess, setRegSuccess] = useState('');
 
   const handleTambonChange = (newTambon: string) => {
     setRegTambon(newTambon);
     const vList = CHIANG_KLANG_TAMBONS[newTambon]?.villages || [];
-    setRegVillage(vList[0] || '');
     const hList = CHIANG_KLANG_TAMBONS[newTambon]?.hospitals || [];
-    setRegHospital(hList[0] || '');
+    if (vList.length > 0) setRegVillage(vList[0]);
+    if (hList.length > 0) setRegHospital(hList[0]);
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -87,41 +83,59 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     }
 
     const cleanUsers = users.filter((u) => !isUserSomsak(u));
-    let userFound = cleanUsers.find(
-      (u) =>
-        u.username.toLowerCase() === trimmed ||
-        (u.email && u.email.toLowerCase() === trimmed) ||
-        (u.fullName && u.fullName.toLowerCase() === trimmed) ||
-        (u.phone && u.phone.replace(/[^0-9]/g, '') === rawInput.replace(/[^0-9]/g, '') && rawInput.length >= 8)
-    );
 
-    // Fallback: If searching for admin or admin email/passcode, check state then INITIAL_USERS
-    const isAdminQuery =
-      trimmed === 'admin' ||
-      trimmed === 'admin2569' ||
-      trimmed === 'thaipasit5@gmail.com' ||
-      trimmed === 'som9999sak@gmail.com' ||
-      trimmed === 'สสอ.เชียงกลาง';
+    // Flexible matching for Thai names, usernames, phones, emails, and admin aliases
+    const cleanDigits = rawInput.replace(/[^0-9]/g, '');
+    const matchUser = (u: User) => {
+      if (isUserSomsak(u)) return false;
+      const uName = (u.username || '').toLowerCase().trim();
+      const uEmail = (u.email || '').toLowerCase().trim();
+      const uFull = (u.fullName || '').toLowerCase().trim();
+      const uPhoneDigits = (u.phone || '').replace(/[^0-9]/g, '');
 
-    if (!userFound && isAdminQuery) {
-      userFound =
-        cleanUsers.find((u) => u.role === 'ADMIN' || u.username.toLowerCase() === 'admin') ||
-        INITIAL_USERS.find((u) => u.role === 'ADMIN' && !isUserSomsak(u));
+      // 1. Exact username
+      if (uName === trimmed) return true;
+      // 2. Exact email
+      if (uEmail && uEmail === trimmed) return true;
+      // 3. Exact full name
+      if (uFull === trimmed) return true;
+      // 4. Phone number match
+      if (cleanDigits.length >= 8 && uPhoneDigits.endsWith(cleanDigits)) return true;
+
+      // 5. Admin keywords
+      const isAdminTerm =
+        trimmed === 'admin' ||
+        trimmed === 'admin2569' ||
+        trimmed === 'ผู้ดูแลระบบ' ||
+        trimmed === 'แอดมิน' ||
+        trimmed === 'ck2569' ||
+        trimmed === 'สสอ.เชียงกลาง' ||
+        trimmed === 'thaipasit5@gmail.com';
+      if (isAdminTerm && (u.role === 'ADMIN' || uName === 'admin')) return true;
+
+      // 6. Partial Thai name or username containment
+      if (trimmed.length >= 3) {
+        if (uFull.includes(trimmed) || trimmed.includes(uFull)) return true;
+        if (trimmed.includes(uName) || (uName.length >= 3 && uName.includes(trimmed))) return true;
+      }
+
+      return false;
+    };
+
+    let userFound = cleanUsers.find(matchUser);
+
+    // Fallback 1: Search INITIAL_USERS
+    if (!userFound) {
+      userFound = INITIAL_USERS.find(matchUser);
     }
 
-    // Direct Firestore fallback in case initial websocket sync was delayed on new device
+    // Fallback 2: Direct Firestore fetch for cloud updates
     if (!userFound) {
       try {
         const cloudUsers = await fetchUsersFromFirestore();
         if (cloudUsers && cloudUsers.length > 0) {
           const freshClean = cloudUsers.filter((u) => !isUserSomsak(u));
-          userFound = freshClean.find(
-            (u) =>
-              u.username.toLowerCase() === trimmed ||
-              (u.email && u.email.toLowerCase() === trimmed) ||
-              (u.fullName && u.fullName.toLowerCase() === trimmed) ||
-              (u.phone && u.phone.replace(/[^0-9]/g, '') === rawInput.replace(/[^0-9]/g, '') && rawInput.length >= 8)
-          );
+          userFound = freshClean.find(matchUser);
         }
       } catch (err) {
         console.warn('Direct Firestore fetch check error:', err);
@@ -129,7 +143,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     }
 
     if (!userFound) {
-      setLoginError('ไม่พบบัญชีผู้ใช้หรืออีเมลนี้ในระบบ กรุณาตรวจสอบชื่อผู้ใช้หรือลงทะเบียนใหม่');
+      setLoginError('ไม่พบบัญชีผู้ใช้หรืออีเมลนี้ในระบบ กรุณาตรวจสอบชื่อผู้ใช้หรือเลือกลงทะเบียนใหม่ที่ด้านล่าง');
       return;
     }
 
@@ -149,63 +163,56 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setRegError('');
+    setLoginError('');
     setRegSuccess('');
 
     const trimmedName = regFullName.trim();
     const trimmedUsername = regUsername.trim();
 
     if (!trimmedName || !trimmedUsername) {
-      setRegError('กรุณากรอกชื่อ-สกุล และชื่อผู้ใช้ (Username)');
+      setLoginError('กรุณากรอกชื่อ-สกุล และชื่อผู้ใช้ (Username)');
       return;
     }
 
     if (trimmedUsername.length < 2) {
-      setRegError('ชื่อผู้ใช้ (Username) ต้องมีความยาวอย่างน้อย 2 ตัวอักษร');
+      setLoginError('ชื่อผู้ใช้ (Username) ต้องมีความยาวอย่างน้อย 2 ตัวอักษร');
       return;
     }
 
     // Allow Thai alphabet, English letters, digits, underscore, hyphen (no whitespace)
     if (!/^[a-zA-Z0-9_\-\u0E00-\u0E7F]+$/.test(trimmedUsername)) {
-      setRegError('ชื่อผู้ใช้สามารถใช้ตัวอักษรภาษาไทย ภาษาอังกฤษ ตัวเลข ขีดล่าง หรือยัติภังค์ (ห้ามเว้นวรรค)');
+      setLoginError('ชื่อผู้ใช้สามารถใช้ตัวอักษรภาษาไทย ภาษาอังกฤษ ตัวเลข ขีดล่าง หรือยัติภังค์ (ห้ามเว้นวรรค)');
       return;
     }
 
     if (!regPassword) {
-      setRegError('กรุณากำหนดรหัสผ่าน (Password) สำหรับใช้ในการเข้าสู่ระบบ');
+      setLoginError('กรุณากำหนดรหัสผ่านสำหรับการเข้าสู่ระบบ');
       return;
     }
 
     if (regPassword.length < 4) {
-      setRegError('รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร');
+      setLoginError('รหัสผ่านต้องมีความยาวอย่างน้อย 4 ตัวอักษร');
       return;
     }
 
     if (regPassword !== regConfirmPassword) {
-      setRegError('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง');
+      setLoginError('รหัสผ่านและยืนยันรหัสผ่านไม่ตรงกัน กรุณาตรวจสอบอีกครั้ง');
       return;
     }
 
-    // Admin passcode check
-    if (regRole === 'ADMIN' && adminPasscode.trim()) {
-      const allowedCodes = ['admin2569', '2569', 'admin', 'ck2569', 'สสอ.เชียงกลาง'];
-      if (!allowedCodes.includes(adminPasscode.trim().toLowerCase())) {
-        setRegError('รหัสยืนยันผู้ดูแลระบบ (Admin Passcode) ไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง');
-        return;
-      }
-    }
-
-    const exists = users.some(
-      (u) => u.username.toLowerCase() === trimmedUsername.toLowerCase()
+    // Duplicate check
+    const isDuplicate = [...users, ...INITIAL_USERS].some(
+      (u) => !isUserSomsak(u) && (u.username || '').toLowerCase() === trimmedUsername.toLowerCase()
     );
 
-    if (exists) {
-      setRegError('ชื่อผู้ใช้นี้มีอยู่ในระบบแล้ว กรุณาเลือกชื่อผู้ใช้อื่น');
+    if (isDuplicate) {
+      setLoginError('ชื่อผู้ใช้นี้มีในระบบแล้ว กรุณาเลือกชื่อผู้ใช้อื่น');
       return;
     }
 
-    const isAdmin = regRole === 'ADMIN';
-    const isOfficer = regRole === 'HEALTH_OFFICER';
+    const isAdmin = authMode === 'REGISTER_ADMIN';
+    const activeRole = isAdmin ? 'ADMIN' : regRole;
+    const isOfficer = activeRole === 'HEALTH_OFFICER';
 
     const newUser: User = {
       id: isAdmin
@@ -217,7 +224,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       email: '',
       password: regPassword,
       fullName: trimmedName,
-      role: regRole,
+      role: activeRole,
       roleLabel: isAdmin
         ? 'ผู้ดูแลระบบ สสอ.เชียงกลาง'
         : isOfficer
@@ -234,307 +241,284 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       createdAt: new Date().toISOString().slice(0, 10),
     };
 
-    onRegisterUser(newUser);
-    setRegSuccess(
-      `ลงทะเบียนสำเร็จ! เข้าสู่ระบบในชื่อ ${newUser.fullName} (${newUser.roleLabel})`
-    );
+    if (onRegisterUser) {
+      onRegisterUser(newUser);
+    }
+    setRegSuccess(`ลงทะเบียน ${newUser.fullName} เรียบร้อยแล้ว กำลังเข้าสู่ระบบ...`);
     setTimeout(() => {
       onLoginSuccess(newUser);
-    }, 900);
+    }, 600);
+  };
+
+  const switchToMode = (mode: AuthMode) => {
+    setAuthMode(mode);
+    setLoginError('');
+    setRegSuccess('');
+    if (mode === 'REGISTER_ADMIN') {
+      setRegRole('ADMIN');
+    } else if (mode === 'REGISTER_OFFICER_VHV') {
+      setRegRole('HEALTH_OFFICER');
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900 flex flex-col justify-between py-6 px-3 sm:px-6">
       {/* Top Banner & App Identity */}
-      <div className="max-w-md w-full mx-auto my-auto space-y-5 animate-in fade-in slide-in-from-bottom-3 duration-500">
-        <div className="text-center space-y-2">
+      <div className="max-w-md w-full mx-auto my-auto space-y-4 animate-in fade-in slide-in-from-bottom-3 duration-500">
+        <div className="text-center space-y-1.5">
           {/* Logo Badge */}
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-3xl bg-gradient-to-br from-teal-400 to-emerald-500 shadow-xl text-white border-2 border-teal-300/40 mx-auto">
-            <HeartHandshake className="w-9 h-9" />
+          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-3xl bg-gradient-to-br from-teal-400 to-emerald-500 shadow-xl text-white border-2 border-teal-300/40 mx-auto">
+            <HeartHandshake className="w-8 h-8 sm:w-9 sm:h-9" />
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
               คนเชียงกลางไม่ทิ้งกัน
             </h1>
             <p className="text-xs sm:text-sm text-teal-200 font-medium">
               สำนักงานสาธารณสุขอำเภอเชียงกลาง จังหวัดน่าน
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-0.5">
               <span className="bg-teal-800/80 backdrop-blur-xs border border-teal-600/70 text-teal-100 text-[11px] px-3 py-0.5 rounded-full font-semibold">
                 ระบบประเมินและคัดกรองความเสี่ยงการฆ่าตัวตาย (2Q Plus & 8Q)
-              </span>
-              <span className="inline-flex items-center gap-1 bg-emerald-900/80 border border-emerald-500/50 text-emerald-200 text-[11px] px-2.5 py-0.5 rounded-full font-medium">
-                <Database className="w-3 h-3 text-emerald-400" />
-                <span>Firebase: <strong>2569-ck</strong></span>
               </span>
             </div>
           </div>
         </div>
 
-        {/* Auth Card */}
+        {/* Auth Frame / Card */}
         <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
-          {/* Segmented Tab Header */}
-          <div className="grid grid-cols-2 bg-slate-100/90 p-1.5 border-b border-slate-200 text-xs font-bold">
-            <button
-              onClick={() => {
-                setActiveTab('LOGIN');
-                setLoginError('');
-              }}
-              className={`py-2.5 rounded-2xl transition flex items-center justify-center gap-1.5 ${
-                activeTab === 'LOGIN'
-                  ? 'bg-white text-teal-800 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              <span>เข้าสู่ระบบ</span>
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('REGISTER');
-                setRegError('');
-                setRegSuccess('');
-              }}
-              className={`py-2.5 rounded-2xl transition flex items-center justify-center gap-1.5 ${
-                activeTab === 'REGISTER'
-                  ? 'bg-white text-teal-800 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>ลงทะเบียนใหม่</span>
-            </button>
+          {/* Frame Header */}
+          {authMode === 'LOGIN' ? (
+            <div className="bg-gradient-to-r from-teal-800 to-teal-700 px-5 sm:px-6 py-4 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
+                  <LogIn className="w-4 h-4 text-teal-200" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-sm sm:text-base leading-tight">เข้าสู่ระบบบุคลากร</h2>
+                  <p className="text-[11px] text-teal-200">สสอ.เชียงกลาง • รพ.สต. • อสม. ประจำหมู่บ้าน</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 bg-teal-900/60 border border-teal-500/30 px-2.5 py-1 rounded-full text-[11px] text-teal-100 font-medium">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+                <span>ความปลอดภัยสูง</span>
+              </div>
+            </div>
+          ) : authMode === 'REGISTER_ADMIN' ? (
+            <div className="bg-gradient-to-r from-indigo-900 to-indigo-800 px-5 sm:px-6 py-4 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => switchToMode('LOGIN')}
+                  className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
+                  title="กลับไปหน้าเข้าสู่ระบบ"
+                >
+                  <ArrowLeft className="w-4 h-4 text-indigo-200" />
+                </button>
+                <div>
+                  <h2 className="font-bold text-sm sm:text-base leading-tight">ลงทะเบียน ผู้ดูแลระบบ (Admin)</h2>
+                  <p className="text-[11px] text-indigo-200">สสอ.เชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 bg-indigo-950/70 border border-indigo-400/40 px-2.5 py-1 rounded-full text-[11px] text-amber-300 font-bold">
+                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                <span>สิทธิ์ ADMIN</span>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gradient-to-r from-teal-800 to-emerald-800 px-5 sm:px-6 py-4 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => switchToMode('LOGIN')}
+                  className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
+                  title="กลับไปหน้าเข้าสู่ระบบ"
+                >
+                  <ArrowLeft className="w-4 h-4 text-teal-200" />
+                </button>
+                <div>
+                  <h2 className="font-bold text-sm sm:text-base leading-tight">ลงทะเบียน เจ้าหน้าที่ รพ.สต. / อสม.</h2>
+                  <p className="text-[11px] text-teal-200">บุคลากรประจำตำบลและหมู่บ้าน อ.เชียงกลาง</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 bg-teal-950/70 border border-teal-400/40 px-2.5 py-1 rounded-full text-[11px] text-emerald-200 font-bold">
+                <HeartHandshake className="w-3.5 h-3.5 text-emerald-300" />
+                <span>พื้นที่ดูแล</span>
+              </div>
+            </div>
+          )}
+
+          {/* Feedback Alerts */}
+          <div className="px-5 sm:px-6 pt-4">
+            {loginError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2 animate-in fade-in duration-200">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{loginError}</span>
+              </div>
+            )}
+            {regSuccess && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2 animate-in fade-in duration-200">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{regSuccess}</span>
+              </div>
+            )}
           </div>
 
-          <div className="p-5 sm:p-6">
-            {/* TAB 1: LOGIN */}
-            {activeTab === 'LOGIN' && (
-              <form onSubmit={handleLoginSubmit} className="space-y-3.5">
-                {loginError && (
-                  <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                    <span>{loginError}</span>
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    ชื่อผู้ใช้งาน (Username)
-                  </label>
-                  <div className="relative">
-                    <UserIcon className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                    <input
-                      type="text"
-                      required
-                      autoCapitalize="none"
-                      autoCorrect="off"
-                      spellCheck="false"
-                      value={loginInput}
-                      onChange={(e) => setLoginInput(e.target.value)}
-                      placeholder="เช่น admin หรือ ชื่อผู้ใช้ที่ลงทะเบียน"
-                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none bg-slate-50/50 focus:bg-white transition"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="block text-xs font-bold text-slate-700">
-                      รหัสผ่าน (Password)
+          {/* Frame Main Content */}
+          {authMode === 'LOGIN' ? (
+            /* ------------------ VIEW 1: LOGIN ------------------ */
+            <div>
+              <div className="p-5 sm:p-6 pt-2">
+                <form onSubmit={handleLoginSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      ชื่อผู้ใช้งาน (Username) หรือเบอร์โทรศัพท์
                     </label>
+                    <div className="relative">
+                      <UserIcon className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                      <input
+                        type="text"
+                        required
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck="false"
+                        value={loginInput}
+                        onChange={(e) => setLoginInput(e.target.value)}
+                        placeholder="เช่น admin หรือ ชื่อผู้ใช้งาน / เบอร์โทรศัพท์"
+                        className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none bg-slate-50/50 focus:bg-white transition"
+                      />
+                    </div>
                   </div>
-                  <div className="relative">
-                    <Key className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      autoCapitalize="none"
-                      autoCorrect="off"
-                      spellCheck="false"
-                      value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="กรอกรหัสผ่านของคุณ"
-                      className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none bg-slate-50/50 focus:bg-white transition"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
 
-                <button
-                  type="submit"
-                  className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 cursor-pointer mt-1"
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span>เข้าสู่ระบบ</span>
-                </button>
-
-                <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab('REGISTER');
-                      setRegRole('ADMIN');
-                      setRegError('');
-                      setRegSuccess('');
-                    }}
-                    className="text-amber-700 hover:text-amber-900 font-bold hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    <Crown className="w-3.5 h-3.5 text-amber-600" />
-                    <span>ลงทะเบียน Admin ใหม่</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab('REGISTER');
-                      setRegRole('VHV');
-                      setRegError('');
-                      setRegSuccess('');
-                    }}
-                    className="text-teal-700 hover:text-teal-900 font-medium hover:underline cursor-pointer"
-                  >
-                    + ลงทะเบียน อสม./จนท.
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {/* TAB 2: REGISTER */}
-            {activeTab === 'REGISTER' && (
-              <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
-                {regError && (
-                  <div className="p-2.5 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs flex items-start gap-1.5">
-                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                    <span>{regError}</span>
-                  </div>
-                )}
-                {regSuccess && (
-                  <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>{regSuccess}</span>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  {/* Role Selection */}
-                  <div className="sm:col-span-2">
-                    <label className="block font-bold text-slate-700 mb-1.5">
-                      ประเภทสมาชิก / สิทธิ์การใช้งาน <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-xs font-bold text-slate-700">
+                        รหัสผ่าน (Password)
+                      </label>
+                    </div>
+                    <div className="relative">
+                      <Key className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck="false"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        placeholder="กรอกรหัสผ่านของคุณ"
+                        className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none bg-slate-50/50 focus:bg-white transition"
+                      />
                       <button
                         type="button"
-                        onClick={() => setRegRole('ADMIN')}
-                        className={`p-2.5 rounded-xl border text-xs text-left transition cursor-pointer flex flex-col justify-between ${
-                          regRole === 'ADMIN'
-                            ? 'border-amber-500 bg-amber-50/90 text-amber-900 font-bold ring-2 ring-amber-400/40 shadow-xs'
-                            : 'border-slate-200 text-slate-600 bg-white hover:bg-slate-50'
-                        }`}
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
                       >
-                        <div className="flex items-center gap-1.5 text-amber-700 font-bold">
-                          <Crown className="w-4 h-4 text-amber-500 shrink-0" />
-                          <span>ผู้ดูแลระบบ (Admin)</span>
-                        </div>
-                        <span className="text-[10px] text-slate-500 mt-1">
-                          สสอ.เชียงกลาง (ทุกตำบล)
-                        </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setRegRole('HEALTH_OFFICER')}
-                        className={`p-2.5 rounded-xl border text-xs text-left transition cursor-pointer flex flex-col justify-between ${
-                          regRole === 'HEALTH_OFFICER'
-                            ? 'border-teal-600 bg-teal-50 text-teal-900 font-bold ring-2 ring-teal-400/40 shadow-xs'
-                            : 'border-slate-200 text-slate-600 bg-white hover:bg-slate-50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1.5 text-teal-800 font-bold">
-                          <Building2 className="w-4 h-4 text-teal-600 shrink-0" />
-                          <span>จนท. รพ.สต. (พี่เลี้ยง)</span>
-                        </div>
-                        <span className="text-[10px] text-slate-500 mt-1">
-                          ระดับตำบล / รพ.สต.
-                        </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setRegRole('VHV')}
-                        className={`p-2.5 rounded-xl border text-xs text-left transition cursor-pointer flex flex-col justify-between ${
-                          regRole === 'VHV'
-                            ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-bold ring-2 ring-emerald-400/40 shadow-xs'
-                            : 'border-slate-200 text-slate-600 bg-white hover:bg-slate-50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-1.5 text-emerald-800 font-bold">
-                          <UserCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                          <span>อสม. ประจำหมู่บ้าน</span>
-                        </div>
-                        <span className="text-[10px] text-slate-500 mt-1">
-                          ผู้คัดกรอง 2Q+ & 8Q
-                        </span>
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
 
-                  {/* Admin Specific Privileges & Passcode */}
-                  {regRole === 'ADMIN' && (
-                    <div className="sm:col-span-2 p-3 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 text-amber-900 rounded-2xl text-xs space-y-2">
-                      <div className="flex items-center gap-2 font-bold text-amber-800">
-                        <Crown className="w-4 h-4 text-amber-600 shrink-0" />
-                        <span>สิทธิ์ผู้ดูแลระบบระดับอำเภอ สสอ.เชียงกลาง (District Admin)</span>
+                  <button
+                    type="submit"
+                    className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>เข้าสู่ระบบ</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* ส่วนท้ายของเฟรม: เมนูลงทะเบียนใหม่ (แยก Admin และ รพ.สต./อสม.) */}
+              <div className="border-t border-slate-200 bg-slate-50/90 p-4 sm:p-5 rounded-b-3xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                    <UserPlus className="w-4 h-4 text-teal-700" />
+                    <span>เมนูลงทะเบียนใหม่</span>
+                  </div>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    เลือกลงทะเบียนตามส่วนงาน
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* ส่วนที่ 1: ส่วนลงทะเบียนของ Admin */}
+                  <button
+                    type="button"
+                    onClick={() => switchToMode('REGISTER_ADMIN')}
+                    className="flex items-start gap-2.5 p-3 rounded-2xl border-2 border-indigo-200 bg-white hover:bg-indigo-50/80 hover:border-indigo-400 text-left transition shadow-xs cursor-pointer group"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-indigo-100 group-hover:bg-indigo-200 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <ShieldCheck className="w-5 h-5 text-indigo-700" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-indigo-950 flex items-center gap-1">
+                        <span>ลงทะเบียน Admin</span>
+                        <span className="text-[10px] bg-indigo-100 text-indigo-800 font-semibold px-1.5 py-0.2 rounded">สสอ.</span>
                       </div>
-                      <p className="text-[11px] text-amber-800 leading-relaxed">
-                        • สังกัด: สำนักงานสาธารณสุขอำเภอเชียงกลาง (สสอ.เชียงกลาง)<br />
-                        • ขอบเขต: ดูแลและจัดการข้อมูลครอบคลุมทั้ง 6 ตำบล และ 61 หมู่บ้าน<br />
-                        • สิทธิ์พิเศษ: ตรวจสอบข้อมูลผู้ป่วยทั้งหมด, จัดการสมาชิก, ดาวน์โหลดรายงาน Excel
+                      <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+                        ผู้ดูแลระบบ สสอ.เชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)
                       </p>
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <label className="font-bold text-amber-900 text-[11px]">
-                            รหัสยืนยันผู้ดูแลระบบ (Admin Passcode)
-                          </label>
-                        </div>
-                        <input
-                          type="password"
-                          autoCapitalize="none"
-                          autoCorrect="off"
-                          spellCheck="false"
-                          value={adminPasscode}
-                          onChange={(e) => setAdminPasscode(e.target.value)}
-                          placeholder="กรอกรหัสยืนยันผู้ดูแลระบบ"
-                          className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs outline-none focus:ring-2 focus:ring-amber-500 font-mono"
-                        />
-                      </div>
                     </div>
-                  )}
+                  </button>
 
-                  <div className="sm:col-span-2">
-                    <label className="block font-bold text-slate-700 mb-1">
-                      ชื่อ - สกุล <span className="text-rose-500">*</span>
+                  {/* ส่วนที่ 2: ส่วนลงทะเบียนของ เจ้าหน้าที่ รพ.สต/เจ้าหน้าที่ อสม. */}
+                  <button
+                    type="button"
+                    onClick={() => switchToMode('REGISTER_OFFICER_VHV')}
+                    className="flex items-start gap-2.5 p-3 rounded-2xl border-2 border-teal-200 bg-white hover:bg-teal-50/80 hover:border-teal-400 text-left transition shadow-xs cursor-pointer group"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-teal-100 group-hover:bg-teal-200 text-teal-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <HeartHandshake className="w-5 h-5 text-teal-700" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-teal-950 flex items-center gap-1">
+                        <span>ลงทะเบียน รพ.สต. / อสม.</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
+                        จนท. รพ.สต. (พี่เลี้ยง) และ อสม.ประจำหมู่บ้าน
+                      </p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : authMode === 'REGISTER_ADMIN' ? (
+            /* ------------------ VIEW 2: REGISTER ADMIN ------------------ */
+            <div>
+              <div className="p-5 sm:p-6 pt-2">
+                {/* Admin Privileges Info Banner */}
+                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-amber-800">
+                    <Crown className="w-4 h-4 text-amber-600" />
+                    <span>ส่วนลงทะเบียนผู้ดูแลระบบ สสอ.เชียงกลาง</span>
+                  </div>
+                  <p className="text-[11px] text-amber-700 leading-relaxed">
+                    สิทธิระดับแอดมินสามารถเข้าถึงข้อมูลสถิติภาพรวม, ข้อมูลผู้ป่วย, ผลคัดกรอง 2Q+ / 8Q และจัดการสมาชิกได้ครบทุกตำบล
+                  </p>
+                </div>
+
+                <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      ชื่อ - นามสกุล <span className="text-rose-500">*</span>
                     </label>
                     <input
                       type="text"
                       required
                       value={regFullName}
                       onChange={(e) => setRegFullName(e.target.value)}
-                      placeholder={regRole === 'ADMIN' ? 'เช่น นายอนุชา บริสุทธิ์' : 'เช่น นางสมศรี มะโนชัย'}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
+                      placeholder="เช่น นายอนุชา บริสุทธิ์ หรือ น.ส.สมใจ ดีงาม"
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50 focus:bg-white"
                     />
                   </div>
 
-                  <div className="sm:col-span-2">
+                  <div>
                     <div className="flex justify-between items-center mb-1">
-                      <label className="block font-bold text-slate-700">
+                      <label className="block text-xs font-bold text-slate-700">
                         ชื่อผู้ใช้ (Username) <span className="text-rose-500">*</span>
                       </label>
-                      <span className="text-[10px] text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md font-medium border border-teal-200">
+                      <span className="text-[10px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded font-medium border border-indigo-200">
                         ใช้ภาษาไทย ภาษาอังกฤษ หรือตัวเลขได้
                       </span>
                     </div>
@@ -543,159 +527,372 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       required
                       value={regUsername}
                       onChange={(e) => setRegUsername(e.target.value)}
-                      placeholder={regRole === 'ADMIN' ? 'เช่น แอดมินสสอ หรือ somsak_admin' : 'เช่น อสมสมศรี หรือ somsri_vhv'}
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
+                      placeholder="เช่น admin_ck หรือ แอดมินสสอ"
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50 focus:bg-white"
                     />
                   </div>
 
-                  {/* Password & Confirm Password */}
                   <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <label className="block font-bold text-slate-700">
-                        รหัสผ่าน (Password) <span className="text-rose-500">*</span>
-                      </label>
-                      <span className="text-[10px] text-slate-400">อย่างน้อย 4 ตัว</span>
-                    </div>
-                    <div className="relative">
-                      <input
-                        type={showRegPassword ? 'text' : 'password'}
-                        required
-                        value={regPassword}
-                        onChange={(e) => setRegPassword(e.target.value)}
-                        placeholder="กำหนดรหัสผ่านของคุณ..."
-                        className="w-full px-3 pr-8 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowRegPassword(!showRegPassword)}
-                        className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
-                      >
-                        {showRegPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <label className="block font-bold text-slate-700">
-                        ยืนยันรหัสผ่าน <span className="text-rose-500">*</span>
-                      </label>
-                      {regConfirmPassword && (
-                        <span className={`text-[10px] font-bold ${regPassword === regConfirmPassword ? 'text-emerald-600' : 'text-rose-500'}`}>
-                          {regPassword === regConfirmPassword ? '✓ ตรงกัน' : '✗ ไม่ตรงกัน'}
-                        </span>
-                      )}
-                    </div>
-                    <div className="relative">
-                      <input
-                        type={showRegConfirmPassword ? 'text' : 'password'}
-                        required
-                        value={regConfirmPassword}
-                        onChange={(e) => setRegConfirmPassword(e.target.value)}
-                        placeholder="พิมพ์รหัสผ่านซ้ำอีกครั้ง..."
-                        className="w-full px-3 pr-8 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
-                        className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
-                      >
-                        {showRegConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block font-bold text-slate-700 mb-1">
-                      เบอร์โทรศัพท์มือถือ
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      เบอร์โทรศัพท์ติดต่อ
                     </label>
                     <input
                       type="tel"
                       value={regPhone}
                       onChange={(e) => setRegPhone(e.target.value)}
-                      placeholder="เช่น 081-234-5678"
-                      className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
+                      placeholder="เช่น 081-999-8888"
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50 focus:bg-white"
                     />
                   </div>
 
-                  {/* Area Scope (Tambon & Village / Hospital) */}
-                  {regRole !== 'ADMIN' ? (
-                    <>
+                  {/* Password & Confirm */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block text-xs font-bold text-slate-700">
+                          รหัสผ่าน <span className="text-rose-500">*</span>
+                        </label>
+                        <span className="text-[10px] text-slate-400">ขั้นต่ำ 4 ตัว</span>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showRegPassword ? 'text' : 'password'}
+                          required
+                          value={regPassword}
+                          onChange={(e) => setRegPassword(e.target.value)}
+                          placeholder="กำหนดรหัสผ่าน"
+                          className="w-full px-3 pr-8 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50 focus:bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowRegPassword(!showRegPassword)}
+                          className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          {showRegPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block text-xs font-bold text-slate-700">
+                          ยืนยันรหัสผ่าน <span className="text-rose-500">*</span>
+                        </label>
+                        {regConfirmPassword && (
+                          <span
+                            className={`text-[10px] font-bold ${
+                              regPassword === regConfirmPassword ? 'text-emerald-600' : 'text-rose-500'
+                            }`}
+                          >
+                            {regPassword === regConfirmPassword ? '✓ ตรงกัน' : '✗ ไม่ตรง'}
+                          </span>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showRegConfirmPassword ? 'text' : 'password'}
+                          required
+                          value={regConfirmPassword}
+                          onChange={(e) => setRegConfirmPassword(e.target.value)}
+                          placeholder="พิมพ์รหัสผ่านซ้ำ"
+                          className="w-full px-3 pr-8 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50 focus:bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
+                          className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          {showRegConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Agency info */}
+                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 flex items-center justify-between">
+                    <div>
+                      <strong>หน่วยงาน:</strong> สสอ.เชียงกลาง
+                    </div>
+                    <div>
+                      <strong>พื้นที่กำกับ:</strong> ครอบคลุมทั้ง 6 ตำบล
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3 bg-indigo-700 hover:bg-indigo-800 text-white font-bold rounded-xl shadow-md transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  >
+                    <Crown className="w-4 h-4 text-amber-300" />
+                    <span>ยืนยันการลงทะเบียน Admin และเข้าใช้งานทันที</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* ส่วนท้ายของเฟรม: ปุ่มสลับและกลับ */}
+              <div className="border-t border-slate-200 bg-slate-50/90 p-4 sm:p-5 rounded-b-3xl flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => switchToMode('REGISTER_OFFICER_VHV')}
+                  className="text-teal-700 hover:text-teal-900 font-semibold flex items-center gap-1 cursor-pointer"
+                >
+                  <HeartHandshake className="w-3.5 h-3.5" />
+                  <span>สลับไปลงทะเบียน เจ้าหน้าที่ รพ.สต. / อสม.</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchToMode('LOGIN')}
+                  className="text-slate-600 hover:text-slate-900 font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>กลับไปหน้าเข้าสู่ระบบ</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ------------------ VIEW 3: REGISTER OFFICER / VHV ------------------ */
+            <div>
+              <div className="p-5 sm:p-6 pt-2">
+                {/* Role Switcher Tabs */}
+                <div className="mb-4">
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    เลือกบทบาทการลงทะเบียน <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-2xl">
+                    <button
+                      type="button"
+                      onClick={() => setRegRole('HEALTH_OFFICER')}
+                      className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                        regRole === 'HEALTH_OFFICER'
+                          ? 'bg-teal-700 text-white shadow-xs'
+                          : 'text-slate-700 hover:bg-slate-200/60'
+                      }`}
+                    >
+                      <Building2 className="w-3.5 h-3.5" />
+                      <span>เจ้าหน้าที่ รพ.สต.</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRegRole('VHV')}
+                      className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                        regRole === 'VHV'
+                          ? 'bg-teal-700 text-white shadow-xs'
+                          : 'text-slate-700 hover:bg-slate-200/60'
+                      }`}
+                    >
+                      <HeartHandshake className="w-3.5 h-3.5" />
+                      <span>เจ้าหน้าที่ อสม.</span>
+                    </button>
+                  </div>
+                </div>
+
+                <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+                  {/* Tambon & Facility / Village Selection */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3 bg-teal-50/70 border border-teal-200/80 rounded-2xl">
+                    <div>
+                      <label className="block text-xs font-bold text-teal-900 mb-1 flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-teal-700" />
+                        <span>ตำบลใน อ.เชียงกลาง</span>
+                      </label>
+                      <select
+                        value={regTambon}
+                        onChange={(e) => handleTambonChange(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-teal-300 text-xs bg-white outline-none focus:ring-2 focus:ring-teal-500"
+                      >
+                        {Object.keys(CHIANG_KLANG_TAMBONS).map((t) => (
+                          <option key={t} value={t}>
+                            ตำบล{t}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {regRole === 'VHV' ? (
                       <div>
-                        <label className="block font-bold text-slate-700 mb-1">
-                          ตำบลใน อ.เชียงกลาง
+                        <label className="block text-xs font-bold text-teal-900 mb-1 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-emerald-700" />
+                          <span>หมู่บ้านที่รับผิดชอบ</span>
                         </label>
                         <select
-                          value={regTambon}
-                          onChange={(e) => handleTambonChange(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none font-medium"
+                          value={regVillage}
+                          onChange={(e) => setRegVillage(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl border border-teal-300 text-xs bg-white outline-none focus:ring-2 focus:ring-teal-500"
                         >
-                          {Object.keys(CHIANG_KLANG_TAMBONS).map((t) => (
-                            <option key={t} value={t}>
-                              ตำบล{t}
+                          {CHIANG_KLANG_TAMBONS[regTambon]?.villages.map((v) => (
+                            <option key={v} value={v}>
+                              {v}
                             </option>
                           ))}
                         </select>
                       </div>
-
-                      {regRole === 'VHV' ? (
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">
-                            หมู่บ้านที่รับผิดชอบ
-                          </label>
-                          <select
-                            value={regVillage}
-                            onChange={(e) => setRegVillage(e.target.value)}
-                            className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none"
-                          >
-                            {CHIANG_KLANG_TAMBONS[regTambon]?.villages.map((v) => (
-                              <option key={v} value={v}>
-                                {v}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      ) : (
-                        <div>
-                          <label className="block font-bold text-slate-700 mb-1">
-                            รพ.สต. สังกัด
-                          </label>
-                          <select
-                            value={regHospital}
-                            onChange={(e) => setRegHospital(e.target.value)}
-                            className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none font-medium"
-                          >
-                            {CHIANG_KLANG_TAMBONS[regTambon]?.hospitals.map((h) => (
-                              <option key={h} value={h}>
-                                {h}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div className="sm:col-span-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 flex items-center justify-between">
+                    ) : (
                       <div>
-                        <strong>หน่วยงาน:</strong> สสอ.เชียงกลาง
+                        <label className="block text-xs font-bold text-teal-900 mb-1 flex items-center gap-1">
+                          <Building2 className="w-3 h-3 text-teal-700" />
+                          <span>รพ.สต. สังกัด</span>
+                        </label>
+                        <select
+                          value={regHospital}
+                          onChange={(e) => setRegHospital(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl border border-teal-300 text-xs bg-white outline-none focus:ring-2 focus:ring-teal-500"
+                        >
+                          {CHIANG_KLANG_TAMBONS[regTambon]?.hospitals.map((h) => (
+                            <option key={h} value={h}>
+                              {h}
+                            </option>
+                          ))}
+                        </select>
                       </div>
-                      <div>
-                        <strong>พื้นที่รับผิดชอบ:</strong> ทั้ง 6 ตำบลใน อ.เชียงกลาง
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      ชื่อ - นามสกุล <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={regFullName}
+                      onChange={(e) => setRegFullName(e.target.value)}
+                      placeholder={
+                        regRole === 'HEALTH_OFFICER'
+                          ? 'เช่น พว.สุภาวดี ใจกว้าง หรือ นายธีรภัทร ชัยชนะ'
+                          : 'เช่น นายคำปัน มหาวงศ์ หรือ นางสมร ดีใจ'
+                      }
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50/50 focus:bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-xs font-bold text-slate-700">
+                        ชื่อผู้ใช้ (Username) <span className="text-rose-500">*</span>
+                      </label>
+                      <span className="text-[10px] text-teal-700 bg-teal-50 px-2 py-0.5 rounded font-medium border border-teal-200">
+                        ใช้ภาษาไทย ภาษาอังกฤษ หรือตัวเลขได้
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={regUsername}
+                      onChange={(e) => setRegUsername(e.target.value)}
+                      placeholder={
+                        regRole === 'HEALTH_OFFICER'
+                          ? 'เช่น สุภาวดี หรือ officer_puea'
+                          : 'เช่น คำปัน หรือ สมร หรือ อสม_ดวงใจ'
+                      }
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50/50 focus:bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      เบอร์โทรศัพท์ติดต่อ
+                    </label>
+                    <input
+                      type="tel"
+                      value={regPhone}
+                      onChange={(e) => setRegPhone(e.target.value)}
+                      placeholder="เช่น 089-755-1234"
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50/50 focus:bg-white"
+                    />
+                  </div>
+
+                  {/* Password & Confirm */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block text-xs font-bold text-slate-700">
+                          รหัสผ่าน <span className="text-rose-500">*</span>
+                        </label>
+                        <span className="text-[10px] text-slate-400">อย่างน้อย 4 ตัว</span>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showRegPassword ? 'text' : 'password'}
+                          required
+                          value={regPassword}
+                          onChange={(e) => setRegPassword(e.target.value)}
+                          placeholder="กำหนดรหัสผ่าน"
+                          className="w-full px-3 pr-8 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50/50 focus:bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowRegPassword(!showRegPassword)}
+                          className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          {showRegPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
                       </div>
                     </div>
-                  )}
-                </div>
 
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block text-xs font-bold text-slate-700">
+                          ยืนยันรหัสผ่าน <span className="text-rose-500">*</span>
+                        </label>
+                        {regConfirmPassword && (
+                          <span
+                            className={`text-[10px] font-bold ${
+                              regPassword === regConfirmPassword ? 'text-emerald-600' : 'text-rose-500'
+                            }`}
+                          >
+                            {regPassword === regConfirmPassword ? '✓ ตรงกัน' : '✗ ไม่ตรง'}
+                          </span>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showRegConfirmPassword ? 'text' : 'password'}
+                          required
+                          value={regConfirmPassword}
+                          onChange={(e) => setRegConfirmPassword(e.target.value)}
+                          placeholder="พิมพ์รหัสผ่านซ้ำ"
+                          className="w-full px-3 pr-8 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50/50 focus:bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
+                          className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          {showRegConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-md transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    <span>ยืนยันการลงทะเบียนและเข้าใช้งานทันที</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* ส่วนท้ายของเฟรม: ปุ่มสลับและกลับ */}
+              <div className="border-t border-slate-200 bg-slate-50/90 p-4 sm:p-5 rounded-b-3xl flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
                 <button
-                  type="submit"
-                  className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-md transition text-xs sm:text-sm flex items-center justify-center gap-2 mt-2 cursor-pointer"
+                  type="button"
+                  onClick={() => switchToMode('REGISTER_ADMIN')}
+                  className="text-indigo-700 hover:text-indigo-900 font-semibold flex items-center gap-1 cursor-pointer"
                 >
-                  <UserPlus className="w-4 h-4" />
-                  <span>บันทึกการลงทะเบียนและเข้าใช้งานทันที</span>
+                  <Crown className="w-3.5 h-3.5 text-amber-500" />
+                  <span>สลับไปลงทะเบียน ผู้ดูแลระบบ (Admin สสอ.)</span>
                 </button>
-              </form>
-            )}
-          </div>
+                <button
+                  type="button"
+                  onClick={() => switchToMode('LOGIN')}
+                  className="text-slate-600 hover:text-slate-900 font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>กลับไปหน้าเข้าสู่ระบบ</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* PWA Cross-Platform Install Card */}

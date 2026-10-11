@@ -88,41 +88,59 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
 
     const cleanUsers = users.filter((u) => !isUserSomsak(u));
-    let userFound = cleanUsers.find(
-      (u) =>
-        u.username.toLowerCase() === trimmed ||
-        (u.email && u.email.toLowerCase() === trimmed) ||
-        (u.fullName && u.fullName.toLowerCase() === trimmed) ||
-        (u.phone && u.phone.replace(/[^0-9]/g, '') === rawInput.replace(/[^0-9]/g, '') && rawInput.length >= 8)
-    );
 
-    // Fallback: If searching for admin or admin email/passcode, check state then INITIAL_USERS
-    const isAdminQuery =
-      trimmed === 'admin' ||
-      trimmed === 'admin2569' ||
-      trimmed === 'thaipasit5@gmail.com' ||
-      trimmed === 'som9999sak@gmail.com' ||
-      trimmed === 'สสอ.เชียงกลาง';
+    // Flexible matching for Thai names, usernames, phones, emails, and admin aliases
+    const cleanDigits = rawInput.replace(/[^0-9]/g, '');
+    const matchUser = (u: User) => {
+      if (isUserSomsak(u)) return false;
+      const uName = (u.username || '').toLowerCase().trim();
+      const uEmail = (u.email || '').toLowerCase().trim();
+      const uFull = (u.fullName || '').toLowerCase().trim();
+      const uPhoneDigits = (u.phone || '').replace(/[^0-9]/g, '');
 
-    if (!userFound && isAdminQuery) {
-      userFound =
-        cleanUsers.find((u) => u.role === 'ADMIN' || u.username.toLowerCase() === 'admin') ||
-        INITIAL_USERS.find((u) => u.role === 'ADMIN' && !isUserSomsak(u));
+      // 1. Exact username
+      if (uName === trimmed) return true;
+      // 2. Exact email
+      if (uEmail && uEmail === trimmed) return true;
+      // 3. Exact full name
+      if (uFull === trimmed) return true;
+      // 4. Phone number match
+      if (cleanDigits.length >= 8 && uPhoneDigits.endsWith(cleanDigits)) return true;
+
+      // 5. Admin keywords
+      const isAdminTerm =
+        trimmed === 'admin' ||
+        trimmed === 'admin2569' ||
+        trimmed === 'ผู้ดูแลระบบ' ||
+        trimmed === 'แอดมิน' ||
+        trimmed === 'ck2569' ||
+        trimmed === 'สสอ.เชียงกลาง' ||
+        trimmed === 'thaipasit5@gmail.com';
+      if (isAdminTerm && (u.role === 'ADMIN' || uName === 'admin')) return true;
+
+      // 6. Partial Thai name or username containment
+      if (trimmed.length >= 3) {
+        if (uFull.includes(trimmed) || trimmed.includes(uFull)) return true;
+        if (trimmed.includes(uName) || (uName.length >= 3 && uName.includes(trimmed))) return true;
+      }
+
+      return false;
+    };
+
+    let userFound = cleanUsers.find(matchUser);
+
+    // Fallback 1: Search INITIAL_USERS
+    if (!userFound) {
+      userFound = INITIAL_USERS.find(matchUser);
     }
 
-    // Direct Firestore fallback
+    // Fallback 2: Direct Firestore fetch
     if (!userFound) {
       try {
         const cloudUsers = await fetchUsersFromFirestore();
         if (cloudUsers && cloudUsers.length > 0) {
           const freshClean = cloudUsers.filter((u) => !isUserSomsak(u));
-          userFound = freshClean.find(
-            (u) =>
-              u.username.toLowerCase() === trimmed ||
-              (u.email && u.email.toLowerCase() === trimmed) ||
-              (u.fullName && u.fullName.toLowerCase() === trimmed) ||
-              (u.phone && u.phone.replace(/[^0-9]/g, '') === rawInput.replace(/[^0-9]/g, '') && rawInput.length >= 8)
-          );
+          userFound = freshClean.find(matchUser);
         }
       } catch (err) {
         console.warn('Direct Firestore fetch fallback error in modal:', err);
@@ -130,7 +148,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
 
     if (!userFound) {
-      setLoginError('ไม่พบบัญชีผู้ใช้หรืออีเมลนี้ในระบบ กรุณาตรวจสอบหรือลงทะเบียนใหม่');
+      setLoginError('ไม่พบบัญชีผู้ใช้หรืออีเมลนี้ในระบบ กรุณาตรวจสอบชื่อผู้ใช้อีกครั้ง');
       return;
     }
 
@@ -242,48 +260,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         {/* Header Bar */}
         <div className="bg-teal-800 text-white p-4 sm:p-5 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold">เข้าสู่ระบบ / ลงทะเบียนผู้ใช้งาน</h2>
+            <h2 className="text-lg font-bold">
+              {mode === 'REGISTER' ? 'ลงทะเบียนสมาชิกใหม่ (Admin)' : 'เข้าสู่ระบบ / สลับบัญชีผู้ใช้งาน'}
+            </h2>
             <p className="text-xs text-teal-200 mt-0.5">
               ระบบ “คนเชียงกลางไม่ทิ้งกัน” สสอ.เชียงกลาง จ.น่าน
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-teal-200 hover:text-white rounded-lg transition"
+            className="p-1.5 text-teal-200 hover:text-white rounded-lg transition cursor-pointer"
           >
             <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Tab switcher */}
-        <div className="grid grid-cols-2 border-b border-slate-200 bg-slate-50 text-xs font-semibold">
-          <button
-            onClick={() => {
-              setMode('LOGIN');
-              setLoginError('');
-            }}
-            className={`py-3 text-center transition ${
-              mode === 'LOGIN'
-                ? 'bg-white text-teal-800 border-b-2 border-teal-600 font-bold'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <LogIn className="w-3.5 h-3.5 inline mr-1" />
-            เข้าสู่ระบบ
-          </button>
-          <button
-            onClick={() => {
-              setMode('REGISTER');
-              setLoginError('');
-            }}
-            className={`py-3 text-center transition ${
-              mode === 'REGISTER'
-                ? 'bg-white text-teal-800 border-b-2 border-teal-600 font-bold'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <UserPlus className="w-3.5 h-3.5 inline mr-1" />
-            ลงทะเบียนใหม่
           </button>
         </div>
 
@@ -353,30 +341,38 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <span>เข้าสู่ระบบ</span>
             </button>
 
-            <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('REGISTER');
-                  setRegRole('ADMIN');
-                  setLoginError('');
-                }}
-                className="text-amber-700 hover:text-amber-800 font-bold hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <Crown className="w-3.5 h-3.5 text-amber-600" />
-                <span>ลงทะเบียน Admin ใหม่</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('REGISTER');
-                  setRegRole('VHV');
-                  setLoginError('');
-                }}
-                className="text-teal-700 hover:text-teal-800 font-semibold hover:underline cursor-pointer"
-              >
-                + ลงทะเบียน อสม./จนท.
-              </button>
+            {/* ส่วนท้ายของเฟรม: เมนูลงทะเบียนใหม่ (แยก Admin และ รพ.สต./อสม.) */}
+            <div className="pt-3 border-t border-slate-200 space-y-2">
+              <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                <span>เมนูลงทะเบียนใหม่:</span>
+                <span>เลือกตามตำแหน่ง</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('REGISTER');
+                    setRegRole('ADMIN');
+                    setLoginError('');
+                  }}
+                  className="p-2 rounded-xl border border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100 text-indigo-900 font-bold text-left transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Crown className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                  <span className="truncate">ลงทะเบียน Admin</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('REGISTER');
+                    setRegRole('VHV');
+                    setLoginError('');
+                  }}
+                  className="p-2 rounded-xl border border-teal-200 bg-teal-50/60 hover:bg-teal-100 text-teal-900 font-bold text-left transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <UserPlus className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+                  <span className="truncate">ลงทะเบียน รพ.สต./อสม.</span>
+                </button>
+              </div>
             </div>
           </form>
         )}
@@ -650,6 +646,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <UserPlus className="w-4 h-4" />
               <span>ยืนยันการลงทะเบียนและเข้าใช้งานทันที</span>
             </button>
+
+            <div className="text-center pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('LOGIN');
+                  setLoginError('');
+                  setRegSuccess('');
+                }}
+                className="text-xs text-slate-500 hover:text-slate-800 font-semibold cursor-pointer"
+              >
+                ← มีบัญชีอยู่แล้ว? กลับไปหน้าเข้าสู่ระบบ
+              </button>
+            </div>
           </form>
         )}
       </div>

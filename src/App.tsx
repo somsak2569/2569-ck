@@ -70,14 +70,13 @@ export default function App() {
     // 1. Connection test to Firestore
     testConnection().then((connected) => {
       if (connected) {
-        console.log('Firebase Cloud Database (2569-ck) connected successfully');
+        console.log('Firebase Cloud Database connected successfully');
       }
     });
 
     // 2. Immediate Firestore synchronization on mount for all devices
     const syncCloudData = async () => {
       try {
-        await purgeSomsakAdminFromFirestore();
         const cloudUsers = await fetchUsersFromFirestore();
         if (cloudUsers && cloudUsers.length > 0) {
           const cleanCloudUsers = cloudUsers.filter((u) => !isUserSomsak(u));
@@ -92,6 +91,9 @@ export default function App() {
           setPatientsState(cloudPatients);
           savePatients(cloudPatients);
         }
+
+        // Clean up legacy test accounts in background without blocking
+        purgeSomsakAdminFromFirestore().catch((e) => console.warn('Background purge notice:', e));
       } catch (e) {
         console.warn('Initial cloud sync notice:', e);
       }
@@ -160,7 +162,7 @@ export default function App() {
     setUsersState(updatedUsers);
     saveUsers(updatedUsers);
     saveUserToFirestore(newUser).catch((e) => console.warn('User saved locally, cloud sync pending:', e));
-    showToast(`ลงทะเบียนผู้ใช้ ${newUser.fullName} เรียบร้อยแล้ว (ซิงค์ Firebase 2569-ck)`, 'success');
+    showToast(`ลงทะเบียนผู้ใช้ ${newUser.fullName} เรียบร้อยแล้ว`, 'success');
   };
 
   const handleUpdateUser = (updatedUser: User) => {
@@ -223,10 +225,10 @@ export default function App() {
     if (existingIndex >= 0) {
       updated = [...patients];
       updated[existingIndex] = savedPatient;
-      showToast(`บันทึกการแก้ไขข้อมูลของ ${savedPatient.fullName} เรียบร้อยแล้ว (ซิงค์ Firebase 2569-ck)`, 'success');
+      showToast(`บันทึกการแก้ไขข้อมูลของ ${savedPatient.fullName} เรียบร้อยแล้ว`, 'success');
     } else {
       updated = [savedPatient, ...patients];
-      showToast(`บันทึกผลการคัดกรอง ${savedPatient.fullName} เรียบร้อยแล้ว (ซิงค์ Firebase 2569-ck)`, 'success');
+      showToast(`บันทึกผลการคัดกรอง ${savedPatient.fullName} เรียบร้อยแล้ว`, 'success');
     }
 
     setPatientsState(updated);

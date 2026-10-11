@@ -113,7 +113,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
             </p>
             <div className="flex items-center gap-1.5 mt-2 text-[11px] text-teal-800 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-lg w-fit">
               <Database className="w-3.5 h-3.5 text-teal-600" />
-              <span>ฐานข้อมูล: <strong>Firebase Cloud Database (2569-ck)</strong> • ซิงค์เรียลไทม์</span>
+              <span>ฐานข้อมูลระบบคลาวด์ • ซิงค์เรียลไทม์</span>
             </div>
           </div>
 

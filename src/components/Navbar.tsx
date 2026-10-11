@@ -63,11 +63,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="text-teal-200 hidden md:inline text-[11px]">
               คัดกรอง 2Q+ & 8Q กรมสุขภาพจิต
             </span>
-            <span className="text-teal-400/60 hidden sm:inline">|</span>
-            <div className="flex items-center gap-1 bg-emerald-950/70 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.5 rounded text-[10px] sm:text-[11px] shrink-0">
-              <Database className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-400 shrink-0" />
-              <span>Firebase: <strong className="text-emerald-200">2569-ck</strong></span>
-            </div>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
@@ -232,7 +227,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-teal-700 hover:bg-teal-50 rounded-lg transition text-left cursor-pointer"
                     >
                       <UserCheck className="w-4 h-4 shrink-0" />
-                      <span>สลับบัญชีผู้ใช้ / ลงทะเบียนใหม่</span>
+                      <span>สลับบัญชีผู้ใช้</span>
                     </button>
                     <button
                       onClick={() => {

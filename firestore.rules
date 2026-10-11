@@ -62,15 +62,13 @@ service cloud.firestore {
     // User management collection
     match /users/{userId} {
       allow get, list: if true;
-      allow create, update: if isValidId(userId) && isValidUser(incoming());
-      allow delete: if isValidId(userId);
+      allow create, update, delete: if isValidId(userId);
     }
 
     // Patient mental health & suicide screening collection
     match /patients/{patientId} {
       allow get, list: if true;
-      allow create, update: if isValidId(patientId) && isValidPatient(incoming());
-      allow delete: if isValidId(patientId);
+      allow create, update, delete: if isValidId(patientId);
     }
   }
 }

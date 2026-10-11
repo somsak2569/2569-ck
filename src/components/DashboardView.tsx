@@ -347,7 +347,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* CHARTS SECTION */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Chart 1: Suicide Risk Distribution Bar & Progress */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
+        {/* Chart 1: Suicide Risk Distribution Pie Chart (กราฟวงกลม) */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4 flex flex-col justify-between">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h3 className="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-1.5">
@@ -355,79 +356,238 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 สัดส่วนระดับความเสี่ยงการฆ่าตัวตาย (8Q)
               </h3>
               <p className="text-xs text-slate-500">
-                แปลผลตามเกณฑ์คะแนนมาตรฐานของกรมสุขภาพจิต
+                แผนภูมิกราฟวงกลมแปลผลตามเกณฑ์คะแนนมาตรฐานกรมสุขภาพจิต
               </p>
             </div>
           </div>
 
-          {/* Stacked visualization bar */}
-          <div className="space-y-3">
-            <div className="h-6 w-full rounded-full bg-slate-100 overflow-hidden flex shadow-inner">
-              {highRiskCount > 0 && (
-                <div
-                  style={{ width: `${(highRiskCount / totalCount) * 100}%` }}
-                  className="bg-rose-500 h-full transition-all"
-                  title={`เสี่ยงรุนแรง: ${highRiskCount} คน`}
-                ></div>
-              )}
-              {mediumRiskCount > 0 && (
-                <div
-                  style={{ width: `${(mediumRiskCount / totalCount) * 100}%` }}
-                  className="bg-amber-500 h-full transition-all"
-                  title={`เสี่ยงปานกลาง: ${mediumRiskCount} คน`}
-                ></div>
-              )}
-              {lowRiskCount > 0 && (
-                <div
-                  style={{ width: `${(lowRiskCount / totalCount) * 100}%` }}
-                  className="bg-yellow-400 h-full transition-all"
-                  title={`เสี่ยงน้อย: ${lowRiskCount} คน`}
-                ></div>
-              )}
-              {noneRiskCount > 0 && (
-                <div
-                  style={{ width: `${(noneRiskCount / totalCount) * 100}%` }}
-                  className="bg-emerald-500 h-full transition-all"
-                  title={`ปกติ: ${noneRiskCount} คน`}
-                ></div>
-              )}
-            </div>
+          {/* Pie Chart Representation */}
+          {(() => {
+            const slices = [
+              {
+                id: 'HIGH',
+                label: 'รุนแรง (>= 17)',
+                count: highRiskCount,
+                color: '#e11d48', // rose-600
+                hoverBg: 'bg-rose-50 border-rose-300 text-rose-900',
+                badgeBg: 'bg-rose-600',
+                borderCol: 'border-rose-200',
+              },
+              {
+                id: 'MEDIUM',
+                label: 'ปานกลาง (9-16)',
+                count: mediumRiskCount,
+                color: '#f59e0b', // amber-500
+                hoverBg: 'bg-amber-50 border-amber-300 text-amber-900',
+                badgeBg: 'bg-amber-500',
+                borderCol: 'border-amber-200',
+              },
+              {
+                id: 'LOW',
+                label: 'น้อย (1-8)',
+                count: lowRiskCount,
+                color: '#eab308', // yellow-500
+                hoverBg: 'bg-yellow-50 border-yellow-300 text-yellow-900',
+                badgeBg: 'bg-yellow-400',
+                borderCol: 'border-yellow-200',
+              },
+              {
+                id: 'NONE',
+                label: 'ปกติ / 0 คะแนน',
+                count: noneRiskCount,
+                color: '#10b981', // emerald-500
+                hoverBg: 'bg-emerald-50 border-emerald-300 text-emerald-900',
+                badgeBg: 'bg-emerald-500',
+                borderCol: 'border-emerald-200',
+              },
+            ];
 
-            {/* Legend & Details */}
-            <div className="grid grid-cols-2 gap-2 pt-1 text-xs">
-              <div className="flex items-center justify-between p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-900">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
-                  <span className="font-medium">รุนแรง (&gt;= 17)</span>
-                </div>
-                <span className="font-bold">{highRiskCount} ราย</span>
-              </div>
+            const activeSlices = slices.filter((s) => s.count > 0);
 
-              <div className="flex items-center justify-between p-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                  <span className="font-medium">ปานกลาง (9-16)</span>
-                </div>
-                <span className="font-bold">{mediumRiskCount} ราย</span>
-              </div>
+            // Calculate SVG Donut / Pie path arcs
+            let cumulativePercent = 0;
+            const size = 180;
+            const center = size / 2;
+            const radius = 70;
+            const innerRadius = 42; // Donut hole for modern legible look
 
-              <div className="flex items-center justify-between p-2 rounded-xl bg-yellow-50 border border-yellow-200 text-yellow-900">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
-                  <span className="font-medium">น้อย (1-8)</span>
-                </div>
-                <span className="font-bold">{lowRiskCount} ราย</span>
-              </div>
+            const getCoordinatesForPercent = (percent: number, r: number) => {
+              const x = center + r * Math.cos(2 * Math.PI * percent - Math.PI / 2);
+              const y = center + r * Math.sin(2 * Math.PI * percent - Math.PI / 2);
+              return [x, y];
+            };
 
-              <div className="flex items-center justify-between p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                  <span className="font-medium">ปกติ / 0 คะแนน</span>
+            const paths = activeSlices.map((slice) => {
+              const fraction = totalCount > 0 ? slice.count / totalCount : 0;
+              const startPercent = cumulativePercent;
+              const endPercent = cumulativePercent + fraction;
+              cumulativePercent = endPercent;
+
+              // Full circle special case
+              if (fraction >= 0.999) {
+                return {
+                  ...slice,
+                  fraction,
+                  pathData: '',
+                  isFullCircle: true,
+                };
+              }
+
+              const [startX, startY] = getCoordinatesForPercent(startPercent, radius);
+              const [endX, endY] = getCoordinatesForPercent(endPercent, radius);
+              const [innerStartX, innerStartY] = getCoordinatesForPercent(startPercent, innerRadius);
+              const [innerEndX, innerEndY] = getCoordinatesForPercent(endPercent, innerRadius);
+
+              const largeArcFlag = fraction > 0.5 ? 1 : 0;
+
+              const pathData = [
+                `M ${startX} ${startY}`,
+                `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}`,
+                `L ${innerEndX} ${innerEndY}`,
+                `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${innerStartX} ${innerStartY}`,
+                'Z',
+              ].join(' ');
+
+              return {
+                ...slice,
+                fraction,
+                pathData,
+                isFullCircle: false,
+              };
+            });
+
+            return (
+              <div className="space-y-4">
+                {totalCount === 0 ? (
+                  <div className="h-44 flex flex-col items-center justify-center text-slate-400 text-xs gap-1.5">
+                    <Activity className="w-8 h-8 text-slate-300" />
+                    <span>ยังไม่มีข้อมูลผู้รับการคัดกรองในพื้นที่นี้</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-5 pt-1">
+                    {/* SVG Pie Chart Graphic */}
+                    <div className="relative shrink-0 flex items-center justify-center">
+                      <svg
+                        width={size}
+                        height={size}
+                        viewBox={`0 0 ${size} ${size}`}
+                        className="transform -rotate-90 drop-shadow-xs transition-transform duration-500"
+                      >
+                        {paths.map((p) => {
+                          if (p.isFullCircle) {
+                            return (
+                              <g key={p.id}>
+                                <circle
+                                  cx={center}
+                                  cy={center}
+                                  r={(radius + innerRadius) / 2}
+                                  fill="none"
+                                  stroke={p.color}
+                                  strokeWidth={radius - innerRadius}
+                                  className="transition-all duration-300 hover:opacity-90"
+                                >
+                                  <title>{`${p.label}: ${p.count} คน (100%)`}</title>
+                                </circle>
+                              </g>
+                            );
+                          }
+                          return (
+                            <path
+                              key={p.id}
+                              d={p.pathData}
+                              fill={p.color}
+                              stroke="#ffffff"
+                              strokeWidth="2.5"
+                              className="transition-all duration-200 hover:opacity-85 cursor-pointer hover:scale-[1.02] origin-center"
+                            >
+                              <title>{`${p.label}: ${p.count} คน (${(p.fraction * 100).toFixed(1)}%)`}</title>
+                            </path>
+                          );
+                        })}
+                      </svg>
+
+                      {/* Center Info in the Pie/Donut hole */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-xl sm:text-2xl font-black text-slate-800 leading-none">
+                          {totalCount}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                          คนทั้งหมด
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Quick percentage breakdown next to Pie Chart */}
+                    <div className="flex-1 w-full space-y-1.5">
+                      {slices.map((slice) => {
+                        const percent = totalCount > 0 ? (slice.count / totalCount) * 100 : 0;
+                        return (
+                          <div
+                            key={slice.id}
+                            className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl border text-xs transition ${
+                              slice.count > 0 ? slice.borderCol + ' bg-slate-50/70' : 'border-slate-100 opacity-60'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-3 h-3 rounded-full shrink-0 shadow-2xs"
+                                style={{ backgroundColor: slice.color }}
+                              ></span>
+                              <span className="font-medium text-slate-700 truncate">
+                                {slice.label}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="font-bold text-slate-800">
+                                {slice.count} คน
+                              </span>
+                              <span
+                                className="text-[11px] font-semibold px-1.5 py-0.5 rounded-md min-w-[42px] text-right"
+                                style={{
+                                  backgroundColor: slice.count > 0 ? `${slice.color}20` : '#f1f5f9',
+                                  color: slice.color,
+                                }}
+                              >
+                                {percent.toFixed(1)}%
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub-legend badges */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px]">
+                  <div className="p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-center">
+                    <div className="font-semibold text-rose-700">🔴 รุนแรง</div>
+                    <div className="font-extrabold text-sm text-rose-800 mt-0.5">
+                      {highRiskCount} คน
+                    </div>
+                  </div>
+                  <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-center">
+                    <div className="font-semibold text-amber-700">🟠 ปานกลาง</div>
+                    <div className="font-extrabold text-sm text-amber-800 mt-0.5">
+                      {mediumRiskCount} คน
+                    </div>
+                  </div>
+                  <div className="p-2 rounded-xl bg-yellow-50 border border-yellow-200 text-yellow-900 text-center">
+                    <div className="font-semibold text-yellow-800">🟡 น้อย</div>
+                    <div className="font-extrabold text-sm text-yellow-800 mt-0.5">
+                      {lowRiskCount} คน
+                    </div>
+                  </div>
+                  <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-center">
+                    <div className="font-semibold text-emerald-700">🟢 ปกติ</div>
+                    <div className="font-extrabold text-sm text-emerald-800 mt-0.5">
+                      {noneRiskCount} คน
+                    </div>
+                  </div>
                 </div>
-                <span className="font-bold">{noneRiskCount} ราย</span>
               </div>
-            </div>
-          </div>
+            );
+          })()}
         </div>
 
         {/* Chart 2: Top Chronic Diseases & Risk Factors */}
