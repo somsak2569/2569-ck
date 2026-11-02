@@ -71,7 +71,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
     setTambon(newTambon);
     if (newTambon === 'ทั้งหมด') {
       setVillage('ทั้งหมด');
-      setHospital('สสอ.เชียงกลาง');
+      setHospital('โรงพยาบาลเชียงกลาง');
     } else {
       const vList = CHIANG_KLANG_TAMBONS[newTambon]?.villages || [];
       if (vList.length > 0) setVillage(vList[0]);
@@ -85,7 +85,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
     if (newRole === 'ADMIN') {
       setTambon('ทั้งหมด');
       setVillage('ทั้งหมด');
-      setHospital('สสอ.เชียงกลาง');
+      setHospital('โรงพยาบาลเชียงกลาง');
     } else if (newRole === 'HEALTH_OFFICER') {
       if (tambon === 'ทั้งหมด') {
         setTambon('เชียงกลาง');
@@ -137,7 +137,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
     // Determine role label
     let roleLabel = 'อสม. ประจำหมู่บ้าน';
     if (role === 'ADMIN') {
-      roleLabel = 'ผู้ดูแลระบบ (สสอ.เชียงกลาง)';
+      roleLabel = 'ผู้ดูแลระบบ (โรงพยาบาลเชียงกลาง)';
     } else if (role === 'HEALTH_OFFICER') {
       roleLabel = 'เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง)';
     } else if (role === 'CITIZEN') {
@@ -283,7 +283,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
-                  placeholder="เช่น somsak หรือ แอดมินสสอ"
+                  placeholder="เช่น somsak หรือ แอดมินรพ"
                   required
                 />
                 <UserIcon className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
@@ -410,7 +410,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
                 onChange={(e) => setHospital(e.target.value)}
                 className="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-300 text-xs bg-white focus:ring-2 focus:ring-teal-500 outline-none font-medium"
               >
-                {role === 'ADMIN' && <option value="สสอ.เชียงกลาง">สสอ.เชียงกลาง</option>}
+                {role === 'ADMIN' && <option value="โรงพยาบาลเชียงกลาง">โรงพยาบาลเชียงกลาง</option>}
                 {ALL_HEALTH_FACILITIES.map((h) => (
                   <option key={h} value={h}>
                     {h}

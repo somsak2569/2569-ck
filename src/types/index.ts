@@ -7,10 +7,10 @@ export interface User {
   password?: string;
   fullName: string;
   role: UserRole;
-  roleLabel: string; // ผู้ดูแลระบบ (สสอ.), เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง), อสม. ประจำหมู่บ้าน, บุคคลทั่วไป (ประชาชน)
+  roleLabel: string; // ผู้ดูแลระบบ (โรงพยาบาลเชียงกลาง), เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง), อสม. ประจำหมู่บ้าน, บุคคลทั่วไป (ประชาชน)
   tambon: string; // ตำบล (e.g. "เชียงกลาง", "เปือ", "ทั้งหมด" for admin)
   village: string; // หมู่บ้าน (e.g. "หมู่ 3 บ้านหนองแดง", "ทั้งหมด")
-  hospital: string; // รพ.สต. พี่เลี้ยง (e.g. "รพ.สต.เปือ", "สสอ.เชียงกลาง")
+  hospital: string; // รพ.สต. พี่เลี้ยง (e.g. "รพ.สต.เปือ", "โรงพยาบาลเชียงกลาง")
   phone: string;
   idCard?: string; // เลขประจำตัวประชาชน (ถ้ามี / ไม่บังคับ)
   age?: number;
@@ -51,6 +51,9 @@ export interface EightQAnswers {
   q8LifetimeAttempt: number; // 0 or 4
   totalScore: number;
   riskLevel: RiskLevel;
+  riskLabel: string;
+}
+
 // แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (Overt Aggression Scale: OAS)
 export interface OASAssessment {
   verbalScore: number; // 0-4 พฤติกรรมก้าวร้าวทางวาจา

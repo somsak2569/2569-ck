@@ -114,7 +114,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
   const availableHospitals = CHIANG_KLANG_TAMBONS[tambon]?.hospitals || [];
   const defaultHospital = editingPatient?.mentorHospital
     ? editingPatient.mentorHospital
-    : (currentUser.hospital && currentUser.hospital !== 'สสอ.เชียงกลาง' ? currentUser.hospital : availableHospitals[0] || 'รพ.เชียงกลาง');
+    : (currentUser.hospital && currentUser.hospital !== 'โรงพยาบาลเชียงกลาง' && currentUser.hospital !== 'สสอ.เชียงกลาง' ? currentUser.hospital : availableHospitals[0] || 'รพ.เชียงกลาง');
   const [mentorHospital, setMentorHospital] = useState(defaultHospital);
 
   const [phone, setPhone] = useState(
@@ -1270,7 +1270,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                       <li><strong>ห้ามปล่อยให้อยู่ตามลำพังเด็ดขาด</strong> ตลอด 24 ชั่วโมง</li>
                       <li>ให้ญาติหรือผู้ดูแลเก็บสิ่งของอันตราย (เชือก อาวุธ ยาฆ่าแมลง ยาเม็ดจำนวนมาก)</li>
                       <li>ประสานส่งต่อด่วนไปยัง <strong>รพ.เชียงกลาง (054-791111)</strong> หรือสายด่วน <strong>1669 / 1323</strong></li>
-                      <li>แจ้ง รพ.สต. พี่เลี้ยง และผู้ดูแลระบบ สสอ. เพื่อติดตามต่อเนื่อง</li>
+                      <li>แจ้ง รพ.สต. พี่เลี้ยง และผู้ดูแลระบบ โรงพยาบาลเชียงกลาง เพื่อติดตามต่อเนื่อง</li>
                     </ul>
                   </div>
                 )}

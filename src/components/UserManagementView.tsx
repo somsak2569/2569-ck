@@ -78,7 +78,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
   });
 
   const handleExportMembers = () => {
-    exportMembersToExcel(filteredUsers, 'ทะเบียนสมาชิกและเจ้าหน้าที่_สสอ_เชียงกลาง');
+    exportMembersToExcel(filteredUsers, 'ทะเบียนสมาชิกและเจ้าหน้าที่_โรงพยาบาลเชียงกลาง');
   };
 
   const handleSaveUserEdit = (updatedUser: User) => {

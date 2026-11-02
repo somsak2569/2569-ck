@@ -56,7 +56,7 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
           iconBg: 'bg-amber-500 text-white',
           titleColor: 'text-amber-900',
           icon: <Crown className="w-5 h-5" />,
-          label: 'ผู้ดูแลระบบ (Admin / สสอ.เชียงกลาง)',
+          label: 'ผู้ดูแลระบบ (Admin / โรงพยาบาลเชียงกลาง)',
         };
       case 'HEALTH_OFFICER':
         return {

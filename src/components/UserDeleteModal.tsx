@@ -54,7 +54,7 @@ export const UserDeleteModal: React.FC<UserDeleteModalProps> = ({
                 ยืนยันการลบข้อมูลผู้ใช้งาน
               </h2>
               <p className="text-xs text-rose-700">
-                ระบบจัดการสมาชิก สสอ.เชียงกลาง
+                ระบบจัดการสมาชิก โรงพยาบาลเชียงกลาง
               </p>
             </div>
           </div>

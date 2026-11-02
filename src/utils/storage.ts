@@ -15,7 +15,8 @@ const migrateHospitalName = (name: string): string => {
   if (name === 'รพ.สต.บ้านพระธาตุ') return 'รพ.สต.พระธาตุ';
   if (name === 'รพ.สต.บ้านพญาแก้ว') return 'รพ.สต.พญาแก้ว';
   if (name.includes('พระพุทธบาท') || name.includes('พระพุุทธบาท') || name.includes('บ้านดอนแก้ว')) return 'รพ.สต.พระพุุทธบาท';
-  if (name === 'โรงพยาบาลเชียงกลาง') return 'รพ.เชียงกลาง';
+  if (name === 'สสอ.เชียงกลาง' || name === 'สำนักงานสาธารณสุขอำเภอเชียงกลาง') return 'โรงพยาบาลเชียงกลาง';
+  if (name === 'โรงพยาบาลเชียงกลาง') return 'โรงพยาบาลเชียงกลาง';
   return name;
 };
 
@@ -88,6 +89,7 @@ export const verifyUserPassword = (user: User, inputPassword: string): boolean =
       'ck2569',
       'ck2026',
       'password',
+      'โรงพยาบาลเชียงกลาง',
       'สสอ.เชียงกลาง',
       // Common Thai keyboard accidental typing for 'admin' and 'admin2569'
       'ฟกทร',

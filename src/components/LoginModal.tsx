@@ -62,7 +62,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     CHIANG_KLANG_TAMBONS['เชียงกลาง']?.villages[0] || 'หมู่ 1 บ้านศรีอุดม'
   );
   const [regHospital, setRegHospital] = useState<string>(
-    CHIANG_KLANG_TAMBONS['เชียงกลาง']?.hospitals[0] || 'สสอ.เชียงกลาง'
+    CHIANG_KLANG_TAMBONS['เชียงกลาง']?.hospitals[0] || 'โรงพยาบาลเชียงกลาง'
   );
   const [regPhone, setRegPhone] = useState('');
   const [regSuccess, setRegSuccess] = useState('');
@@ -116,6 +116,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         trimmed === 'แอดมิน' ||
         trimmed === 'ck2569' ||
         trimmed === 'สสอ.เชียงกลาง' ||
+        trimmed === 'โรงพยาบาลเชียงกลาง' ||
         trimmed === 'thaipasit5@gmail.com';
       if (isAdminTerm && (u.role === 'ADMIN' || uName === 'admin')) return true;
 
@@ -235,7 +236,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       fullName: trimmedName,
       role: regRole,
       roleLabel: isAdmin
-        ? 'ผู้ดูแลระบบ สสอ.เชียงกลาง'
+        ? 'ผู้ดูแลระบบ โรงพยาบาลเชียงกลาง'
         : isCitizen
         ? 'บุคคลทั่วไป (ประชาชน)'
         : isOfficer
@@ -248,7 +249,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         ? `ทุกหมู่บ้านในตำบล${regTambon}`
         : regVillage,
       hospital: isAdmin
-        ? 'สสอ.เชียงกลาง'
+        ? 'โรงพยาบาลเชียงกลาง'
         : isCitizen
         ? (CHIANG_KLANG_TAMBONS[regTambon]?.hospitals[0] || 'รพ.เชียงกลาง')
         : regHospital,
@@ -274,7 +275,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               {mode === 'REGISTER' ? 'ลงทะเบียนสมาชิกใหม่ (Admin)' : 'เข้าสู่ระบบ / สลับบัญชีผู้ใช้งาน'}
             </h2>
             <p className="text-xs text-teal-200 mt-0.5">
-              ระบบ “คนเชียงกลางไม่ทิ้งกัน” สสอ.เชียงกลาง จ.น่าน
+              ระบบ “คนเชียงกลางไม่ทิ้งกัน” โรงพยาบาลเชียงกลาง จ.น่าน
             </p>
           </div>
           <button
@@ -453,7 +454,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                       <span>Admin</span>
                     </div>
                     <span className="text-[10px] text-slate-500 mt-1">
-                      สสอ.เชียงกลาง
+                      โรงพยาบาลเชียงกลาง
                     </span>
                   </button>
 
@@ -500,7 +501,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <div className="sm:col-span-2 p-2.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs space-y-1">
                   <div className="flex items-center gap-1.5 font-bold text-amber-800">
                     <Crown className="w-3.5 h-3.5 text-amber-600" />
-                    <span>สิทธิ์ผู้ดูแลระบบ สสอ.เชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)</span>
+                    <span>สิทธิ์ผู้ดูแลระบบ โรงพยาบาลเชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)</span>
                   </div>
                   <p className="text-[11px] text-amber-700">
                     สามารถเข้าถึงข้อมูลผู้ป่วย สถิติ และสมาชิก อสม. ได้ครบทุกตำบลในอำเภอเชียงกลาง
@@ -536,7 +537,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   required
                   value={regUsername}
                   onChange={(e) => setRegUsername(e.target.value)}
-                  placeholder={regRole === 'ADMIN' ? 'เช่น แอดมินสสอ หรือ somsak_admin' : 'เช่น อสมดวงใจ หรือ duangjai_vhv'}
+                  placeholder={regRole === 'ADMIN' ? 'เช่น แอดมินรพ หรือ admin_ck' : 'เช่น อสมดวงใจ หรือ duangjai_vhv'}
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
@@ -670,7 +671,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               ) : (
                 <div className="sm:col-span-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 flex items-center justify-between">
                   <div>
-                    <strong>หน่วยงาน:</strong> สสอ.เชียงกลาง
+                    <strong>หน่วยงาน:</strong> โรงพยาบาลเชียงกลาง
                   </div>
                   <div>
                     <strong>พื้นที่:</strong> ทั้ง 6 ตำบลใน อ.เชียงกลาง

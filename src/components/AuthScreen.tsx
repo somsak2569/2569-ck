@@ -134,6 +134,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         trimmed === 'แอดมิน' ||
         trimmed === 'ck2569' ||
         trimmed === 'สสอ.เชียงกลาง' ||
+        trimmed === 'โรงพยาบาลเชียงกลาง' ||
         trimmed === 'thaipasit5@gmail.com';
       if (isAdminTerm && (u.role === 'ADMIN' || uName === 'admin')) return true;
 
@@ -253,7 +254,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       fullName: trimmedName,
       role: activeRole,
       roleLabel: isAdmin
-        ? 'ผู้ดูแลระบบ สสอ.เชียงกลาง'
+        ? 'ผู้ดูแลระบบ โรงพยาบาลเชียงกลาง'
         : isCitizen
         ? 'บุคคลทั่วไป (ประชาชน)'
         : isOfficer
@@ -266,7 +267,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         ? `ทุกหมู่บ้านในตำบล${regTambon}`
         : regVillage,
       hospital: isAdmin
-        ? 'สสอ.เชียงกลาง'
+        ? 'โรงพยาบาลเชียงกลาง'
         : isCitizen
         ? (CHIANG_KLANG_TAMBONS[regTambon]?.hospitals[0] || 'รพ.เชียงกลาง')
         : regHospital,
@@ -335,7 +336,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 </div>
                 <div>
                   <h2 className="font-bold text-sm sm:text-base leading-tight">เข้าสู่ระบบ</h2>
-                  <p className="text-[11px] text-teal-200">บุคคลทั่วไป • สสอ.เชียงกลาง • รพ.สต. • อสม.</p>
+                  <p className="text-[11px] text-teal-200">บุคคลทั่วไป • โรงพยาบาลเชียงกลาง • รพ.สต. • อสม.</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 bg-teal-900/60 border border-teal-500/30 px-2.5 py-1 rounded-full text-[11px] text-teal-100 font-medium">
@@ -377,7 +378,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 </button>
                 <div>
                   <h2 className="font-bold text-sm sm:text-base leading-tight">ลงทะเบียน ผู้ดูแลระบบ (Admin)</h2>
-                  <p className="text-[11px] text-indigo-200">สสอ.เชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)</p>
+                  <p className="text-[11px] text-indigo-200">โรงพยาบาลเชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 bg-indigo-950/70 border border-indigo-400/40 px-2.5 py-1 rounded-full text-[11px] text-amber-300 font-bold">
@@ -540,10 +541,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     <div className="min-w-0">
                       <div className="text-xs font-bold text-indigo-950 flex items-center gap-1">
                         <span>ลงทะเบียน Admin</span>
-                        <span className="text-[10px] bg-indigo-100 text-indigo-800 font-semibold px-1.5 py-0.2 rounded">สสอ.</span>
+                        <span className="text-[10px] bg-indigo-100 text-indigo-800 font-semibold px-1.5 py-0.2 rounded">รพ.</span>
                       </div>
                       <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
-                        ผู้ดูแลระบบ สสอ.เชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)
+                        ผู้ดูแลระบบ โรงพยาบาลเชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)
                       </p>
                     </div>
                   </button>
@@ -832,7 +833,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 <div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs space-y-1">
                   <div className="flex items-center gap-1.5 font-bold text-amber-800">
                     <Crown className="w-4 h-4 text-amber-600" />
-                    <span>ส่วนลงทะเบียนผู้ดูแลระบบ สสอ.เชียงกลาง</span>
+                    <span>ส่วนลงทะเบียนผู้ดูแลระบบ โรงพยาบาลเชียงกลาง</span>
                   </div>
                   <p className="text-[11px] text-amber-700 leading-relaxed">
                     สิทธิระดับแอดมินสามารถเข้าถึงข้อมูลสถิติภาพรวม, ข้อมูลผู้ป่วย, ผลคัดกรอง 2Q+ / 8Q และจัดการสมาชิกได้ครบทุกตำบล
@@ -868,7 +869,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       required
                       value={regUsername}
                       onChange={(e) => setRegUsername(e.target.value)}
-                      placeholder="เช่น admin_ck หรือ แอดมินสสอ"
+                      placeholder="เช่น admin_ck หรือ แอดมินรพ"
                       className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50 focus:bg-white"
                     />
                   </div>
@@ -952,7 +953,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   {/* Agency info */}
                   <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 flex items-center justify-between">
                     <div>
-                      <strong>หน่วยงาน:</strong> สสอ.เชียงกลาง
+                      <strong>หน่วยงาน:</strong> โรงพยาบาลเชียงกลาง
                     </div>
                     <div>
                       <strong>พื้นที่กำกับ:</strong> ครอบคลุมทั้ง 6 ตำบล

@@ -57,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center gap-1.5 truncate min-w-0 mr-1.5">
             <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
             <span className="font-semibold text-white truncate text-[11px] sm:text-xs">
-              สสอ.เชียงกลาง
+              โรงพยาบาลเชียงกลาง
             </span>
             <span className="text-teal-400/60 hidden sm:inline">|</span>
             <span className="text-teal-200 hidden md:inline text-[11px]">
@@ -107,7 +107,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
               </div>
               <p className="text-[10px] sm:text-xs text-teal-200/90 leading-tight truncate">
-                สสอ.เชียงกลาง • ดูแลใจด้วยใจ
+                โรงพยาบาลเชียงกลาง • ดูแลใจด้วยใจ
               </p>
             </div>
           </div>
@@ -163,7 +163,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                   <div className="text-[10px] text-teal-200 leading-tight mt-0.5 truncate max-w-[110px] md:max-w-[130px]">
                     {currentUser.role === 'ADMIN'
-                      ? 'แอดมิน สสอ.'
+                      ? 'แอดมิน รพ.'
                       : currentUser.role === 'CITIZEN'
                       ? 'บุคคลทั่วไป'
                       : currentUser.role === 'HEALTH_OFFICER'
@@ -332,14 +332,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                       ? 'bg-purple-700 text-white border-purple-900 shadow-sm ring-2 ring-purple-400/50'
                       : 'text-purple-900 bg-purple-50/70 border-purple-500 hover:bg-purple-100 hover:border-purple-700'
                   }`}
-                  title={currentUser.role === 'ADMIN' ? 'จัดการสมาชิก สสอ./รพ.สต./อสม.' : 'ข้อมูลสังกัดและสมาชิก'}
+                  title={currentUser.role === 'ADMIN' ? 'จัดการสมาชิก โรงพยาบาล/รพ.สต./อสม.' : 'ข้อมูลสังกัดและสมาชิก'}
                 >
                   <ShieldAlert className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'members' ? 'text-white' : 'text-purple-700'}`} />
                   <span>
                     {currentUser.role === 'ADMIN' ? 'จัดการสมาชิก' : 'ข้อมูลสมาชิก'}
                   </span>
                   {currentUser.role === 'ADMIN' && (
-                    <span className="hidden lg:inline text-[10px] opacity-90">(สสอ./รพ.สต./อสม.)</span>
+                    <span className="hidden lg:inline text-[10px] opacity-90">(รพ./รพ.สต./อสม.)</span>
                   )}
                 </button>
               )}
