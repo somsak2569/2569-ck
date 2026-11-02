@@ -151,6 +151,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-teal-500 flex items-center justify-center text-white text-xs font-bold shadow-inner shrink-0">
                   {currentUser.role === 'ADMIN' ? (
                     <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300" />
+                  ) : currentUser.role === 'CITIZEN' ? (
+                    <HeartHandshake className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-200" />
                   ) : (
                     <UserCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-200" />
                   )}
@@ -162,6 +164,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <div className="text-[10px] text-teal-200 leading-tight mt-0.5 truncate max-w-[110px] md:max-w-[130px]">
                     {currentUser.role === 'ADMIN'
                       ? 'แอดมิน สสอ.'
+                      : currentUser.role === 'CITIZEN'
+                      ? 'บุคคลทั่วไป'
                       : currentUser.role === 'HEALTH_OFFICER'
                       ? 'จนท. รพ.สต.'
                       : 'อสม. ประจำหมู่บ้าน'}
@@ -249,9 +253,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Navigation Menu Bar in Frame Header */}
         <div className="bg-white border-t border-b border-slate-200 shadow-xs">
           <div className="max-w-7xl mx-auto px-2 sm:px-4 py-1.5 flex items-center justify-between gap-1 sm:gap-3">
-            {/* The 4 Responsive Menu Buttons with Distinct Colored Borders */}
+            {/* The Responsive Menu Buttons with Distinct Colored Borders */}
             <nav className="flex items-center gap-1 sm:gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar py-0.5">
-              {/* Button 1: แดชบอร์ด สรุปภาพรวม (Teal Colored Border) */}
+              {/* Button 1: แดชบอร์ด สรุปภาพรวม / ผลประเมินของฉัน (Teal Colored Border) */}
               <button
                 onClick={() => onChangeTab && onChangeTab('dashboard')}
                 className={`flex-1 sm:flex-initial shrink-0 px-2 sm:px-3 py-1.5 sm:py-2 text-[10.5px] xs:text-[11px] sm:text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 border-2 cursor-pointer shadow-2xs ${
@@ -259,14 +263,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                     ? 'bg-teal-700 text-white border-teal-900 shadow-sm ring-2 ring-teal-400/50'
                     : 'text-teal-900 bg-teal-50/70 border-teal-500 hover:bg-teal-100 hover:border-teal-700'
                 }`}
-                title="แดชบอร์ดสรุปภาพรวม"
+                title={currentUser.role === 'CITIZEN' ? 'ผลการประเมินสุขภาพใจของฉัน' : 'แดชบอร์ดสรุปภาพรวม'}
               >
                 <LayoutDashboard className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'dashboard' ? 'text-white' : 'text-teal-700'}`} />
-                <span>แดชบอร์ด</span>
-                <span className="hidden md:inline">สรุปภาพรวม</span>
+                <span>{currentUser.role === 'CITIZEN' ? 'ผลประเมินของฉัน' : 'แดชบอร์ด'}</span>
+                {currentUser.role !== 'CITIZEN' && (
+                  <span className="hidden md:inline">สรุปภาพรวม</span>
+                )}
               </button>
 
-              {/* Button 2: บันทึกคัดกรอง (2Q+&8Q) (Emerald Colored Border) */}
+              {/* Button 2: บันทึกคัดกรอง / ทำแบบประเมินตนเอง (Emerald Colored Border) */}
               <button
                 onClick={() => {
                   if (onStartNewScreening) {
@@ -280,14 +286,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                     ? 'bg-emerald-700 text-white border-emerald-900 shadow-sm ring-2 ring-emerald-400/50'
                     : 'text-emerald-900 bg-emerald-50/70 border-emerald-500 hover:bg-emerald-100 hover:border-emerald-700'
                 }`}
-                title="บันทึกแบบคัดกรอง (2Q+ & 8Q)"
+                title={currentUser.role === 'CITIZEN' ? 'ทำแบบประเมินสุขภาพใจตนเอง' : 'บันทึกแบบคัดกรอง (2Q+ & 8Q)'}
               >
                 <UserPlus className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'new_screening' ? 'text-white' : 'text-emerald-700'}`} />
-                <span>บันทึกคัดกรอง</span>
-                <span className="hidden sm:inline text-[10px] sm:text-[11px]">(2Q+&8Q)</span>
+                <span>{currentUser.role === 'CITIZEN' ? 'ทำแบบประเมินตนเอง' : 'บันทึกคัดกรอง'}</span>
+                {currentUser.role !== 'CITIZEN' && (
+                  <span className="hidden sm:inline text-[10px] sm:text-[11px]">(2Q+&8Q)</span>
+                )}
               </button>
 
-              {/* Button 3: ทะเบียนคนไข้ (Blue Colored Border) */}
+              {/* Button 3: ทะเบียนคนไข้ / ประวัติการประเมิน (Blue Colored Border) */}
               <button
                 onClick={() => onChangeTab && onChangeTab('patient_list')}
                 className={`flex-1 sm:flex-initial shrink-0 px-2 sm:px-3 py-1.5 sm:py-2 text-[10.5px] xs:text-[11px] sm:text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 border-2 relative cursor-pointer shadow-2xs ${
@@ -295,10 +303,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                     ? 'bg-blue-700 text-white border-blue-900 shadow-sm ring-2 ring-blue-400/50'
                     : 'text-blue-900 bg-blue-50/70 border-blue-500 hover:bg-blue-100 hover:border-blue-700'
                 }`}
-                title="ทะเบียนคนไข้ที่ได้รับการคัดกรอง"
+                title={currentUser.role === 'CITIZEN' ? 'ประวัติการประเมินตนเอง' : 'ทะเบียนคนไข้ที่ได้รับการคัดกรอง'}
               >
                 <Users className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'patient_list' ? 'text-white' : 'text-blue-700'}`} />
-                <span>ทะเบียนคนไข้</span>
+                <span>{currentUser.role === 'CITIZEN' ? 'ประวัติการประเมิน' : 'ทะเบียนคนไข้'}</span>
                 {accessiblePatientCount > 0 && (
                   <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold border ${
                     activeTab === 'patient_list' 
@@ -308,31 +316,33 @@ export const Navbar: React.FC<NavbarProps> = ({
                     {accessiblePatientCount}
                   </span>
                 )}
-                {highRiskCount > 0 && (
+                {highRiskCount > 0 && currentUser.role !== 'CITIZEN' && (
                   <span className="bg-rose-600 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded-full animate-pulse shrink-0 border border-rose-700 shadow-2xs">
                     {highRiskCount} <span className="hidden sm:inline">เสี่ยงสูง</span>
                   </span>
                 )}
               </button>
 
-              {/* Button 4: จัดการสมาชิก (Purple Colored Border) */}
-              <button
-                onClick={() => onChangeTab && onChangeTab('members')}
-                className={`flex-1 sm:flex-initial shrink-0 px-2 sm:px-3 py-1.5 sm:py-2 text-[10.5px] xs:text-[11px] sm:text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 border-2 cursor-pointer shadow-2xs ${
-                  activeTab === 'members'
-                    ? 'bg-purple-700 text-white border-purple-900 shadow-sm ring-2 ring-purple-400/50'
-                    : 'text-purple-900 bg-purple-50/70 border-purple-500 hover:bg-purple-100 hover:border-purple-700'
-                }`}
-                title={currentUser.role === 'ADMIN' ? 'จัดการสมาชิก สสอ./รพ.สต./อสม.' : 'ข้อมูลสังกัดและสมาชิก'}
-              >
-                <ShieldAlert className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'members' ? 'text-white' : 'text-purple-700'}`} />
-                <span>
-                  {currentUser.role === 'ADMIN' ? 'จัดการสมาชิก' : 'ข้อมูลสมาชิก'}
-                </span>
-                {currentUser.role === 'ADMIN' && (
-                  <span className="hidden lg:inline text-[10px] opacity-90">(สสอ./รพ.สต./อสม.)</span>
-                )}
-              </button>
+              {/* Button 4: จัดการสมาชิก (Purple Colored Border) - Only for staff */}
+              {currentUser.role !== 'CITIZEN' && (
+                <button
+                  onClick={() => onChangeTab && onChangeTab('members')}
+                  className={`flex-1 sm:flex-initial shrink-0 px-2 sm:px-3 py-1.5 sm:py-2 text-[10.5px] xs:text-[11px] sm:text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 sm:gap-1.5 border-2 cursor-pointer shadow-2xs ${
+                    activeTab === 'members'
+                      ? 'bg-purple-700 text-white border-purple-900 shadow-sm ring-2 ring-purple-400/50'
+                      : 'text-purple-900 bg-purple-50/70 border-purple-500 hover:bg-purple-100 hover:border-purple-700'
+                  }`}
+                  title={currentUser.role === 'ADMIN' ? 'จัดการสมาชิก สสอ./รพ.สต./อสม.' : 'ข้อมูลสังกัดและสมาชิก'}
+                >
+                  <ShieldAlert className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'members' ? 'text-white' : 'text-purple-700'}`} />
+                  <span>
+                    {currentUser.role === 'ADMIN' ? 'จัดการสมาชิก' : 'ข้อมูลสมาชิก'}
+                  </span>
+                  {currentUser.role === 'ADMIN' && (
+                    <span className="hidden lg:inline text-[10px] opacity-90">(สสอ./รพ.สต./อสม.)</span>
+                  )}
+                </button>
+              )}
             </nav>
 
             {/* Jurisdiction info badge on right for tablets/desktop */}

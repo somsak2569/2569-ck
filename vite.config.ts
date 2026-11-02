@@ -19,7 +19,7 @@ export default defineConfig(() => {
           id: '/',
           name: 'คนเชียงกลางไม่ทิ้งกัน - ระบบคัดกรอง 2Q+ & 8Q',
           short_name: 'คนเชียงกลาง',
-          description: 'ระบบประเมินเพื่อคัดกรองคนไข้ที่เสี่ยงการฆ่าตัวตาย (2Q Plus และ 8Q) สำนักงานสาธารณสุขอำเภอเชียงกลาง จังหวัดน่าน',
+          description: 'ระบบประเมินเพื่อคัดกรองคนไข้ที่เสี่ยงการฆ่าตัวตาย (2Q Plus และ 8Q) โรงพยาบาลเชียงกลาง จังหวัดน่าน',
           theme_color: '#0f766e',
           background_color: '#0f766e',
           display: 'standalone',
@@ -48,6 +48,7 @@ export default defineConfig(() => {
           ],
         },
         workbox: {
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
           runtimeCaching: [
             {

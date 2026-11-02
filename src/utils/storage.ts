@@ -227,6 +227,35 @@ export const getAccessiblePatients = (user: User | null, allPatients?: PatientSc
     return list;
   }
 
+  // Citizen (บุคคลทั่วไป) only has access to their own self-assessment records
+  if (user.role === 'CITIZEN') {
+    const userCleanIdCard = (user.idCard || '').replace(/\D/g, '');
+    const userTrimmedName = (user.fullName || '').trim().toLowerCase();
+    const userCleanPhone = (user.phone || '').replace(/\D/g, '');
+
+    return list.filter((p) => {
+      // 1. Direct creator/self-surveyor match
+      if (p.surveyorUserId === user.id) return true;
+
+      // 2. ID card match (if provided)
+      if (userCleanIdCard && userCleanIdCard.length >= 10) {
+        const pCleanId = (p.idCard || '').replace(/\D/g, '');
+        if (pCleanId && pCleanId === userCleanIdCard) return true;
+      }
+
+      // 3. Full name & phone match
+      const pTrimmedName = (p.fullName || '').trim().toLowerCase();
+      if (userTrimmedName && pTrimmedName === userTrimmedName) {
+        if (!userCleanPhone) return true;
+        const pCleanPhone = (p.phone || '').replace(/\D/g, '');
+        if (pCleanPhone && pCleanPhone.endsWith(userCleanPhone.slice(-8))) return true;
+        return true;
+      }
+
+      return false;
+    });
+  }
+
   // Health Officer (รพ.สต. พี่เลี้ยง) sees all patients in their Tambon or under their mentor hospital
   if (user.role === 'HEALTH_OFFICER') {
     return list.filter(
@@ -255,6 +284,9 @@ export const getAccessiblePatients = (user: User | null, allPatients?: PatientSc
 // Check if user can edit or delete a record
 export const canUserModifyPatient = (user: User, patient: PatientScreening): boolean => {
   if (user.role === 'ADMIN') return true;
+  if (user.role === 'CITIZEN') {
+    return patient.surveyorUserId === user.id;
+  }
   if (user.role === 'HEALTH_OFFICER' && (patient.tambon === user.tambon || patient.mentorHospital === user.hospital)) {
     return true;
   }

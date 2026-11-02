@@ -33,6 +33,7 @@ import { PatientDetailModal } from './components/PatientDetailModal';
 import { LoginModal } from './components/LoginModal';
 import { AuthScreen } from './components/AuthScreen';
 import { UserManagementView } from './components/UserManagementView';
+import { CitizenPortalView } from './components/CitizenPortalView';
 import { EmergencyGuideModal } from './components/EmergencyGuideModal';
 import { Footer } from './components/Footer';
 import { OfflineIndicator } from './components/PWAInstallButton';
@@ -225,17 +226,31 @@ export default function App() {
     if (existingIndex >= 0) {
       updated = [...patients];
       updated[existingIndex] = savedPatient;
-      showToast(`บันทึกการแก้ไขข้อมูลของ ${savedPatient.fullName} เรียบร้อยแล้ว`, 'success');
+      showToast(
+        currentUser.role === 'CITIZEN'
+          ? 'แก้ไขผลการประเมินตนเองเรียบร้อยแล้ว'
+          : `บันทึกการแก้ไขข้อมูลของ ${savedPatient.fullName} เรียบร้อยแล้ว`,
+        'success'
+      );
     } else {
       updated = [savedPatient, ...patients];
-      showToast(`บันทึกผลการคัดกรอง ${savedPatient.fullName} เรียบร้อยแล้ว`, 'success');
+      showToast(
+        currentUser.role === 'CITIZEN'
+          ? 'บันทึกผลการประเมินตนเองเรียบร้อยแล้ว'
+          : `บันทึกผลการคัดกรอง ${savedPatient.fullName} เรียบร้อยแล้ว`,
+        'success'
+      );
     }
 
     setPatientsState(updated);
     savePatients(updated);
     savePatientToFirestore(savedPatient).catch((e) => console.warn('Saved locally, Firestore sync pending:', e));
     setEditingPatient(null);
-    setActiveTab('patient_list');
+    if (currentUser.role === 'CITIZEN') {
+      setActiveTab('dashboard'); // Takes citizen straight to their results portal
+    } else {
+      setActiveTab('patient_list');
+    }
   };
 
   const handleDeletePatient = (patientId: string) => {
@@ -307,13 +322,22 @@ export default function App() {
       {/* Main Content Router */}
       <main className="flex-1">
         {activeTab === 'dashboard' && (
-          <DashboardView
-            currentUser={currentUser}
-            patients={accessiblePatients}
-            onStartScreening={handleStartScreening}
-            onViewPatient={(p) => setViewingPatient(p)}
-            onViewPatientList={() => setActiveTab('patient_list')}
-          />
+          currentUser.role === 'CITIZEN' ? (
+            <CitizenPortalView
+              currentUser={currentUser}
+              patients={accessiblePatients}
+              onStartScreening={handleStartScreening}
+              onViewPatient={(p) => setViewingPatient(p)}
+            />
+          ) : (
+            <DashboardView
+              currentUser={currentUser}
+              patients={accessiblePatients}
+              onStartScreening={handleStartScreening}
+              onViewPatient={(p) => setViewingPatient(p)}
+              onViewPatientList={() => setActiveTab('patient_list')}
+            />
+          )
         )}
 
         {activeTab === 'new_screening' && (
@@ -323,7 +347,7 @@ export default function App() {
             onSave={handleSavePatient}
             onCancel={() => {
               setEditingPatient(null);
-              setActiveTab('patient_list');
+              setActiveTab(currentUser.role === 'CITIZEN' ? 'dashboard' : 'patient_list');
             }}
           />
         )}

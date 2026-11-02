@@ -15,6 +15,7 @@ import {
   MapPin,
   Crown,
   CheckCircle2,
+  Smile,
 } from 'lucide-react';
 import { User } from '../types';
 import { INITIAL_USERS } from '../data/mockData';
@@ -29,14 +30,14 @@ interface AuthScreenProps {
   onRegisterUser?: (newUser: User) => void;
 }
 
-type AuthMode = 'LOGIN' | 'REGISTER_ADMIN' | 'REGISTER_OFFICER_VHV';
+type AuthMode = 'LOGIN' | 'REGISTER_ADMIN' | 'REGISTER_OFFICER_VHV' | 'REGISTER_CITIZEN';
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({
   users,
   onLoginSuccess,
   onRegisterUser,
 }) => {
-  // Current view mode: LOGIN, REGISTER_ADMIN, or REGISTER_OFFICER_VHV
+  // Current view mode: LOGIN, REGISTER_ADMIN, REGISTER_OFFICER_VHV, or REGISTER_CITIZEN
   const [authMode, setAuthMode] = useState<AuthMode>('LOGIN');
 
   // Login form state
@@ -46,10 +47,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   const [loginError, setLoginError] = useState('');
 
   // Register form state
-  const [regRole, setRegRole] = useState<'ADMIN' | 'HEALTH_OFFICER' | 'VHV'>('HEALTH_OFFICER');
+  const [regRole, setRegRole] = useState<'ADMIN' | 'HEALTH_OFFICER' | 'VHV' | 'CITIZEN'>('CITIZEN');
   const [regFullName, setRegFullName] = useState('');
   const [regUsername, setRegUsername] = useState('');
   const [regPhone, setRegPhone] = useState('');
+  const [regIdCard, setRegIdCard] = useState('');
+  const [regAge, setRegAge] = useState<number | ''>('');
+  const [regGender, setRegGender] = useState<'ชาย' | 'หญิง' | 'อื่นๆ'>('ชาย');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [showRegPassword, setShowRegPassword] = useState(false);
@@ -62,6 +66,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     CHIANG_KLANG_TAMBONS['เชียงกลาง']?.hospitals[0] || 'รพ.สต.บ้านงิ้ว'
   );
   const [regSuccess, setRegSuccess] = useState('');
+
+  const handleIdCardChange = (val: string) => {
+    if (!val) {
+      setRegIdCard('');
+      return;
+    }
+    const digits = val.replace(/\D/g, '');
+    const hasLetters = /[a-zA-Z]/.test(val);
+    if (!hasLetters && digits.length > 0) {
+      const trimmed = digits.slice(0, 13);
+      let formatted = trimmed.slice(0, 1);
+      if (trimmed.length > 1) formatted += '-' + trimmed.slice(1, Math.min(5, trimmed.length));
+      if (trimmed.length > 5) formatted += '-' + trimmed.slice(5, Math.min(10, trimmed.length));
+      if (trimmed.length > 10) formatted += '-' + trimmed.slice(10, Math.min(12, trimmed.length));
+      if (trimmed.length > 12) formatted += '-' + trimmed.slice(12, 13);
+      setRegIdCard(formatted);
+    } else {
+      setRegIdCard(val.slice(0, 20));
+    }
+  };
 
   const handleTambonChange = (newTambon: string) => {
     setRegTambon(newTambon);
@@ -211,12 +235,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     }
 
     const isAdmin = authMode === 'REGISTER_ADMIN';
-    const activeRole = isAdmin ? 'ADMIN' : regRole;
+    const isCitizen = authMode === 'REGISTER_CITIZEN';
+    const activeRole = isAdmin ? 'ADMIN' : isCitizen ? 'CITIZEN' : regRole;
     const isOfficer = activeRole === 'HEALTH_OFFICER';
 
     const newUser: User = {
       id: isAdmin
         ? `admin-${Date.now()}`
+        : isCitizen
+        ? `citizen-${Date.now()}`
         : isOfficer
         ? `officer-${Date.now()}`
         : `vhv-${Date.now()}`,
@@ -227,6 +254,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       role: activeRole,
       roleLabel: isAdmin
         ? 'ผู้ดูแลระบบ สสอ.เชียงกลาง'
+        : isCitizen
+        ? 'บุคคลทั่วไป (ประชาชน)'
         : isOfficer
         ? `เจ้าหน้าที่ ${regHospital} (พี่เลี้ยง)`
         : `อสม. ประจำ${regVillage}`,
@@ -236,8 +265,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         : isOfficer
         ? `ทุกหมู่บ้านในตำบล${regTambon}`
         : regVillage,
-      hospital: isAdmin ? 'สสอ.เชียงกลาง' : regHospital,
+      hospital: isAdmin
+        ? 'สสอ.เชียงกลาง'
+        : isCitizen
+        ? (CHIANG_KLANG_TAMBONS[regTambon]?.hospitals[0] || 'รพ.เชียงกลาง')
+        : regHospital,
       phone: regPhone.trim(),
+      idCard: regIdCard.trim() || undefined,
+      age: regAge ? Number(regAge) : undefined,
+      gender: regGender,
       createdAt: new Date().toISOString().slice(0, 10),
     };
 
@@ -256,6 +292,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     setRegSuccess('');
     if (mode === 'REGISTER_ADMIN') {
       setRegRole('ADMIN');
+    } else if (mode === 'REGISTER_CITIZEN') {
+      setRegRole('CITIZEN');
     } else if (mode === 'REGISTER_OFFICER_VHV') {
       setRegRole('HEALTH_OFFICER');
     }
@@ -276,7 +314,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
               คนเชียงกลางไม่ทิ้งกัน
             </h1>
             <p className="text-xs sm:text-sm text-teal-200 font-medium">
-              สำนักงานสาธารณสุขอำเภอเชียงกลาง จังหวัดน่าน
+              โรงพยาบาลเชียงกลาง จังหวัดน่าน
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2 pt-0.5">
               <span className="bg-teal-800/80 backdrop-blur-xs border border-teal-600/70 text-teal-100 text-[11px] px-3 py-0.5 rounded-full font-semibold">
@@ -296,13 +334,34 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   <LogIn className="w-4 h-4 text-teal-200" />
                 </div>
                 <div>
-                  <h2 className="font-bold text-sm sm:text-base leading-tight">เข้าสู่ระบบบุคลากร</h2>
-                  <p className="text-[11px] text-teal-200">สสอ.เชียงกลาง • รพ.สต. • อสม. ประจำหมู่บ้าน</p>
+                  <h2 className="font-bold text-sm sm:text-base leading-tight">เข้าสู่ระบบ</h2>
+                  <p className="text-[11px] text-teal-200">บุคคลทั่วไป • สสอ.เชียงกลาง • รพ.สต. • อสม.</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 bg-teal-900/60 border border-teal-500/30 px-2.5 py-1 rounded-full text-[11px] text-teal-100 font-medium">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
                 <span>ความปลอดภัยสูง</span>
+              </div>
+            </div>
+          ) : authMode === 'REGISTER_CITIZEN' ? (
+            <div className="bg-gradient-to-r from-emerald-800 to-teal-800 px-5 sm:px-6 py-4 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => switchToMode('LOGIN')}
+                  className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
+                  title="กลับไปหน้าเข้าสู่ระบบ"
+                >
+                  <ArrowLeft className="w-4 h-4 text-emerald-200" />
+                </button>
+                <div>
+                  <h2 className="font-bold text-sm sm:text-base leading-tight">ลงทะเบียน บุคคลทั่วไป (ประเมินตนเอง)</h2>
+                  <p className="text-[11px] text-emerald-200">สำหรับประชาชนในอำเภอเชียงกลาง จังหวัดน่าน</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 bg-emerald-950/70 border border-emerald-400/40 px-2.5 py-1 rounded-full text-[11px] text-emerald-200 font-bold">
+                <Smile className="w-3.5 h-3.5 text-emerald-300" />
+                <span>บุคคลทั่วไป</span>
               </div>
             </div>
           ) : authMode === 'REGISTER_ADMIN' ? (
@@ -429,7 +488,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 </form>
               </div>
 
-              {/* ส่วนท้ายของเฟรม: เมนูลงทะเบียนใหม่ (แยก Admin และ รพ.สต./อสม.) */}
+              {/* ส่วนท้ายของเฟรม: เมนูลงทะเบียนใหม่ (บุคคลทั่วไป, Admin, รพ.สต./อสม.) */}
               <div className="border-t border-slate-200 bg-slate-50/90 p-4 sm:p-5 rounded-b-3xl space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
@@ -441,8 +500,35 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   </span>
                 </div>
 
+                {/* ส่วนที่ 1: ส่วนลงทะเบียนของ บุคคลทั่วไป (ประชาชน) */}
+                <button
+                  type="button"
+                  onClick={() => switchToMode('REGISTER_CITIZEN')}
+                  className="w-full flex items-start gap-3 p-3.5 rounded-2xl border-2 border-emerald-400 bg-gradient-to-r from-emerald-50 via-teal-50 to-white hover:from-emerald-100 hover:to-teal-100 hover:border-emerald-500 text-left transition shadow-xs cursor-pointer group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-emerald-600 group-hover:bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
+                    <Smile className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs sm:text-sm font-extrabold text-emerald-950 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <span>ลงทะเบียน บุคคลทั่วไป</span>
+                        <span className="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">
+                          ประชาชน
+                        </span>
+                      </span>
+                      <span className="text-[11px] text-emerald-700 font-bold group-hover:translate-x-0.5 transition hidden sm:inline">
+                        ประเมินตนเอง &rarr;
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 leading-snug mt-0.5">
+                      กำหนด Username/Password เพื่อบันทึกแบบประเมินสุขภาพใจตนเองและดูผลย้อนหลัง
+                    </p>
+                  </div>
+                </button>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {/* ส่วนที่ 1: ส่วนลงทะเบียนของ Admin */}
+                  {/* ส่วนที่ 2: ส่วนลงทะเบียนของ Admin */}
                   <button
                     type="button"
                     onClick={() => switchToMode('REGISTER_ADMIN')}
@@ -462,7 +548,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     </div>
                   </button>
 
-                  {/* ส่วนที่ 2: ส่วนลงทะเบียนของ เจ้าหน้าที่ รพ.สต/เจ้าหน้าที่ อสม. */}
+                  {/* ส่วนที่ 3: ส่วนลงทะเบียนของ เจ้าหน้าที่ รพ.สต/เจ้าหน้าที่ อสม. */}
                   <button
                     type="button"
                     onClick={() => switchToMode('REGISTER_OFFICER_VHV')}
@@ -481,6 +567,261 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     </div>
                   </button>
                 </div>
+              </div>
+            </div>
+          ) : authMode === 'REGISTER_CITIZEN' ? (
+            /* ------------------ VIEW: REGISTER CITIZEN ------------------ */
+            <div>
+              <div className="p-5 sm:p-6 pt-2">
+                {/* Citizen Info Banner */}
+                <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-950 rounded-2xl text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold text-emerald-800">
+                    <Smile className="w-4 h-4 text-emerald-600" />
+                    <span>ส่วนลงทะเบียนบุคคลทั่วไป (ประชาชน)</span>
+                  </div>
+                  <p className="text-[11px] text-emerald-700 leading-relaxed">
+                    กรอกข้อมูลเพื่อสร้างบัญชีของท่าน สำหรับทำแบบประเมินสุขภาพใจตนเอง (2Q Plus, 8Q, ระดับความเครียด) และตรวจสอบผลการประเมินย้อนหลังได้ตลอดเวลา
+                  </p>
+                </div>
+
+                <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                      ชื่อ - นามสกุล <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={regFullName}
+                      onChange={(e) => setRegFullName(e.target.value)}
+                      placeholder="เช่น นายบุญส่ง ใจดี หรือ นางคำหล้า สุขเกษม"
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 focus:bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="block text-xs font-bold text-slate-700">
+                        ชื่อผู้ใช้ (Username) <span className="text-rose-500">*</span>
+                      </label>
+                      <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-medium border border-emerald-200">
+                        ใช้ภาษาไทย ภาษาอังกฤษ หรือตัวเลขได้
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      value={regUsername}
+                      onChange={(e) => setRegUsername(e.target.value)}
+                      placeholder="เช่น boonsong หรือ บุญส่ง หรือ 0812345678"
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 focus:bg-white"
+                    />
+                  </div>
+
+                  {/* Password & Confirm */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block text-xs font-bold text-slate-700">
+                          รหัสผ่าน (Password) <span className="text-rose-500">*</span>
+                        </label>
+                        <span className="text-[10px] text-slate-400">ขั้นต่ำ 4 ตัว</span>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showRegPassword ? 'text' : 'password'}
+                          required
+                          value={regPassword}
+                          onChange={(e) => setRegPassword(e.target.value)}
+                          placeholder="กำหนดรหัสผ่านของคุณ"
+                          className="w-full px-3 pr-8 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 focus:bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowRegPassword(!showRegPassword)}
+                          className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          {showRegPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block text-xs font-bold text-slate-700">
+                          ยืนยันรหัสผ่าน <span className="text-rose-500">*</span>
+                        </label>
+                        {regConfirmPassword && (
+                          <span
+                            className={`text-[10px] font-bold ${
+                              regPassword === regConfirmPassword ? 'text-emerald-600' : 'text-rose-500'
+                            }`}
+                          >
+                            {regPassword === regConfirmPassword ? '✓ ตรงกัน' : '✗ ไม่ตรง'}
+                          </span>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showRegConfirmPassword ? 'text' : 'password'}
+                          required
+                          value={regConfirmPassword}
+                          onChange={(e) => setRegConfirmPassword(e.target.value)}
+                          placeholder="พิมพ์รหัสผ่านซ้ำ"
+                          className="w-full px-3 pr-8 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 focus:bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
+                          className="absolute right-2 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          {showRegConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Phone & ID Card */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        เบอร์โทรศัพท์ติดต่อ
+                      </label>
+                      <input
+                        type="tel"
+                        value={regPhone}
+                        onChange={(e) => setRegPhone(e.target.value)}
+                        placeholder="เช่น 081-234-5678"
+                        className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 focus:bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        เลขประจำตัวประชาชน <span className="text-slate-400 font-normal">(ถ้ามี / ไม่บังคับ)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={regIdCard}
+                        onChange={(e) => handleIdCardChange(e.target.value)}
+                        placeholder="ถ้ามี / ไม่บังคับ"
+                        maxLength={17}
+                        className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 focus:bg-white placeholder:text-slate-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Age & Gender */}
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        อายุ (ปี)
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={120}
+                        value={regAge}
+                        onChange={(e) => setRegAge(e.target.value ? Number(e.target.value) : '')}
+                        placeholder="เช่น 45"
+                        className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50/50 focus:bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        เพศ
+                      </label>
+                      <select
+                        value={regGender}
+                        onChange={(e) => setRegGender(e.target.value as any)}
+                        className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                      >
+                        <option value="ชาย">ชาย</option>
+                        <option value="หญิง">หญิง</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Tambon & Village */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl">
+                    <div>
+                      <label className="block text-xs font-bold text-emerald-950 mb-1 flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-emerald-700" />
+                        <span>ตำบลที่อยู่อาศัย</span>
+                      </label>
+                      <select
+                        value={regTambon}
+                        onChange={(e) => handleTambonChange(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-emerald-300 text-xs bg-white outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        {Object.keys(CHIANG_KLANG_TAMBONS).map((t) => (
+                          <option key={t} value={t}>
+                            ตำบล{t}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-emerald-950 mb-1 flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-emerald-700" />
+                        <span>หมู่บ้าน</span>
+                      </label>
+                      <select
+                        value={regVillage}
+                        onChange={(e) => setRegVillage(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-emerald-300 text-xs bg-white outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        {CHIANG_KLANG_TAMBONS[regTambon]?.villages.map((v) => (
+                          <option key={v} value={v}>
+                            {v}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer mt-2"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    <span>ยืนยันการลงทะเบียนและเข้าใช้งานทันที</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* ส่วนท้ายของเฟรม: ปุ่มสลับและกลับ */}
+              <div className="border-t border-slate-200 bg-slate-50/90 p-4 sm:p-5 rounded-b-3xl flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => switchToMode('REGISTER_ADMIN')}
+                    className="text-indigo-700 hover:text-indigo-900 font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Crown className="w-3.5 h-3.5 text-amber-500" />
+                    <span>ลงทะเบียน Admin</span>
+                  </button>
+                  <span className="text-slate-300">•</span>
+                  <button
+                    type="button"
+                    onClick={() => switchToMode('REGISTER_OFFICER_VHV')}
+                    className="text-teal-700 hover:text-teal-900 font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <HeartHandshake className="w-3.5 h-3.5" />
+                    <span>ลงทะเบียน รพ.สต./อสม.</span>
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => switchToMode('LOGIN')}
+                  className="text-slate-600 hover:text-slate-900 font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>กลับไปหน้าเข้าสู่ระบบ</span>
+                </button>
               </div>
             </div>
           ) : authMode === 'REGISTER_ADMIN' ? (
@@ -630,14 +971,25 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
               {/* ส่วนท้ายของเฟรม: ปุ่มสลับและกลับ */}
               <div className="border-t border-slate-200 bg-slate-50/90 p-4 sm:p-5 rounded-b-3xl flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
-                <button
-                  type="button"
-                  onClick={() => switchToMode('REGISTER_OFFICER_VHV')}
-                  className="text-teal-700 hover:text-teal-900 font-semibold flex items-center gap-1 cursor-pointer"
-                >
-                  <HeartHandshake className="w-3.5 h-3.5" />
-                  <span>สลับไปลงทะเบียน เจ้าหน้าที่ รพ.สต. / อสม.</span>
-                </button>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => switchToMode('REGISTER_CITIZEN')}
+                    className="text-emerald-700 hover:text-emerald-900 font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Smile className="w-3.5 h-3.5" />
+                    <span>ลงทะเบียน บุคคลทั่วไป</span>
+                  </button>
+                  <span className="text-slate-300 hidden sm:inline">•</span>
+                  <button
+                    type="button"
+                    onClick={() => switchToMode('REGISTER_OFFICER_VHV')}
+                    className="text-teal-700 hover:text-teal-900 font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <HeartHandshake className="w-3.5 h-3.5" />
+                    <span>ลงทะเบียน รพ.สต. / อสม.</span>
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={() => switchToMode('LOGIN')}
@@ -874,14 +1226,25 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
               {/* ส่วนท้ายของเฟรม: ปุ่มสลับและกลับ */}
               <div className="border-t border-slate-200 bg-slate-50/90 p-4 sm:p-5 rounded-b-3xl flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs">
-                <button
-                  type="button"
-                  onClick={() => switchToMode('REGISTER_ADMIN')}
-                  className="text-indigo-700 hover:text-indigo-900 font-semibold flex items-center gap-1 cursor-pointer"
-                >
-                  <Crown className="w-3.5 h-3.5 text-amber-500" />
-                  <span>สลับไปลงทะเบียน ผู้ดูแลระบบ (Admin สสอ.)</span>
-                </button>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => switchToMode('REGISTER_CITIZEN')}
+                    className="text-emerald-700 hover:text-emerald-900 font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Smile className="w-3.5 h-3.5" />
+                    <span>ลงทะเบียน บุคคลทั่วไป</span>
+                  </button>
+                  <span className="text-slate-300 hidden sm:inline">•</span>
+                  <button
+                    type="button"
+                    onClick={() => switchToMode('REGISTER_ADMIN')}
+                    className="text-indigo-700 hover:text-indigo-900 font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Crown className="w-3.5 h-3.5 text-amber-500" />
+                    <span>ลงทะเบียน Admin</span>
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={() => switchToMode('LOGIN')}
@@ -916,7 +1279,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       {/* Footer Credit */}
       <div className="text-center text-teal-300/80 text-xs py-2 mt-4 space-y-0.5">
         <div>
-          ระบบ “คนเชียงกลางไม่ทิ้งกัน” สำนักงานสาธารณสุขอำเภอเชียงกลาง จังหวัดน่าน
+          ระบบ “คนเชียงกลางไม่ทิ้งกัน” โรงพยาบาลเชียงกลาง จังหวัดน่าน
         </div>
         <div className="font-semibold text-amber-300">
           ผู้พัฒนาระบบ: สมศักดิ์ สุทธการ

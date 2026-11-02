@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PatientScreening, User, RiskLevel, StressLevel } from '../types';
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
-import { getRiskColorBadge, STRESS_LEVEL_OPTIONS } from '../utils/assessment';
+import { getRiskColorBadge, STRESS_LEVEL_OPTIONS, getOASRiskBadge, OAS_CATEGORIES } from '../utils/assessment';
 import { exportPatientDataToExcel } from '../utils/excelExport';
 import { 
   Users, 
@@ -20,7 +20,14 @@ import {
   ShieldCheck,
   Building2,
   Eye,
-  Smile
+  Smile,
+  ShieldAlert,
+  Flame,
+  Zap,
+  BarChart3,
+  Megaphone,
+  Hammer,
+  UserX
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -68,6 +75,36 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     MODERATE: displayPatients.filter((p) => p.stressAssessment?.level === 'MODERATE').length,
     SEVERE: displayPatients.filter((p) => p.stressAssessment?.level === 'SEVERE').length,
   };
+
+  // OAS (Overt Aggression Scale: พฤติกรรมก้าวร้าวรุนแรง) metrics
+  const oasAssessedPatients = displayPatients.filter((p) => p.oasAssessment !== undefined);
+  const oasAssessedCount = oasAssessedPatients.length;
+
+  const oasHighRiskPatients = displayPatients.filter((p) => p.oasAssessment?.riskLevel === 'HIGH');
+  const oasMediumRiskPatients = displayPatients.filter((p) => p.oasAssessment?.riskLevel === 'MEDIUM');
+  const oasLowRiskPatients = displayPatients.filter((p) => p.oasAssessment?.riskLevel === 'LOW');
+  const oasNoneRiskPatients = displayPatients.filter(
+    (p) => p.oasAssessment && p.oasAssessment.riskLevel === 'NONE'
+  );
+
+  const oasHighRiskCount = oasHighRiskPatients.length;
+  const oasMediumRiskCount = oasMediumRiskPatients.length;
+  const oasLowRiskCount = oasLowRiskPatients.length;
+  const oasNoneRiskCount = oasNoneRiskPatients.length;
+
+  // คะแนนเฉลี่ยทั้ง 4 หมวดของ OAS (0 - 4 คะแนน)
+  const avgVerbalScore = oasAssessedCount > 0
+    ? Number((oasAssessedPatients.reduce((sum, p) => sum + (p.oasAssessment?.verbalScore || 0), 0) / oasAssessedCount).toFixed(2))
+    : 0;
+  const avgPropertyScore = oasAssessedCount > 0
+    ? Number((oasAssessedPatients.reduce((sum, p) => sum + (p.oasAssessment?.propertyScore || 0), 0) / oasAssessedCount).toFixed(2))
+    : 0;
+  const avgSelfScore = oasAssessedCount > 0
+    ? Number((oasAssessedPatients.reduce((sum, p) => sum + (p.oasAssessment?.selfScore || 0), 0) / oasAssessedCount).toFixed(2))
+    : 0;
+  const avgOtherScore = oasAssessedCount > 0
+    ? Number((oasAssessedPatients.reduce((sum, p) => sum + (p.oasAssessment?.otherScore || 0), 0) / oasAssessedCount).toFixed(2))
+    : 0;
 
   // Chronic Disease distribution
   const diseaseFrequency: Record<string, number> = {};
@@ -117,7 +154,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               ระบบประเมินและคัดกรองความเสี่ยงการฆ่าตัวตาย
             </h1>
             <p className="text-xs sm:text-sm text-teal-100/90 leading-relaxed">
-              สำนักงานสาธารณสุขอำเภอเชียงกลาง • รพ.สต. และ อสม. ร่วมดูแลสุขภาพใจชุมชน ไม่ทอดทิ้งใครไว้ข้างหลัง
+              โรงพยาบาลเชียงกลาง • รพ.สต. และ อสม. ร่วมดูแลสุขภาพใจชุมชน ไม่ทอดทิ้งใครไว้ข้างหลัง
             </p>
           </div>
 
@@ -679,6 +716,339 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </span>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* OAS AGGRESSION SECTION: แผนภูมิกราฟวงกลมสัดส่วนระดับความก้าวร้าวรุนแรง (OAS) */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h3 className="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4 text-rose-600" />
+                สัดส่วนระดับความก้าวร้าวรุนแรง (OAS)
+              </h3>
+              <p className="text-xs text-slate-500">
+                แผนภูมิกราฟวงกลมแปลผล Overt Aggression Scale โดย จนท. รพ.สต./พี่เลี้ยง
+              </p>
+            </div>
+            <span className="text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-200 px-2.5 py-0.5 rounded-full">
+              ประเมิน {oasAssessedCount} ราย
+            </span>
+          </div>
+
+          {/* Pie Chart Representation for OAS */}
+          {(() => {
+            const oasSlices = [
+              {
+                id: 'HIGH',
+                label: 'รุนแรงมาก (>= 9 หรือมีข้อใด 4)',
+                count: oasHighRiskCount,
+                color: '#e11d48', // rose-600
+                hoverBg: 'bg-rose-50 border-rose-300 text-rose-900',
+                badgeBg: 'bg-rose-600',
+              },
+              {
+                id: 'MEDIUM',
+                label: 'ปานกลาง (4-8 คะแนน)',
+                count: oasMediumRiskCount,
+                color: '#f59e0b', // amber-500
+                hoverBg: 'bg-amber-50 border-amber-300 text-amber-900',
+                badgeBg: 'bg-amber-500',
+              },
+              {
+                id: 'LOW',
+                label: 'น้อย (1-3 คะแนน)',
+                count: oasLowRiskCount,
+                color: '#eab308', // yellow-500
+                hoverBg: 'bg-yellow-50 border-yellow-300 text-yellow-900',
+                badgeBg: 'bg-yellow-400',
+              },
+              {
+                id: 'NONE',
+                label: 'ปกติ (0 คะแนน)',
+                count: oasNoneRiskCount,
+                color: '#10b981', // emerald-500
+                hoverBg: 'bg-emerald-50 border-emerald-300 text-emerald-900',
+                badgeBg: 'bg-emerald-500',
+              },
+            ];
+
+            const activeSlices = oasSlices.filter((s) => s.count > 0);
+
+            let cumulativePercent = 0;
+            const size = 180;
+            const center = size / 2;
+            const radius = 70;
+            const innerRadius = 42;
+
+            const getCoordinatesForPercent = (percent: number, r: number) => {
+              const x = center + r * Math.cos(2 * Math.PI * percent - Math.PI / 2);
+              const y = center + r * Math.sin(2 * Math.PI * percent - Math.PI / 2);
+              return [x, y];
+            };
+
+            const paths = activeSlices.map((slice) => {
+              const fraction = oasAssessedCount > 0 ? slice.count / oasAssessedCount : 0;
+              const startPercent = cumulativePercent;
+              const endPercent = cumulativePercent + fraction;
+              cumulativePercent = endPercent;
+
+              if (fraction >= 0.999) {
+                return {
+                  ...slice,
+                  fraction,
+                  pathData: '',
+                  isFullCircle: true,
+                };
+              }
+
+              const [startX, startY] = getCoordinatesForPercent(startPercent, radius);
+              const [endX, endY] = getCoordinatesForPercent(endPercent, radius);
+              const [innerStartX, innerStartY] = getCoordinatesForPercent(startPercent, innerRadius);
+              const [innerEndX, innerEndY] = getCoordinatesForPercent(endPercent, innerRadius);
+
+              const largeArcFlag = fraction > 0.5 ? 1 : 0;
+
+              const pathData = [
+                `M ${startX} ${startY}`,
+                `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endX} ${endY}`,
+                `L ${innerEndX} ${innerEndY}`,
+                `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${innerStartX} ${innerStartY}`,
+                'Z',
+              ].join(' ');
+
+              return {
+                ...slice,
+                fraction,
+                pathData,
+                isFullCircle: false,
+              };
+            });
+
+            return (
+              <div className="space-y-4">
+                {oasAssessedCount === 0 ? (
+                  <div className="h-44 flex flex-col items-center justify-center text-slate-400 text-xs gap-1.5">
+                    <ShieldAlert className="w-8 h-8 text-slate-300" />
+                    <span>ยังไม่มีข้อมูลการประเมิน OAS โดยเจ้าหน้าที่ รพ.สต. ในพื้นที่นี้</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-5 pt-1">
+                    {/* SVG Pie Chart Graphic */}
+                    <div className="relative shrink-0 flex items-center justify-center">
+                      <svg
+                        width={size}
+                        height={size}
+                        viewBox={`0 0 ${size} ${size}`}
+                        className="transform -rotate-90 drop-shadow-xs transition-transform duration-500"
+                      >
+                        {paths.map((p) => {
+                          if (p.isFullCircle) {
+                            return (
+                              <g key={p.id}>
+                                <circle
+                                  cx={center}
+                                  cy={center}
+                                  r={(radius + innerRadius) / 2}
+                                  fill="none"
+                                  stroke={p.color}
+                                  strokeWidth={radius - innerRadius}
+                                  className="transition-all duration-300 hover:opacity-90"
+                                >
+                                  <title>{`${p.label}: ${p.count} คน (100%)`}</title>
+                                </circle>
+                              </g>
+                            );
+                          }
+                          return (
+                            <path
+                              key={p.id}
+                              d={p.pathData}
+                              fill={p.color}
+                              stroke="#ffffff"
+                              strokeWidth="2.5"
+                              className="transition-all duration-200 hover:opacity-85 cursor-pointer hover:scale-[1.02] origin-center"
+                            >
+                              <title>{`${p.label}: ${p.count} คน (${(p.fraction * 100).toFixed(1)}%)`}</title>
+                            </path>
+                          );
+                        })}
+                      </svg>
+
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                          OAS รวม
+                        </span>
+                        <span className="text-xl font-black text-slate-800 leading-tight">
+                          {oasAssessedCount}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-medium">
+                          {oasAssessedCount > 0 ? `${((oasHighRiskCount / oasAssessedCount) * 100).toFixed(0)}% เสี่ยงสูง` : '0 ราย'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Legend */}
+                    <div className="space-y-1.5 w-full max-w-xs text-xs">
+                      {oasSlices.map((slice) => {
+                        const percent = oasAssessedCount > 0 ? (slice.count / oasAssessedCount) * 100 : 0;
+                        return (
+                          <div
+                            key={slice.id}
+                            className={`flex items-center justify-between p-2 rounded-xl border transition-all ${
+                              slice.count > 0 ? slice.hoverBg : 'bg-slate-50/50 border-slate-100 opacity-60'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="w-3 h-3 rounded-full shrink-0 shadow-2xs"
+                                style={{ backgroundColor: slice.color }}
+                              ></span>
+                              <span className="font-medium text-slate-700 truncate">
+                                {slice.label.split('(')[0]}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="font-bold text-slate-800">
+                                {slice.count} คน
+                              </span>
+                              <span
+                                className="text-[11px] font-semibold px-1.5 py-0.5 rounded-md min-w-[42px] text-right"
+                                style={{
+                                  backgroundColor: slice.count > 0 ? `${slice.color}20` : '#f1f5f9',
+                                  color: slice.color,
+                                }}
+                              >
+                                {percent.toFixed(1)}%
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Sub-legend badges */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px]">
+                  <div className="p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-center">
+                    <div className="font-semibold text-rose-700">🔴 รุนแรงมาก</div>
+                    <div className="font-extrabold text-sm text-rose-800 mt-0.5">
+                      {oasHighRiskCount} คน
+                    </div>
+                  </div>
+                  <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-center">
+                    <div className="font-semibold text-amber-700">🟠 ปานกลาง</div>
+                    <div className="font-extrabold text-sm text-amber-800 mt-0.5">
+                      {oasMediumRiskCount} คน
+                    </div>
+                  </div>
+                  <div className="p-2 rounded-xl bg-yellow-50 border border-yellow-200 text-yellow-900 text-center">
+                    <div className="font-semibold text-yellow-800">🟡 น้อย</div>
+                    <div className="font-extrabold text-sm text-yellow-800 mt-0.5">
+                      {oasLowRiskCount} คน
+                    </div>
+                  </div>
+                  <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-center">
+                    <div className="font-semibold text-emerald-700">🟢 ปกติ</div>
+                    <div className="font-extrabold text-sm text-emerald-800 mt-0.5">
+                      {oasNoneRiskCount} คน
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* OAS 4 Domains Bar Chart Breakdown */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4 flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h3 className="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-1.5">
+                <BarChart3 className="w-4 h-4 text-teal-600" />
+                คะแนนเฉลี่ย 4 ด้านพฤติกรรมก้าวร้าว (OAS)
+              </h3>
+              <p className="text-xs text-slate-500">
+                เปรียบเทียบคะแนนเฉลี่ยแต่ละด้าน (คะแนนเต็ม 4.0 ต่อหมวด)
+              </p>
+            </div>
+            <span className="text-[11px] font-semibold bg-teal-50 text-teal-800 border border-teal-200 px-2.5 py-0.5 rounded-full">
+              เกณฑ์ 0-4
+            </span>
+          </div>
+
+          <div className="space-y-3.5">
+            {[
+              {
+                id: 'verbal',
+                title: '1. พฤติกรรมก้าวร้าวทางวาจา (Verbal)',
+                score: avgVerbalScore,
+                color: '#e11d48',
+                bgClass: 'bg-rose-500',
+                icon: Megaphone,
+              },
+              {
+                id: 'property',
+                title: '2. ต่อสิ่งของ/ทรัพย์สิน (Objects/Property)',
+                score: avgPropertyScore,
+                color: '#f59e0b',
+                bgClass: 'bg-amber-500',
+                icon: Hammer,
+              },
+              {
+                id: 'self',
+                title: '3. ก้าวร้าวทำร้ายตนเอง (Self)',
+                score: avgSelfScore,
+                color: '#8b5cf6',
+                bgClass: 'bg-purple-500',
+                icon: UserX,
+              },
+              {
+                id: 'other',
+                title: '4. ก้าวร้าวทำร้ายผู้อื่น (Others)',
+                score: avgOtherScore,
+                color: '#ef4444',
+                bgClass: 'bg-red-500',
+                icon: ShieldAlert,
+              },
+            ].map((domain) => {
+              const pct = Math.min(100, (domain.score / 4) * 100);
+              const DomainIcon = domain.icon;
+              return (
+                <div key={domain.id} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                      <DomainIcon className="w-3.5 h-3.5 text-slate-500" />
+                      <span>{domain.title}</span>
+                    </span>
+                    <span className="font-extrabold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md text-[11px]">
+                      {domain.score.toFixed(2)} / 4.00
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden flex shadow-inner">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${domain.bgClass}`}
+                      style={{ width: `${pct}%` }}
+                    ></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Quick Notice for high risk management */}
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center justify-between gap-2 mt-1">
+            <div className="flex items-center gap-2">
+              <PhoneCall className="w-4 h-4 text-teal-700 shrink-0" />
+              <span>กรณีเคสก้าวร้าวรุนแรง (คะแนนรวม &gt;= 9 หรือข้อใด 4 คะแนน): ปฏิบัติตามแผนเผชิญเหตุ</span>
+            </div>
+            <a
+              href="tel:054791111"
+              className="text-rose-700 font-bold hover:underline shrink-0"
+            >
+              โทร รพ.เชียงกลาง
+            </a>
           </div>
         </div>
 

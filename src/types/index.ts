@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'HEALTH_OFFICER' | 'VHV'; // VHV = อสม. (Village Health Volunteer)
+export type UserRole = 'ADMIN' | 'HEALTH_OFFICER' | 'VHV' | 'CITIZEN'; // VHV = อสม. (Village Health Volunteer), CITIZEN = บุคคลทั่วไป/ประชาชน
 
 export interface User {
   id: string;
@@ -7,11 +7,15 @@ export interface User {
   password?: string;
   fullName: string;
   role: UserRole;
-  roleLabel: string; // ผู้ดูแลระบบ (สสอ.), เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง), อสม. ประจำหมู่บ้าน
+  roleLabel: string; // ผู้ดูแลระบบ (สสอ.), เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง), อสม. ประจำหมู่บ้าน, บุคคลทั่วไป (ประชาชน)
   tambon: string; // ตำบล (e.g. "เชียงกลาง", "เปือ", "ทั้งหมด" for admin)
   village: string; // หมู่บ้าน (e.g. "หมู่ 3 บ้านหนองแดง", "ทั้งหมด")
   hospital: string; // รพ.สต. พี่เลี้ยง (e.g. "รพ.สต.เปือ", "สสอ.เชียงกลาง")
   phone: string;
+  idCard?: string; // เลขประจำตัวประชาชน (ถ้ามี / ไม่บังคับ)
+  age?: number;
+  gender?: 'ชาย' | 'หญิง' | 'อื่นๆ';
+  addressNo?: string;
   avatarUrl?: string;
   createdAt: string;
 }
@@ -47,7 +51,19 @@ export interface EightQAnswers {
   q8LifetimeAttempt: number; // 0 or 4
   totalScore: number;
   riskLevel: RiskLevel;
-  riskLabel: string;
+// แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (Overt Aggression Scale: OAS)
+export interface OASAssessment {
+  verbalScore: number; // 0-4 พฤติกรรมก้าวร้าวทางวาจา
+  propertyScore: number; // 0-4 พฤติกรรมก้าวร้าวต่อสิ่งของ/ทรัพย์สิน
+  selfScore: number; // 0-4 พฤติกรรมก้าวร้าวต่อตนเอง
+  otherScore: number; // 0-4 พฤติกรรมก้าวร้าวต่อผู้อื่น
+  totalScore: number; // 0-16
+  riskLevel: RiskLevel; // 'NONE' | 'LOW' | 'MEDIUM' | 'HIGH'
+  riskLabel: string; // 'ปกติ/ไม่ก้าวร้าว', 'น้อย', 'ปานกลาง', 'รุนแรงมาก'
+  assessedByRole?: string; // e.g. "เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง)"
+  assessedByName?: string;
+  assessedDate?: string;
+  notes?: string;
 }
 
 export interface PatientScreening {
@@ -75,6 +91,9 @@ export interface PatientScreening {
 
   // Stress Level assessment (เกณฑ์มาตรฐานกรมสุขภาพจิต พร้อมอิโมจิ)
   stressAssessment?: StressAssessment;
+
+  // แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (Overt Aggression Scale: OAS) โดย จนท. รพ.สต./พี่เลี้ยง
+  oasAssessment?: OASAssessment;
 
   // 2Q Plus assessment
   twoQ: TwoQPlusAnswers;

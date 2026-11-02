@@ -1,6 +1,6 @@
 import React from 'react';
 import { PatientScreening, User } from '../types';
-import { getRiskColorBadge, EIGHT_Q_QUESTIONS, getStressLevelDetails } from '../utils/assessment';
+import { getRiskColorBadge, EIGHT_Q_QUESTIONS, getStressLevelDetails, getOASRiskBadge } from '../utils/assessment';
 import { 
   X, 
   PhoneCall, 
@@ -216,6 +216,95 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
               </div>
             );
           })()}
+
+          {/* Section: แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (Overt Aggression Scale: OAS) */}
+          {patient.oasAssessment ? (
+            (() => {
+              const oasBadge = getOASRiskBadge(patient.oasAssessment.riskLevel);
+              return (
+                <div className={`p-4 rounded-2xl border space-y-3 ${oasBadge.bg}`}>
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/10 pb-2">
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert className={`w-5 h-5 ${oasBadge.text}`} />
+                      <div>
+                        <h3 className="font-bold text-xs uppercase tracking-wider">
+                          แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (OAS)
+                        </h3>
+                        <p className="text-[11px] opacity-80">
+                          {patient.oasAssessment.assessedByName
+                            ? `ผู้ประเมิน: ${patient.oasAssessment.assessedByName} (${patient.oasAssessment.assessedByRole || 'จนท. รพ.สต.'})`
+                            : 'ประเมินโดยเจ้าหน้าที่ รพ.สต./พี่เลี้ยง'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold bg-white/80 px-2.5 py-0.5 rounded-full shadow-2xs">
+                        รวม {patient.oasAssessment.totalScore}/16 คะแนน
+                      </span>
+                      <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${oasBadge.badge}`}>
+                        {oasBadge.label}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 4 Categories Score Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <div className="p-2.5 rounded-xl bg-white/90 border border-black/5 space-y-0.5">
+                      <div className="text-[11px] text-slate-500 font-medium">1. ทางวาจา</div>
+                      <div className="text-sm font-extrabold text-slate-800">
+                        {patient.oasAssessment.verbalScore} <span className="text-[10px] font-normal text-slate-500">/ 4</span>
+                      </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-white/90 border border-black/5 space-y-0.5">
+                      <div className="text-[11px] text-slate-500 font-medium">2. ต่อสิ่งของ/ทรัพย์สิน</div>
+                      <div className="text-sm font-extrabold text-slate-800">
+                        {patient.oasAssessment.propertyScore} <span className="text-[10px] font-normal text-slate-500">/ 4</span>
+                      </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-white/90 border border-black/5 space-y-0.5">
+                      <div className="text-[11px] text-slate-500 font-medium">3. ต่อตนเอง</div>
+                      <div className="text-sm font-extrabold text-slate-800">
+                        {patient.oasAssessment.selfScore} <span className="text-[10px] font-normal text-slate-500">/ 4</span>
+                      </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-white/90 border border-black/5 space-y-0.5">
+                      <div className="text-[11px] text-slate-500 font-medium">4. ต่อผู้อื่น</div>
+                      <div className="text-sm font-extrabold text-slate-800">
+                        {patient.oasAssessment.otherScore} <span className="text-[10px] font-normal text-slate-500">/ 4</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recommendation */}
+                  <p className="text-xs pt-1 leading-relaxed opacity-95">
+                    {oasBadge.recommendation}
+                  </p>
+
+                  {patient.oasAssessment.notes && (
+                    <div className="text-xs bg-white/80 p-2.5 rounded-xl border border-black/10 text-slate-800">
+                      <strong>บันทึกเพิ่มเติมจากเจ้าหน้าที่:</strong> {patient.oasAssessment.notes}
+                    </div>
+                  )}
+                </div>
+              );
+            })()
+          ) : (
+            <div className="p-3.5 rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 text-xs text-slate-500 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <ShieldAlert className="w-4 h-4 text-slate-400" />
+                <span>ยังไม่มีข้อมูลการประเมิน OAS จากเจ้าหน้าที่ รพ.สต. (พี่เลี้ยง)</span>
+              </span>
+              {(currentUser.role === 'HEALTH_OFFICER' || currentUser.role === 'ADMIN') && (
+                <button
+                  type="button"
+                  onClick={() => onEdit(patient)}
+                  className="text-teal-700 font-bold hover:underline"
+                >
+                  + บันทึกประเมิน OAS
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Section: 2Q Plus Answers Breakdown */}
           <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">

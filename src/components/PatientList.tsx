@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PatientScreening, User, RiskLevel } from '../types';
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
-import { getRiskColorBadge, getStressLevelDetails } from '../utils/assessment';
+import { getRiskColorBadge, getStressLevelDetails, getOASRiskBadge } from '../utils/assessment';
 import { exportPatientDataToExcel } from '../utils/excelExport';
 import { canUserModifyPatient } from '../utils/storage';
 import { 
@@ -92,11 +92,13 @@ export const PatientList: React.FC<PatientListProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
               <h2 className="text-lg sm:text-xl font-bold text-slate-900">
-                ทะเบียนคนไข้ที่ได้รับการคัดกรอง
+                {currentUser.role === 'CITIZEN' ? 'ประวัติและผลการประเมินตนเอง' : 'ทะเบียนคนไข้ที่ได้รับการคัดกรอง'}
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              {currentUser.role === 'ADMIN'
+              {currentUser.role === 'CITIZEN'
+                ? `บันทึกประวัติการประเมินสุขภาพใจของ คุณ${currentUser.fullName}`
+                : currentUser.role === 'ADMIN'
                 ? 'แสดงข้อมูลทุกตำบลในอำเภอเชียงกลาง (สิทธิ์แอดมิน)'
                 : `แสดงข้อมูลในเขตรับผิดชอบ: ตำบล${currentUser.tambon} (${currentUser.hospital})`}
             </p>
@@ -115,7 +117,7 @@ export const PatientList: React.FC<PatientListProps> = ({
               className="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5"
             >
               <UserPlus className="w-4 h-4" />
-              <span>+ เพิ่มคนไข้ใหม่</span>
+              <span>{currentUser.role === 'CITIZEN' ? '+ ทำแบบประเมินตนเองใหม่' : '+ เพิ่มคนไข้ใหม่'}</span>
             </button>
           </div>
         </div>
@@ -233,6 +235,18 @@ export const PatientList: React.FC<PatientListProps> = ({
                           >
                             <span>{stress.emoji}</span>
                             <span>{stress.label}</span>
+                          </span>
+                        );
+                      })()}
+                      {patient.oasAssessment && (() => {
+                        const oBadge = getOASRiskBadge(patient.oasAssessment.riskLevel);
+                        return (
+                          <span
+                            className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${oBadge.bg} flex items-center gap-1`}
+                            title={`พฤติกรรมก้าวร้าว OAS: ${patient.oasAssessment.totalScore}/16 คะแนน (${patient.oasAssessment.riskLabel})`}
+                          >
+                            <ShieldAlert className="w-3 h-3" />
+                            <span>OAS: {patient.oasAssessment.totalScore} ({oBadge.label})</span>
                           </span>
                         );
                       })()}

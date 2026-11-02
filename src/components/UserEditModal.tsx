@@ -140,6 +140,8 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
       roleLabel = 'ผู้ดูแลระบบ (สสอ.เชียงกลาง)';
     } else if (role === 'HEALTH_OFFICER') {
       roleLabel = 'เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง)';
+    } else if (role === 'CITIZEN') {
+      roleLabel = 'บุคคลทั่วไป (ประชาชน)';
     }
 
     const updatedUser: User = {

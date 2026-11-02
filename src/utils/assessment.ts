@@ -1,4 +1,4 @@
-import { EightQAnswers, RiskLevel, TwoQPlusAnswers, StressLevel, StressAssessment } from '../types';
+import { EightQAnswers, RiskLevel, TwoQPlusAnswers, StressLevel, StressAssessment, OASAssessment } from '../types';
 
 export interface StressLevelOption {
   level: StressLevel;
@@ -247,3 +247,163 @@ export const getRiskColorBadge = (riskLevel: RiskLevel) => {
       };
   }
 };
+
+// ==========================================
+// แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (Overt Aggression Scale: OAS)
+// สำหรับเจ้าหน้าที่ รพ.สต./พี่เลี้ยง เป็นผู้ประเมินและบันทึก
+// ==========================================
+
+export interface OASCategoryOption {
+  score: number;
+  label: string;
+  description: string;
+}
+
+export interface OASCategoryItem {
+  id: 'verbalScore' | 'propertyScore' | 'selfScore' | 'otherScore';
+  title: string;
+  subtitle: string;
+  iconName: string;
+  options: OASCategoryOption[];
+}
+
+export const OAS_CATEGORIES: OASCategoryItem[] = [
+  {
+    id: 'verbalScore',
+    title: '1. พฤติกรรมก้าวร้าวทางวาจา (Verbal Aggression)',
+    subtitle: 'การแสดงออกทางวาจา น้ำเสียง การข่มขู่ หรือการใช้คำพูดรุนแรง',
+    iconName: 'Megaphone',
+    options: [
+      { score: 0, label: '0 คะแนน: ปกติ (None)', description: 'ไม่มีพฤติกรรมก้าวร้าวทางวาจา พูดคุยด้วยน้ำเสียงปกติ สงบ' },
+      { score: 1, label: '1 คะแนน: เล็กน้อย', description: 'ตะโกน พูดเสียงดัง แสดงความโกรธเคือง/ไม่พอใจ โดยไม่ระบุเจาะจงบุคคล' },
+      { score: 2, label: '2 คะแนน: ปานกลาง', description: 'ด่าทอ หยาบคาย สาปแช่ง หรือเหยียดหยามผู้อื่นอย่างชัดเจน' },
+      { score: 3, label: '3 คะแนน: รุนแรง', description: 'ข่มขู่ว่าจะทำร้ายร่างกายผู้อื่น หรือข่มขู่ว่าจะทำร้ายตนเอง' },
+      { score: 4, label: '4 คะแนน: รุนแรงมาก', description: 'ข่มขู่ว่าจะทำร้ายอย่างรุนแรงชัดเจน ขู่อาฆาตเอาชีวิต หรือขู่ใช้อาวุธ' },
+    ],
+  },
+  {
+    id: 'propertyScore',
+    title: '2. พฤติกรรมก้าวร้าวต่อสิ่งของ/ทรัพย์สิน (Physical Aggression against Objects)',
+    subtitle: 'การกระทำต่อสิ่งแวดล้อม ข้าวของเครื่องใช้ หรือทรัพย์สิน',
+    iconName: 'Hammer',
+    options: [
+      { score: 0, label: '0 คะแนน: ปกติ (None)', description: 'ดูแลรักษาข้าวของปกติ ไม่ทำลายสิ่งของ' },
+      { score: 1, label: '1 คะแนน: เล็กน้อย', description: 'ทุบโต๊ะ ปิดประตูกระแทกเสียงดัง เตะเก้าอี้ ไม่เกิดความเสียหายต่อทรัพย์สิน' },
+      { score: 2, label: '2 คะแนน: ปานกลาง', description: 'ขว้างปาสิ่งของ ขูดขีดสิ่งของ ทำลายสิ่งของชิ้นเล็กเสียหายเล็กน้อย' },
+      { score: 3, label: '3 คะแนน: รุนแรง', description: 'ทุบกระจกแตก พังประตู ขว้างปาสิ่งของใส่ผู้อื่น/กำแพงจนเกิดความเสียหาย' },
+      { score: 4, label: '4 คะแนน: รุนแรงมาก', description: 'วางเพลิง จุดไฟเผา พังทำลายทรัพย์สินชิ้นใหญ่เสียหายรุนแรง' },
+    ],
+  },
+  {
+    id: 'selfScore',
+    title: '3. พฤติกรรมก้าวร้าวทำร้ายตนเอง (Physical Aggression against Self)',
+    subtitle: 'พฤติกรรมที่ก่อให้เกิดอันตรายหรือบาดแผลต่อร่างกายตนเอง',
+    iconName: 'UserX',
+    options: [
+      { score: 0, label: '0 คะแนน: ปกติ (None)', description: 'ไม่มีพฤติกรรมทำร้ายตนเอง' },
+      { score: 1, label: '1 คะแนน: เล็กน้อย', description: 'ดึงผม หยิก ข่วน ต่อยตนเอง ไม่ทำให้เกิดบาดแผล' },
+      { score: 2, label: '2 คะแนน: ปานกลาง', description: 'ทุบตีตนเอง เอาศีรษะโขก เกิดรอยฟกช้ำ แผลตื้น มีรอยไหม้เล็กน้อย' },
+      { score: 3, label: '3 คะแนน: รุนแรง', description: 'กรีดข้อมือ/ผิวหนัง บาดแผลลึก มีเลือดออก หรือกลืนสิ่งแปลกปลอม' },
+      { score: 4, label: '4 คะแนน: รุนแรงมาก', description: 'ทำร้ายตนเองรุนแรง เป็นอันตรายต่อชีวิต ต้องได้รับการรักษาฉุกเฉิน' },
+    ],
+  },
+  {
+    id: 'otherScore',
+    title: '4. พฤติกรรมก้าวร้าวทำร้ายผู้อื่น (Physical Aggression against Others)',
+    subtitle: 'การใช้กำลังประทุษร้าย คุกคาม หรือทำอันตรายต่อร่างกายบุคคลอื่น',
+    iconName: 'ShieldAlert',
+    options: [
+      { score: 0, label: '0 คะแนน: ปกติ (None)', description: 'ไม่มีพฤติกรรมคุกคามหรือทำร้ายร่างกายผู้อื่น' },
+      { score: 1, label: '1 คะแนน: เล็กน้อย', description: 'ทำท่าทางคุกคาม ยื้อแย่ง ผลัก หรือกระชากเสื้อผ้าผู้อื่น' },
+      { score: 2, label: '2 คะแนน: ปานกลาง', description: 'ตบ ชก เตะ ดึงผม ทำให้ผู้อื่นเกิดรอยฟกช้ำเล็กน้อย ไม่ฉีกขาด' },
+      { score: 3, label: '3 คะแนน: รุนแรง', description: 'ทำร้ายผู้อื่นจนเกิดบาดแผลฉีกขาด ฟันหัก หรือเลือดออก' },
+      { score: 4, label: '4 คะแนน: รุนแรงมาก', description: 'ทำร้ายร่างกายผู้อื่นรุนแรง ทำให้สลบ กระดูกหัก อวัยวะฉีกขาด หรือใช้อาวุธ' },
+    ],
+  },
+];
+
+export const calculateOAS = (
+  verbalScore: number = 0,
+  propertyScore: number = 0,
+  selfScore: number = 0,
+  otherScore: number = 0,
+  meta?: {
+    assessedByRole?: string;
+    assessedByName?: string;
+    assessedDate?: string;
+    notes?: string;
+  }
+): OASAssessment => {
+  const total = (verbalScore || 0) + (propertyScore || 0) + (selfScore || 0) + (otherScore || 0);
+  let riskLevel: RiskLevel = 'NONE';
+  let riskLabel = 'ปกติ / ไม่พบพฤติกรรมก้าวร้าว';
+
+  // หากมีข้อใดข้อหนึ่งได้ 4 คะแนน หรือคะแนนรวม >= 9 ถือเป็นระดับรุนแรงมาก (Severe)
+  if (verbalScore === 4 || propertyScore === 4 || selfScore === 4 || otherScore === 4 || total >= 9) {
+    riskLevel = 'HIGH';
+    riskLabel = `ความก้าวร้าวระดับรุนแรงมาก (${total} คะแนน)`;
+  } else if (total >= 4) {
+    riskLevel = 'MEDIUM';
+    riskLabel = `ความก้าวร้าวระดับปานกลาง (${total} คะแนน)`;
+  } else if (total >= 1) {
+    riskLevel = 'LOW';
+    riskLabel = `ความก้าวร้าวระดับน้อย (${total} คะแนน)`;
+  }
+
+  return {
+    verbalScore,
+    propertyScore,
+    selfScore,
+    otherScore,
+    totalScore: total,
+    riskLevel,
+    riskLabel,
+    assessedByRole: meta?.assessedByRole,
+    assessedByName: meta?.assessedByName,
+    assessedDate: meta?.assessedDate,
+    notes: meta?.notes,
+  };
+};
+
+export const getOASRiskBadge = (riskLevel: RiskLevel) => {
+  switch (riskLevel) {
+    case 'HIGH':
+      return {
+        bg: 'bg-rose-100 text-rose-900 border-rose-300',
+        badge: 'bg-rose-600 text-white',
+        text: 'text-rose-700',
+        label: 'รุนแรงมาก',
+        lightBg: 'bg-rose-50',
+        recommendation: '⚠️ เสี่ยงเกิดความรุนแรงสูงมาก ต้องปฏิบัติตามแผนเผชิญเหตุความรุนแรง ควบคุมความปลอดภัย ปรึกษาจิตแพทย์ และส่งต่อด่วนไปยังโรงพยาบาลเชียงกลางทันที',
+      };
+    case 'MEDIUM':
+      return {
+        bg: 'bg-amber-100 text-amber-900 border-amber-300',
+        badge: 'bg-amber-500 text-white',
+        text: 'text-amber-700',
+        label: 'ปานกลาง',
+        lightBg: 'bg-amber-50',
+        recommendation: 'แยกผู้ป่วย จัดให้อยู่ในสิ่งแวดล้อมที่สงบ ปลอดภัย จำกัดสิ่งแวดล้อม และเฝ้าระวังความปลอดภัยอย่างใกล้ชิด',
+      };
+    case 'LOW':
+      return {
+        bg: 'bg-yellow-100 text-yellow-900 border-yellow-300',
+        badge: 'bg-yellow-500 text-white',
+        text: 'text-yellow-700',
+        label: 'น้อย',
+        lightBg: 'bg-yellow-50',
+        recommendation: 'เฝ้าระวัง พูดคุยรับฟังด้วยความเข้าใจ หาสาเหตุความคับข้องใจ และลดสิ่งเร้า/สิ่งกระตุ้น',
+      };
+    case 'NONE':
+    default:
+      return {
+        bg: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+        badge: 'bg-emerald-600 text-white',
+        text: 'text-emerald-700',
+        label: 'ปกติ',
+        lightBg: 'bg-emerald-50',
+        recommendation: 'สภาวะอารมณ์และพฤติกรรมสงบปกติ ส่งเสริมสุขภาพจิตและสัมพันธภาพที่ดีในครอบครัว',
+      };
+  }
+};
+

@@ -17,10 +17,12 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   currentUser,
   highRiskCount,
 }) => {
+  const isCitizen = currentUser.role === 'CITIZEN';
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom,0px))] md:hidden">
-      <div className="grid grid-cols-4 max-w-md mx-auto">
-        {/* Dashboard */}
+      <div className={`grid ${isCitizen ? 'grid-cols-3' : 'grid-cols-4'} max-w-md mx-auto`}>
+        {/* Dashboard / My Results */}
         <button
           onClick={() => onChangeTab('dashboard')}
           className={`flex flex-col items-center justify-center py-1.5 mx-0.5 rounded-xl transition min-h-[48px] cursor-pointer ${
@@ -30,10 +32,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           }`}
         >
           <LayoutDashboard className="w-5 h-5" />
-          <span className="text-[10px] mt-0.5">แดชบอร์ด</span>
+          <span className="text-[10px] mt-0.5">{isCitizen ? 'ผลประเมิน' : 'แดชบอร์ด'}</span>
         </button>
 
-        {/* New Screening */}
+        {/* New Screening / Self-Screening */}
         <button
           onClick={() => onChangeTab('new_screening')}
           className={`flex flex-col items-center justify-center py-1.5 mx-0.5 rounded-xl transition relative min-h-[48px] cursor-pointer ${
@@ -47,10 +49,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({
               <UserPlus className="w-4 h-4" />
             </div>
           </div>
-          <span className="text-[10px] mt-0.5">คัดกรอง</span>
+          <span className="text-[10px] mt-0.5">{isCitizen ? 'ทำแบบประเมิน' : 'คัดกรอง'}</span>
         </button>
 
-        {/* Patient List */}
+        {/* Patient List / My Assessment History */}
         <button
           onClick={() => onChangeTab('patient_list')}
           className={`flex flex-col items-center justify-center py-1.5 mx-0.5 rounded-xl transition relative min-h-[48px] cursor-pointer ${
@@ -61,29 +63,31 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         >
           <div className="relative">
             <Users className="w-5 h-5" />
-            {highRiskCount > 0 && (
+            {highRiskCount > 0 && !isCitizen && (
               <span className="absolute -top-1 -right-2 bg-rose-600 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
                 {highRiskCount}
               </span>
             )}
           </div>
-          <span className="text-[10px] mt-0.5">คนไข้</span>
+          <span className="text-[10px] mt-0.5">{isCitizen ? 'ประวัติ' : 'คนไข้'}</span>
         </button>
 
-        {/* Members / Admin */}
-        <button
-          onClick={() => onChangeTab('members')}
-          className={`flex flex-col items-center justify-center py-1.5 mx-0.5 rounded-xl transition min-h-[48px] cursor-pointer ${
-            activeTab === 'members'
-              ? 'text-purple-700 font-bold bg-purple-50 border border-purple-400 shadow-2xs'
-              : 'text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <ShieldAlert className="w-5 h-5" />
-          <span className="text-[10px] mt-0.5">
-            {currentUser.role === 'ADMIN' ? 'สมาชิก' : 'โปรไฟล์'}
-          </span>
-        </button>
+        {/* Members / Admin - only for staff */}
+        {!isCitizen && (
+          <button
+            onClick={() => onChangeTab('members')}
+            className={`flex flex-col items-center justify-center py-1.5 mx-0.5 rounded-xl transition min-h-[48px] cursor-pointer ${
+              activeTab === 'members'
+                ? 'text-purple-700 font-bold bg-purple-50 border border-purple-400 shadow-2xs'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <ShieldAlert className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5">
+              {currentUser.role === 'ADMIN' ? 'สมาชิก' : 'โปรไฟล์'}
+            </span>
+          </button>
+        )}
       </div>
     </nav>
   );

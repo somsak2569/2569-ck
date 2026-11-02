@@ -4,7 +4,8 @@ import {
   User, 
   RiskLevel,
   StressLevel,
-  StressAssessment
+  StressAssessment,
+  OASAssessment
 } from '../types';
 import { 
   CHIANG_KLANG_TAMBONS, 
@@ -16,7 +17,10 @@ import {
   calculateEightQ, 
   getRiskColorBadge,
   STRESS_LEVEL_OPTIONS,
-  getStressLevelDetails
+  getStressLevelDetails,
+  OAS_CATEGORIES,
+  calculateOAS,
+  getOASRiskBadge
 } from '../utils/assessment';
 import { 
   UserCheck, 
@@ -31,7 +35,12 @@ import {
   Info,
   HeartHandshake,
   Smile,
-  Activity
+  Activity,
+  Megaphone,
+  Hammer,
+  UserX,
+  Flame,
+  Building2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -48,12 +57,24 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
   onSave,
   onCancel,
 }) => {
+  const isCitizen = currentUser.role === 'CITIZEN';
+
   // 1. Patient Demographics State
-  const [fullName, setFullName] = useState(editingPatient?.fullName || '');
-  const [idCard, setIdCard] = useState(editingPatient?.idCard || '');
-  const [age, setAge] = useState<number | ''>(editingPatient ? editingPatient.age : '');
-  const [gender, setGender] = useState<'ชาย' | 'หญิง' | 'อื่นๆ'>(editingPatient?.gender || 'ชาย');
-  const [addressNo, setAddressNo] = useState(editingPatient?.addressNo || '');
+  const [fullName, setFullName] = useState(
+    editingPatient?.fullName || (isCitizen ? currentUser.fullName : '')
+  );
+  const [idCard, setIdCard] = useState(
+    editingPatient?.idCard || (isCitizen ? currentUser.idCard || '' : '')
+  );
+  const [age, setAge] = useState<number | ''>(
+    editingPatient ? editingPatient.age : (isCitizen && currentUser.age ? currentUser.age : '')
+  );
+  const [gender, setGender] = useState<'ชาย' | 'หญิง' | 'อื่นๆ'>(
+    editingPatient?.gender || (isCitizen && currentUser.gender ? currentUser.gender : 'ชาย')
+  );
+  const [addressNo, setAddressNo] = useState(
+    editingPatient?.addressNo || (isCitizen ? currentUser.addressNo || '' : '')
+  );
 
   // Handle ID card change (พิมพ์เลขประชาชนก็ได้ ถ้ามี - จัดรูปแบบเลขอัตโนมัติและไม่บังคับกรอก)
   const handleIdCardChange = (val: string) => {
@@ -96,7 +117,9 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
     : (currentUser.hospital && currentUser.hospital !== 'สสอ.เชียงกลาง' ? currentUser.hospital : availableHospitals[0] || 'รพ.เชียงกลาง');
   const [mentorHospital, setMentorHospital] = useState(defaultHospital);
 
-  const [phone, setPhone] = useState(editingPatient?.phone || '');
+  const [phone, setPhone] = useState(
+    editingPatient?.phone || (isCitizen ? currentUser.phone : '')
+  );
   const [chronicDiseases, setChronicDiseases] = useState<string[]>(editingPatient?.chronicDiseases || []);
   const [otherChronicDisease, setOtherChronicDisease] = useState(editingPatient?.otherChronicDisease || '');
 
@@ -110,7 +133,41 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
     editingPatient?.stressAssessment?.level || 'NONE'
   );
 
-  // 2. 2Q Plus State
+  // สิทธิ์การบันทึก OAS: เจ้าหน้าที่ รพ.สต./พี่เลี้ยง หรือ ผู้ดูแลระบบ
+  const canRecordOAS = currentUser.role === 'HEALTH_OFFICER' || currentUser.role === 'ADMIN';
+
+  // 2. OAS State (แบบประเมินพฤติกรรมก้าวร้าวรุนแรง Overt Aggression Scale: OAS)
+  const [oasVerbalScore, setOasVerbalScore] = useState<number>(
+    editingPatient?.oasAssessment?.verbalScore ?? 0
+  );
+  const [oasPropertyScore, setOasPropertyScore] = useState<number>(
+    editingPatient?.oasAssessment?.propertyScore ?? 0
+  );
+  const [oasSelfScore, setOasSelfScore] = useState<number>(
+    editingPatient?.oasAssessment?.selfScore ?? 0
+  );
+  const [oasOtherScore, setOasOtherScore] = useState<number>(
+    editingPatient?.oasAssessment?.otherScore ?? 0
+  );
+  const [oasNotes, setOasNotes] = useState<string>(
+    editingPatient?.oasAssessment?.notes ?? ''
+  );
+
+  const liveOAS = calculateOAS(
+    oasVerbalScore,
+    oasPropertyScore,
+    oasSelfScore,
+    oasOtherScore,
+    {
+      assessedByRole: canRecordOAS ? currentUser.roleLabel : editingPatient?.oasAssessment?.assessedByRole,
+      assessedByName: canRecordOAS ? currentUser.fullName : editingPatient?.oasAssessment?.assessedByName,
+      assessedDate: canRecordOAS ? (editingPatient?.oasAssessment?.assessedDate || new Date().toISOString().slice(0, 10)) : editingPatient?.oasAssessment?.assessedDate,
+      notes: oasNotes,
+    }
+  );
+  const oasRiskBadge = getOASRiskBadge(liveOAS.riskLevel);
+
+  // 3. 2Q Plus State
   const [q1Depressed, setQ1Depressed] = useState<boolean>(editingPatient?.twoQ.q1Depressed || false);
   const [q2Anhedonia, setQ2Anhedonia] = useState<boolean>(editingPatient?.twoQ.q2Anhedonia || false);
   const [qPlusSelfHarm, setQPlusSelfHarm] = useState<boolean>(editingPatient?.twoQ.qPlusSelfHarm || false);
@@ -231,13 +288,16 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
         };
       })(),
 
+      // แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (Overt Aggression Scale: OAS)
+      oasAssessment: canRecordOAS ? liveOAS : editingPatient?.oasAssessment,
+
       twoQ: twoQResult,
       eightQTriggered: is8QTriggered,
       eightQ: is8QTriggered ? eightQResult : undefined,
 
       mentorHospital,
       surveyorName: editingPatient?.surveyorName || currentUser.fullName,
-      surveyorRole: editingPatient?.surveyorRole || currentUser.roleLabel,
+      surveyorRole: editingPatient?.surveyorRole || (isCitizen ? 'ประเมินตนเอง (บุคคลทั่วไป)' : currentUser.roleLabel),
       surveyorPhone: editingPatient?.surveyorPhone || currentUser.phone,
       surveyorUserId: editingPatient?.surveyorUserId || currentUser.id,
 
@@ -266,17 +326,24 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
               <h2 className="text-lg sm:text-xl font-bold text-slate-900">
-                {editingPatient ? 'แก้ไขแบบประเมินคัดกรอง' : 'บันทึกแบบประเมินคัดกรองคนไข้'}
+                {isCitizen
+                  ? (editingPatient ? 'แก้ไขแบบประเมินสุขภาพใจตนเอง' : 'ทำแบบประเมินสุขภาพใจตนเอง')
+                  : (editingPatient ? 'แก้ไขแบบประเมินคัดกรอง' : 'บันทึกแบบประเมินคัดกรองคนไข้')}
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              ระบบคัดกรอง 2Q Plus และ 8Q กรมสุขภาพจิต • อ.เชียงกลาง จ.น่าน
+              {isCitizen
+                ? 'ประเมินระดับความเครียด, คัดกรองภาวะซึมเศร้า (2Q Plus) และประเมินความเสี่ยงการฆ่าตัวตาย (8Q)'
+                : 'ระบบคัดกรอง 2Q Plus และ 8Q กรมสุขภาพจิต • อ.เชียงกลาง จ.น่าน'}
             </p>
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
             <UserCheck className="w-4 h-4 text-teal-600" />
-            <span>ผู้ประเมิน: <strong className="text-slate-800">{currentUser.fullName}</strong></span>
+            <span>
+              {isCitizen ? 'ผู้ประเมินตนเอง: ' : 'ผู้ประเมิน: '}
+              <strong className="text-slate-800">{currentUser.fullName}</strong>
+            </span>
           </div>
         </div>
       </div>
@@ -659,12 +726,264 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
           </div>
         </div>
 
-        {/* SECTION 2: 2Q PLUS Assessment */}
+        {/* SECTION 2: แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (Overt Aggression Scale: OAS) */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-rose-100 text-rose-800 font-bold text-xs flex items-center justify-center">
+                2
+              </span>
+              <div>
+                <h3 className="font-bold text-slate-800 text-base flex flex-wrap items-center gap-2">
+                  <span>แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (Overt Aggression Scale: OAS)</span>
+                  <span className="text-[11px] font-medium bg-rose-50 text-rose-800 border border-rose-200 px-2 py-0.5 rounded-full">
+                    สำหรับ จนท. รพ.สต./พี่เลี้ยง
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  ประเมินพฤติกรรมก้าวร้าว 4 หมวดมาตรฐานจิตเวช เพื่อเฝ้าระวังความรุนแรงและวางแผนเผชิญเหตุ
+                </p>
+              </div>
+            </div>
+
+            {/* Current OAS Score & Risk Badge */}
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-xl">
+                รวม: <strong className="text-sm text-slate-900">{liveOAS.totalScore}</strong>/16 คะแนน
+              </span>
+              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${oasRiskBadge.bg}`}>
+                <span className={`w-2 h-2 rounded-full ${oasRiskBadge.badge}`}></span>
+                <span>{oasRiskBadge.label}</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Conditional based on whether current user has rights to record OAS */}
+          {!canRecordOAS ? (
+            /* For VHV (อสม.) or General Citizens (บุคคลทั่วไป) */
+            <div className="p-4 rounded-2xl border-2 border-dashed border-teal-200 bg-teal-50/50 space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center shrink-0 mt-0.5">
+                  <Building2 className="w-5 h-5 text-teal-700" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
+                    <span>ส่วนนี้สำหรับเจ้าหน้าที่ รพ.สต. (พี่เลี้ยง) หรือผู้ดูแลระบบ เป็นผู้ประเมินและบันทึก</span>
+                  </div>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (OAS) เป็นการประเมินทางคลินิก 4 ด้าน (วาจา, สิ่งของ, ตนเอง, ผู้อื่น) โดยบุคลากรสาธารณสุขประจำ รพ.สต. พี่เลี้ยงจะทำการตรวจประเมินและบันทึกผล
+                  </p>
+                </div>
+              </div>
+
+              {editingPatient?.oasAssessment ? (
+                /* Previously recorded OAS data exists */
+                <div className="bg-white p-3.5 rounded-xl border border-teal-200 space-y-2 mt-2">
+                  <div className="flex flex-wrap items-center justify-between text-xs font-semibold text-slate-700 border-b border-slate-100 pb-2">
+                    <span className="flex items-center gap-1.5 text-teal-800 font-bold">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      ผลการประเมิน OAS ล่าสุดโดยเจ้าหน้าที่ รพ.สต.:
+                    </span>
+                    <span>
+                      {editingPatient.oasAssessment.assessedDate} ({editingPatient.oasAssessment.assessedByName || 'เจ้าหน้าที่'})
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
+                    <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                      <div className="text-[11px] text-slate-500">1. วาจา</div>
+                      <div className="font-bold text-slate-800">{editingPatient.oasAssessment.verbalScore}/4 คะแนน</div>
+                    </div>
+                    <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                      <div className="text-[11px] text-slate-500">2. สิ่งของ/ทรัพย์สิน</div>
+                      <div className="font-bold text-slate-800">{editingPatient.oasAssessment.propertyScore}/4 คะแนน</div>
+                    </div>
+                    <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                      <div className="text-[11px] text-slate-500">3. ตนเอง</div>
+                      <div className="font-bold text-slate-800">{editingPatient.oasAssessment.selfScore}/4 คะแนน</div>
+                    </div>
+                    <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                      <div className="text-[11px] text-slate-500">4. ผู้อื่น</div>
+                      <div className="font-bold text-slate-800">{editingPatient.oasAssessment.otherScore}/4 คะแนน</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-xs font-semibold text-slate-600">
+                      รวม: {editingPatient.oasAssessment.totalScore} คะแนน
+                    </span>
+                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${getOASRiskBadge(editingPatient.oasAssessment.riskLevel).bg}`}>
+                      {editingPatient.oasAssessment.riskLabel}
+                    </span>
+                  </div>
+                  {editingPatient.oasAssessment.notes && (
+                    <div className="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-200 mt-1">
+                      <strong>บันทึกเพิ่มเติม:</strong> {editingPatient.oasAssessment.notes}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white/80 p-3 rounded-xl border border-teal-200 text-xs text-teal-800 flex items-center gap-2">
+                  <Info className="w-4 h-4 text-teal-600 shrink-0" />
+                  <span>ยังไม่มีการบันทึกประเมิน OAS สำหรับคนไข้รายนี้ (รพ.สต. พี่เลี้ยงจะดำเนินการเมื่อรับการประสาน/ส่งต่อ)</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Authorized Health Officer / Admin Form Input */
+            <div className="space-y-4">
+              {/* Active Recorder Banner */}
+              <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-teal-900">
+                <div className="flex items-center gap-2">
+                  <UserCheck className="w-4 h-4 text-teal-700 shrink-0" />
+                  <span>
+                    ผู้บันทึกการประเมิน: <strong>{currentUser.fullName}</strong> ({currentUser.roleLabel})
+                  </span>
+                </div>
+                <div className="text-[11px] text-teal-700 font-medium">
+                  {currentUser.hospital || 'รพ.เชียงกลาง'}
+                </div>
+              </div>
+
+              {/* 4 Categories */}
+              <div className="space-y-4">
+                {OAS_CATEGORIES.map((cat, catIdx) => {
+                  const currentScore =
+                    cat.id === 'verbalScore'
+                      ? oasVerbalScore
+                      : cat.id === 'propertyScore'
+                      ? oasPropertyScore
+                      : cat.id === 'selfScore'
+                      ? oasSelfScore
+                      : oasOtherScore;
+
+                  const setScore = (val: number) => {
+                    if (cat.id === 'verbalScore') setOasVerbalScore(val);
+                    else if (cat.id === 'propertyScore') setOasPropertyScore(val);
+                    else if (cat.id === 'selfScore') setOasSelfScore(val);
+                    else setOasOtherScore(val);
+                  };
+
+                  return (
+                    <div
+                      key={cat.id}
+                      className="p-3.5 sm:p-4 rounded-2xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition space-y-3"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-slate-800 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                            {catIdx + 1}
+                          </span>
+                          <div>
+                            <div className="font-bold text-slate-800 text-xs sm:text-sm">
+                              {cat.title}
+                            </div>
+                            <div className="text-[11px] text-slate-500">{cat.subtitle}</div>
+                          </div>
+                        </div>
+
+                        <span
+                          className={`self-end sm:self-auto text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                            currentScore === 4
+                              ? 'bg-rose-100 text-rose-800 border-rose-300'
+                              : currentScore >= 2
+                              ? 'bg-amber-100 text-amber-900 border-amber-300'
+                              : currentScore === 1
+                              ? 'bg-yellow-100 text-yellow-900 border-yellow-300'
+                              : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                          }`}
+                        >
+                          {currentScore} / 4 คะแนน
+                        </span>
+                      </div>
+
+                      {/* 5 Options Cards */}
+                      <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+                        {cat.options.map((opt) => {
+                          const isSelected = currentScore === opt.score;
+                          return (
+                            <button
+                              type="button"
+                              key={opt.score}
+                              onClick={() => setScore(opt.score)}
+                              className={`p-2.5 rounded-xl border text-left transition flex flex-col justify-between cursor-pointer ${
+                                isSelected
+                                  ? opt.score === 4
+                                    ? 'bg-rose-600 text-white border-rose-700 shadow-xs ring-2 ring-rose-400'
+                                    : opt.score >= 2
+                                    ? 'bg-amber-500 text-white border-amber-600 shadow-xs ring-2 ring-amber-400'
+                                    : opt.score === 1
+                                    ? 'bg-yellow-500 text-white border-yellow-600 shadow-xs ring-2 ring-yellow-400'
+                                    : 'bg-emerald-600 text-white border-emerald-700 shadow-xs ring-2 ring-emerald-400'
+                                  : 'bg-white hover:bg-slate-100 border-slate-200 text-slate-700'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className={`text-[11px] font-bold ${isSelected ? 'text-white' : 'text-slate-800'}`}>
+                                  {opt.label.split(':')[0]}
+                                </span>
+                                {isSelected && (
+                                  <span className="text-xs font-black">✓</span>
+                                )}
+                              </div>
+                              <p className={`text-[11px] leading-snug ${isSelected ? 'text-white/95' : 'text-slate-500'}`}>
+                                {opt.description}
+                              </p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Real-time OAS Clinical Interpretation & Action Plan Banner */}
+              <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${oasRiskBadge.bg}`}>
+                <div className="flex items-start gap-3">
+                  <ShieldAlert className={`w-6 h-6 shrink-0 mt-0.5 ${oasRiskBadge.text}`} />
+                  <div>
+                    <div className="font-extrabold text-sm flex items-center gap-2">
+                      <span>แปลผล OAS: {liveOAS.riskLabel}</span>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-white/70">
+                        รวม {liveOAS.totalScore} คะแนน
+                      </span>
+                    </div>
+                    <p className="text-xs mt-1 leading-relaxed opacity-90">
+                      {oasRiskBadge.recommendation}
+                    </p>
+                  </div>
+                </div>
+
+                {liveOAS.riskLevel === 'HIGH' && (
+                  <span className="self-end sm:self-auto bg-rose-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-xs shrink-0 flex items-center gap-1.5">
+                    <Flame className="w-4 h-4 text-amber-300" />
+                    <span>เคสวิกฤตความรุนแรงสูง</span>
+                  </span>
+                )}
+              </div>
+
+              {/* Additional Observation Notes for OAS */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  บันทึกลักษณะพฤติกรรมก้าวร้าว/สิ่งกระตุ้นเพิ่มเติม (ถ้ามี):
+                </label>
+                <input
+                  type="text"
+                  value={oasNotes}
+                  onChange={(e) => setOasNotes(e.target.value)}
+                  placeholder="เช่น ผู้ป่วยเริ่มมีพฤติกรรมก้าวร้าวเมื่อขาดยา มีอาการประสาทหลอนสั่งให้ทำร้ายตนเอง หรือตะโกนด่าเพื่อนบ้าน"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-rose-500 bg-white"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* SECTION 3: 2Q PLUS Assessment */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-xs flex items-center justify-center">
-                2
+                3
               </span>
               <div>
                 <h3 className="font-bold text-slate-800 text-base">
@@ -830,13 +1149,13 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
           </div>
         </div>
 
-        {/* SECTION 3: 8Q Suicide Risk Assessment (Auto-triggered when 2Q is positive or manually opened) */}
+        {/* SECTION 4: 8Q Suicide Risk Assessment (Auto-triggered when 2Q is positive or manually opened) */}
         {is8QTriggered ? (
           <div className="bg-white rounded-2xl shadow-sm border-2 border-rose-200 p-4 sm:p-6 space-y-4 animate-in fade-in slide-in-from-top-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-rose-100">
               <div className="flex items-center gap-2">
                 <span className="w-6 h-6 rounded-full bg-rose-600 text-white font-bold text-xs flex items-center justify-center">
-                  3
+                  4
                 </span>
                 <div>
                   <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
@@ -1005,11 +1324,11 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
           </div>
         )}
 
-        {/* SECTION 4: Follow-up Status & Notes */}
+        {/* SECTION 5: Follow-up Status & Notes */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
             <span className="w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-xs flex items-center justify-center">
-              4
+              5
             </span>
             <h3 className="font-bold text-slate-800 text-base">
               แผนการดูแล / ส่งต่อ และบันทึกเพิ่มเติม

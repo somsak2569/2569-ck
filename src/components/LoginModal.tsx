@@ -19,7 +19,8 @@ import {
   Crown, 
   Eye, 
   EyeOff, 
-  AlertCircle
+  AlertCircle,
+  Smile
 } from 'lucide-react';
 
 interface LoginModalProps {
@@ -217,11 +218,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
 
     const isAdmin = regRole === 'ADMIN';
+    const isCitizen = regRole === 'CITIZEN';
     const isOfficer = regRole === 'HEALTH_OFFICER';
 
     const newUser: User = {
       id: isAdmin
         ? `admin-${Date.now()}`
+        : isCitizen
+        ? `citizen-${Date.now()}`
         : isOfficer
         ? `officer-${Date.now()}`
         : `vhv-${Date.now()}`,
@@ -232,6 +236,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       role: regRole,
       roleLabel: isAdmin
         ? 'ผู้ดูแลระบบ สสอ.เชียงกลาง'
+        : isCitizen
+        ? 'บุคคลทั่วไป (ประชาชน)'
         : isOfficer
         ? `เจ้าหน้าที่ ${regHospital} (พี่เลี้ยง)`
         : `อสม. ประจำ${regVillage}`,
@@ -241,7 +247,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         : isOfficer
         ? `ทุกหมู่บ้านในตำบล${regTambon}`
         : regVillage,
-      hospital: isAdmin ? 'สสอ.เชียงกลาง' : regHospital,
+      hospital: isAdmin
+        ? 'สสอ.เชียงกลาง'
+        : isCitizen
+        ? (CHIANG_KLANG_TAMBONS[regTambon]?.hospitals[0] || 'รพ.เชียงกลาง')
+        : regHospital,
       phone: regPhone.trim(),
       createdAt: new Date().toISOString().slice(0, 10),
     };
@@ -341,13 +351,25 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <span>เข้าสู่ระบบ</span>
             </button>
 
-            {/* ส่วนท้ายของเฟรม: เมนูลงทะเบียนใหม่ (แยก Admin และ รพ.สต./อสม.) */}
+            {/* ส่วนท้ายของเฟรม: เมนูลงทะเบียนใหม่ (บุคคลทั่วไป, Admin, รพ.สต./อสม.) */}
             <div className="pt-3 border-t border-slate-200 space-y-2">
               <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
                 <span>เมนูลงทะเบียนใหม่:</span>
-                <span>เลือกตามตำแหน่ง</span>
+                <span>เลือกลงทะเบียนตามส่วนงาน</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-3 gap-1.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('REGISTER');
+                    setRegRole('CITIZEN');
+                    setLoginError('');
+                  }}
+                  className="p-2 rounded-xl border border-emerald-300 bg-emerald-50/80 hover:bg-emerald-100 text-emerald-950 font-bold text-left transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Smile className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="truncate">บุคคลทั่วไป</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -358,7 +380,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   className="p-2 rounded-xl border border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100 text-indigo-900 font-bold text-left transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <Crown className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                  <span className="truncate">ลงทะเบียน Admin</span>
+                  <span className="truncate">Admin</span>
                 </button>
                 <button
                   type="button"
@@ -370,7 +392,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   className="p-2 rounded-xl border border-teal-200 bg-teal-50/60 hover:bg-teal-100 text-teal-900 font-bold text-left transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <UserPlus className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                  <span className="truncate">ลงทะเบียน รพ.สต./อสม.</span>
+                  <span className="truncate">รพ.สต./อสม.</span>
                 </button>
               </div>
             </div>
@@ -398,7 +420,25 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   ประเภทสมาชิก / สิทธิ์การใช้งาน <span className="text-rose-500">*</span>
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRegRole('CITIZEN')}
+                    className={`p-2.5 rounded-xl border text-xs text-left transition cursor-pointer flex flex-col justify-between ${
+                      regRole === 'CITIZEN'
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-950 font-bold ring-2 ring-emerald-400/40 shadow-xs'
+                        : 'border-slate-200 text-slate-600 bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-emerald-700 font-bold">
+                      <Smile className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>บุคคลทั่วไป</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 mt-1">
+                      ประเมินตนเอง
+                    </span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={() => setRegRole('ADMIN')}
@@ -410,7 +450,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   >
                     <div className="flex items-center gap-1.5 text-amber-700 font-bold">
                       <Crown className="w-4 h-4 text-amber-500 shrink-0" />
-                      <span>ผู้ดูแลระบบ (Admin)</span>
+                      <span>Admin</span>
                     </div>
                     <span className="text-[10px] text-slate-500 mt-1">
                       สสอ.เชียงกลาง
@@ -428,7 +468,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   >
                     <div className="flex items-center gap-1.5 text-teal-800 font-bold">
                       <Building2 className="w-4 h-4 text-teal-600 shrink-0" />
-                      <span>จนท. รพ.สต. (พี่เลี้ยง)</span>
+                      <span>จนท. รพ.สต.</span>
                     </div>
                     <span className="text-[10px] text-slate-500 mt-1">
                       ประจำตำบล
@@ -446,10 +486,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   >
                     <div className="flex items-center gap-1.5 text-emerald-800 font-bold">
                       <UserCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>อสม. ประจำหมู่บ้าน</span>
+                      <span>อสม.</span>
                     </div>
                     <span className="text-[10px] text-slate-500 mt-1">
-                      ผู้คัดกรอง 2Q+
+                      ประจำหมู่บ้าน
                     </span>
                   </button>
                 </div>

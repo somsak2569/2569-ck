@@ -57,6 +57,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
   const adminCount = cleanUsers.filter((u) => u.role === 'ADMIN').length;
   const officerCount = cleanUsers.filter((u) => u.role === 'HEALTH_OFFICER').length;
   const vhvCount = cleanUsers.filter((u) => u.role === 'VHV').length;
+  const citizenCount = cleanUsers.filter((u) => u.role === 'CITIZEN').length;
 
   const filteredUsers = cleanUsers.filter((u) => {
     const matchSearch =
@@ -135,8 +136,8 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
           </div>
         </div>
 
-        {/* 4 Role Summary Stat Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mt-4 pt-4 border-t border-slate-100">
+        {/* 5 Role Summary Stat Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 mt-4 pt-4 border-t border-slate-100">
           {/* Total Members */}
           <button
             onClick={() => setRoleFilter('ALL')}
@@ -147,7 +148,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium opacity-80">สมาชิกทั้งหมด</span>
+              <span className="text-[11px] font-medium opacity-80">ทั้งหมด</span>
               <Users className="w-4 h-4 opacity-70" />
             </div>
             <div className="text-xl sm:text-2xl font-black mt-1">
@@ -165,7 +166,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium opacity-90">ผู้ดูแลระบบ (Admin)</span>
+              <span className="text-[11px] font-medium opacity-90">ผู้ดูแลระบบ</span>
               <Crown className="w-4 h-4 text-amber-600" />
             </div>
             <div className="text-xl sm:text-2xl font-black mt-1">
@@ -183,7 +184,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium opacity-90">เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง)</span>
+              <span className="text-[11px] font-medium opacity-90">จนท. รพ.สต.</span>
               <ShieldCheck className="w-4 h-4 text-teal-600" />
             </div>
             <div className="text-xl sm:text-2xl font-black mt-1">
@@ -201,11 +202,29 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium opacity-90">อสม. ประจำหมู่บ้าน</span>
+              <span className="text-[11px] font-medium opacity-90">อสม.</span>
               <UserCheck className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="text-xl sm:text-2xl font-black mt-1">
               {vhvCount} <span className="text-xs font-normal opacity-80">คน</span>
+            </div>
+          </button>
+
+          {/* Citizen Count */}
+          <button
+            onClick={() => setRoleFilter('CITIZEN')}
+            className={`p-3 rounded-xl border text-left transition cursor-pointer ${
+              roleFilter === 'CITIZEN'
+                ? 'bg-cyan-700 text-white border-cyan-700 shadow-xs'
+                : 'bg-cyan-50/80 border-cyan-200 hover:bg-cyan-100/70 text-cyan-950'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium opacity-90">บุคคลทั่วไป</span>
+              <Users className="w-4 h-4 text-cyan-600" />
+            </div>
+            <div className="text-xl sm:text-2xl font-black mt-1">
+              {citizenCount} <span className="text-xs font-normal opacity-80">คน</span>
             </div>
           </button>
         </div>

@@ -17,7 +17,8 @@ import {
   Trash2, 
   CheckCircle2, 
   Clock, 
-  AlertTriangle 
+  AlertTriangle,
+  Smile
 } from 'lucide-react';
 
 interface UserDetailModalProps {
@@ -66,6 +67,16 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
           titleColor: 'text-teal-900',
           icon: <ShieldCheck className="w-5 h-5" />,
           label: 'เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง)',
+        };
+      case 'CITIZEN':
+        return {
+          bg: 'bg-cyan-50',
+          border: 'border-cyan-200',
+          badgeBg: 'bg-cyan-100 text-cyan-800 border-cyan-300',
+          iconBg: 'bg-cyan-600 text-white',
+          titleColor: 'text-cyan-900',
+          icon: <Smile className="w-5 h-5" />,
+          label: 'บุคคลทั่วไป (ประชาชน)',
         };
       default:
         return {
