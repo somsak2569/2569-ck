@@ -168,7 +168,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       ? 'บุคคลทั่วไป'
                       : currentUser.role === 'HEALTH_OFFICER'
                       ? 'จนท. รพ.สต.'
-                      : 'อสม. ประจำหมู่บ้าน'}
+                      : 'นสช. ประจำหมู่บ้าน'}
                   </div>
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-teal-300 shrink-0" />
@@ -332,14 +332,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                       ? 'bg-purple-700 text-white border-purple-900 shadow-sm ring-2 ring-purple-400/50'
                       : 'text-purple-900 bg-purple-50/70 border-purple-500 hover:bg-purple-100 hover:border-purple-700'
                   }`}
-                  title={currentUser.role === 'ADMIN' ? 'จัดการสมาชิก โรงพยาบาล/รพ.สต./อสม.' : 'ข้อมูลสังกัดและสมาชิก'}
+                  title={currentUser.role === 'ADMIN' ? 'จัดการสมาชิก โรงพยาบาล/รพ.สต./นสช.' : 'ข้อมูลสังกัดและสมาชิก'}
                 >
                   <ShieldAlert className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${activeTab === 'members' ? 'text-white' : 'text-purple-700'}`} />
                   <span>
                     {currentUser.role === 'ADMIN' ? 'จัดการสมาชิก' : 'ข้อมูลสมาชิก'}
                   </span>
                   {currentUser.role === 'ADMIN' && (
-                    <span className="hidden lg:inline text-[10px] opacity-90">(รพ./รพ.สต./อสม.)</span>
+                    <span className="hidden lg:inline text-[10px] opacity-90">(รพ./รพ.สต./นสช.)</span>
                   )}
                 </button>
               )}

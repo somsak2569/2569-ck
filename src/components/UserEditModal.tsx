@@ -135,7 +135,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
     }
 
     // Determine role label
-    let roleLabel = 'อสม. ประจำหมู่บ้าน';
+    let roleLabel = 'นสช. ประจำหมู่บ้าน';
     if (role === 'ADMIN') {
       roleLabel = 'ผู้ดูแลระบบ (โรงพยาบาลเชียงกลาง)';
     } else if (role === 'HEALTH_OFFICER') {
@@ -245,7 +245,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
                   }`}
                 >
                   <UserCheck className="w-4 h-4 text-emerald-600" />
-                  <span>อสม.</span>
+                  <span>นสช.</span>
                   <span className="text-[10px] font-normal text-slate-500">ประจำหมู่บ้าน</span>
                 </button>
               </div>

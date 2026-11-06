@@ -27,7 +27,7 @@ export const EmergencyGuideModal: React.FC<EmergencyGuideModalProps> = ({
                 คู่มือช่วยเหลือและหลักการ 3 ส.
               </h3>
               <p className="text-xs text-teal-200">
-                แนวทางปฏิบัติสำหรับ อสม. และเจ้าหน้าที่สาธารณสุขอำเภอเชียงกลาง
+                แนวทางปฏิบัติสำหรับ นสช. และเจ้าหน้าที่สาธารณสุขอำเภอเชียงกลาง
               </p>
             </div>
           </div>

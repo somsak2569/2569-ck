@@ -760,7 +760,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
 
           {/* Conditional based on whether current user has rights to record OAS */}
           {!canRecordOAS ? (
-            /* For VHV (อสม.) or General Citizens (บุคคลทั่วไป) */
+            /* For VHV (นสช.) or General Citizens (บุคคลทั่วไป) */
             <div className="p-4 rounded-2xl border-2 border-dashed border-teal-200 bg-teal-50/50 space-y-3">
               <div className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center shrink-0 mt-0.5">
@@ -1282,7 +1282,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                     </div>
                     <ul className="list-disc pl-4 space-y-0.5 text-xs text-amber-900">
                       <li>ส่งต่อ รพ.สต. พี่เลี้ยง เพื่อให้พยาบาลหรือแพทย์ตรวจประเมินซ้ำ</li>
-                      <li>ทีม อสม. เยี่ยมบ้านติดตามอาการสัปดาห์ละ 1-2 ครั้ง</li>
+                      <li>ทีม นสช. เยี่ยมบ้านติดตามอาการสัปดาห์ละ 1-2 ครั้ง</li>
                       <li>ให้เบอร์ติดต่อญาติ และสายด่วนสุขภาพจิต 1323</li>
                     </ul>
                   </div>
@@ -1295,7 +1295,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                     </div>
                     <ul className="list-disc pl-4 space-y-0.5 text-xs text-yellow-900">
                       <li>รับฟังด้วยความเข้าใจ ให้กำลังใจ แนะนำการคลายเครียด</li>
-                      <li>อสม. ติดตามเยี่ยมซ้ำภายใน 2 สัปดาห์</li>
+                      <li>นสช. ติดตามเยี่ยมซ้ำภายใน 2 สัปดาห์</li>
                     </ul>
                   </div>
                 )}
@@ -1367,7 +1367,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              หมายเหตุ / บันทึกข้อสังเกตเพิ่มเติมของ อสม. หรือ เจ้าหน้าที่ รพ.สต.
+              หมายเหตุ / บันทึกข้อสังเกตเพิ่มเติมของ นสช. หรือ เจ้าหน้าที่ รพ.สต.
             </label>
             <textarea
               rows={3}

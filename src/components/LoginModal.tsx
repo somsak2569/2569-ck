@@ -241,7 +241,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         ? 'บุคคลทั่วไป (ประชาชน)'
         : isOfficer
         ? `เจ้าหน้าที่ ${regHospital} (พี่เลี้ยง)`
-        : `อสม. ประจำ${regVillage}`,
+        : `นสช. ประจำ${regVillage}`,
       tambon: isAdmin ? 'ทั้งหมด' : regTambon,
       village: isAdmin
         ? 'ทั้งหมด'
@@ -352,7 +352,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <span>เข้าสู่ระบบ</span>
             </button>
 
-            {/* ส่วนท้ายของเฟรม: เมนูลงทะเบียนใหม่ (บุคคลทั่วไป, Admin, รพ.สต./อสม.) */}
+            {/* ส่วนท้ายของเฟรม: เมนูลงทะเบียนใหม่ (บุคคลทั่วไป, Admin, รพ.สต./นสช.) */}
             <div className="pt-3 border-t border-slate-200 space-y-2">
               <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
                 <span>เมนูลงทะเบียนใหม่:</span>
@@ -393,7 +393,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   className="p-2 rounded-xl border border-teal-200 bg-teal-50/60 hover:bg-teal-100 text-teal-900 font-bold text-left transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <UserPlus className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                  <span className="truncate">รพ.สต./อสม.</span>
+                  <span className="truncate">รพ.สต./นสช.</span>
                 </button>
               </div>
             </div>
@@ -487,7 +487,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   >
                     <div className="flex items-center gap-1.5 text-emerald-800 font-bold">
                       <UserCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>อสม.</span>
+                      <span>นสช.</span>
                     </div>
                     <span className="text-[10px] text-slate-500 mt-1">
                       ประจำหมู่บ้าน
@@ -504,7 +504,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     <span>สิทธิ์ผู้ดูแลระบบ โรงพยาบาลเชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)</span>
                   </div>
                   <p className="text-[11px] text-amber-700">
-                    สามารถเข้าถึงข้อมูลผู้ป่วย สถิติ และสมาชิก อสม. ได้ครบทุกตำบลในอำเภอเชียงกลาง
+                    สามารถเข้าถึงข้อมูลผู้ป่วย สถิติ และสมาชิก นสช. ได้ครบทุกตำบลในอำเภอเชียงกลาง
                   </p>
                 </div>
               )}
@@ -537,7 +537,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   required
                   value={regUsername}
                   onChange={(e) => setRegUsername(e.target.value)}
-                  placeholder={regRole === 'ADMIN' ? 'เช่น แอดมินรพ หรือ admin_ck' : 'เช่น อสมดวงใจ หรือ duangjai_vhv'}
+                  placeholder={regRole === 'ADMIN' ? 'เช่น แอดมินรพ หรือ admin_ck' : 'เช่น นสชดวงใจ หรือ duangjai_vhv'}
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>

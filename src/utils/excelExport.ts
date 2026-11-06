@@ -171,7 +171,7 @@ export const exportMembersToExcel = (
     'ชื่อ-สกุล': u.fullName,
     'ชื่อผู้ใช้ (Username)': u.username,
     'อีเมล': u.email,
-    'สิทธิ์ในระบบ': u.role === 'ADMIN' ? 'ผู้ดูแลระบบ (Admin)' : u.role === 'HEALTH_OFFICER' ? 'เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง)' : 'อสม. ประจำหมู่บ้าน',
+    'สิทธิ์ในระบบ': u.role === 'ADMIN' ? 'ผู้ดูแลระบบ (Admin)' : u.role === 'HEALTH_OFFICER' ? 'เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง)' : 'นสช. ประจำหมู่บ้าน',
     'ตำแหน่งแสดง': u.roleLabel,
     'ตำบลที่รับผิดชอบ': u.tambon,
     'หมู่บ้านที่รับผิดชอบ': u.village,

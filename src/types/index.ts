@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'HEALTH_OFFICER' | 'VHV' | 'CITIZEN'; // VHV = อสม. (Village Health Volunteer), CITIZEN = บุคคลทั่วไป/ประชาชน
+export type UserRole = 'ADMIN' | 'HEALTH_OFFICER' | 'VHV' | 'CITIZEN'; // VHV = นสช. (Village Health Volunteer), CITIZEN = บุคคลทั่วไป/ประชาชน
 
 export interface User {
   id: string;
@@ -7,7 +7,7 @@ export interface User {
   password?: string;
   fullName: string;
   role: UserRole;
-  roleLabel: string; // ผู้ดูแลระบบ (โรงพยาบาลเชียงกลาง), เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง), อสม. ประจำหมู่บ้าน, บุคคลทั่วไป (ประชาชน)
+  roleLabel: string; // ผู้ดูแลระบบ (โรงพยาบาลเชียงกลาง), เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง), นสช. ประจำหมู่บ้าน, บุคคลทั่วไป (ประชาชน)
   tambon: string; // ตำบล (e.g. "เชียงกลาง", "เปือ", "ทั้งหมด" for admin)
   village: string; // หมู่บ้าน (e.g. "หมู่ 3 บ้านหนองแดง", "ทั้งหมด")
   hospital: string; // รพ.สต. พี่เลี้ยง (e.g. "รพ.สต.เปือ", "โรงพยาบาลเชียงกลาง")

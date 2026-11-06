@@ -86,7 +86,7 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
           iconBg: 'bg-emerald-600 text-white',
           titleColor: 'text-emerald-900',
           icon: <UserCheck className="w-5 h-5" />,
-          label: 'อสม. ประจำหมู่บ้าน',
+          label: 'นสช. ประจำหมู่บ้าน',
         };
     }
   };

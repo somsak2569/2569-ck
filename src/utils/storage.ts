@@ -268,7 +268,7 @@ export const getAccessiblePatients = (user: User | null, allPatients?: PatientSc
     );
   }
 
-  // VHV (อสม. ประจำหมู่บ้าน) sees patients in their village or created by them
+  // VHV (นสช. ประจำหมู่บ้าน) sees patients in their village or created by them
   if (user.role === 'VHV') {
     return list.filter((p) => {
       // If user village specified

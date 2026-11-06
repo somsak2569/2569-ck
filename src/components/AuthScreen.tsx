@@ -259,7 +259,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         ? 'บุคคลทั่วไป (ประชาชน)'
         : isOfficer
         ? `เจ้าหน้าที่ ${regHospital} (พี่เลี้ยง)`
-        : `อสม. ประจำ${regVillage}`,
+        : `นสช. ประจำ${regVillage}`,
       tambon: isAdmin ? 'ทั้งหมด' : regTambon,
       village: isAdmin
         ? 'ทั้งหมด'
@@ -336,7 +336,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 </div>
                 <div>
                   <h2 className="font-bold text-sm sm:text-base leading-tight">เข้าสู่ระบบ</h2>
-                  <p className="text-[11px] text-teal-200">บุคคลทั่วไป • โรงพยาบาลเชียงกลาง • รพ.สต. • อสม.</p>
+                  <p className="text-[11px] text-teal-200">บุคคลทั่วไป • โรงพยาบาลเชียงกลาง • รพ.สต. • นสช.</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 bg-teal-900/60 border border-teal-500/30 px-2.5 py-1 rounded-full text-[11px] text-teal-100 font-medium">
@@ -398,7 +398,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   <ArrowLeft className="w-4 h-4 text-teal-200" />
                 </button>
                 <div>
-                  <h2 className="font-bold text-sm sm:text-base leading-tight">ลงทะเบียน เจ้าหน้าที่ รพ.สต. / อสม.</h2>
+                  <h2 className="font-bold text-sm sm:text-base leading-tight">ลงทะเบียน เจ้าหน้าที่ รพ.สต. / นสช.</h2>
                   <p className="text-[11px] text-teal-200">บุคลากรประจำตำบลและหมู่บ้าน อ.เชียงกลาง</p>
                 </div>
               </div>
@@ -489,7 +489,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 </form>
               </div>
 
-              {/* ส่วนท้ายของเฟรม: เมนูลงทะเบียนใหม่ (บุคคลทั่วไป, Admin, รพ.สต./อสม.) */}
+              {/* ส่วนท้ายของเฟรม: เมนูลงทะเบียนใหม่ (บุคคลทั่วไป, Admin, รพ.สต./นสช.) */}
               <div className="border-t border-slate-200 bg-slate-50/90 p-4 sm:p-5 rounded-b-3xl space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
@@ -549,7 +549,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     </div>
                   </button>
 
-                  {/* ส่วนที่ 3: ส่วนลงทะเบียนของ เจ้าหน้าที่ รพ.สต/เจ้าหน้าที่ อสม. */}
+                  {/* ส่วนที่ 3: ส่วนลงทะเบียนของ เจ้าหน้าที่ รพ.สต/เจ้าหน้าที่ นสช. */}
                   <button
                     type="button"
                     onClick={() => switchToMode('REGISTER_OFFICER_VHV')}
@@ -560,10 +560,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     </div>
                     <div className="min-w-0">
                       <div className="text-xs font-bold text-teal-950 flex items-center gap-1">
-                        <span>ลงทะเบียน รพ.สต. / อสม.</span>
+                        <span>ลงทะเบียน รพ.สต. / นสช.</span>
                       </div>
                       <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
-                        จนท. รพ.สต. (พี่เลี้ยง) และ อสม.ประจำหมู่บ้าน
+                        จนท. รพ.สต. (พี่เลี้ยง) และ นสช.ประจำหมู่บ้าน
                       </p>
                     </div>
                   </button>
@@ -812,7 +812,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     className="text-teal-700 hover:text-teal-900 font-semibold flex items-center gap-1 cursor-pointer"
                   >
                     <HeartHandshake className="w-3.5 h-3.5" />
-                    <span>ลงทะเบียน รพ.สต./อสม.</span>
+                    <span>ลงทะเบียน รพ.สต./นสช.</span>
                   </button>
                 </div>
                 <button
@@ -988,7 +988,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     className="text-teal-700 hover:text-teal-900 font-semibold flex items-center gap-1 cursor-pointer"
                   >
                     <HeartHandshake className="w-3.5 h-3.5" />
-                    <span>ลงทะเบียน รพ.สต. / อสม.</span>
+                    <span>ลงทะเบียน รพ.สต. / นสช.</span>
                   </button>
                 </div>
                 <button
@@ -1033,7 +1033,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       }`}
                     >
                       <HeartHandshake className="w-3.5 h-3.5" />
-                      <span>เจ้าหน้าที่ อสม.</span>
+                      <span>เจ้าหน้าที่ นสช.</span>
                     </button>
                   </div>
                 </div>
@@ -1133,7 +1133,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                       placeholder={
                         regRole === 'HEALTH_OFFICER'
                           ? 'เช่น สุภาวดี หรือ officer_puea'
-                          : 'เช่น คำปัน หรือ สมร หรือ อสม_ดวงใจ'
+                          : 'เช่น คำปัน หรือ สมร หรือ นสช_ดวงใจ'
                       }
                       className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50/50 focus:bg-white"
                     />

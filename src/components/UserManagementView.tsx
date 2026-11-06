@@ -110,7 +110,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              หน้าต่างข้อมูลและจัดการแก้ไขหรือลบข้อมูล: ผู้ดูแลระบบ (Admin), เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง) และ อสม.ประจำหมู่บ้าน
+              หน้าต่างข้อมูลและจัดการแก้ไขหรือลบข้อมูล: ผู้ดูแลระบบ (Admin), เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง) และ นสช.ประจำหมู่บ้าน
             </p>
             <div className="flex items-center gap-1.5 mt-2 text-[11px] text-teal-800 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-lg w-fit">
               <Database className="w-3.5 h-3.5 text-teal-600" />
@@ -202,7 +202,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium opacity-90">อสม.</span>
+              <span className="text-[11px] font-medium opacity-90">นสช.</span>
               <UserCheck className="w-4 h-4 text-emerald-600" />
             </div>
             <div className="text-xl sm:text-2xl font-black mt-1">
@@ -253,7 +253,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
               <option value="ALL">แสดงทุกกลุ่มสมาชิก ({users.length})</option>
               <option value="ADMIN">👑 ผู้ดูแลระบบ (Admin) ({adminCount})</option>
               <option value="HEALTH_OFFICER">🩺 เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง) ({officerCount})</option>
-              <option value="VHV">🤝 อสม. ประจำหมู่บ้าน ({vhvCount})</option>
+              <option value="VHV">🤝 นสช. ประจำหมู่บ้าน ({vhvCount})</option>
             </select>
           </div>
 
