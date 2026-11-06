@@ -20,15 +20,15 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   const isCitizen = currentUser.role === 'CITIZEN';
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom,0px))] md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-rose-200/80 shadow-lg px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom,0px))] md:hidden">
       <div className={`grid ${isCitizen ? 'grid-cols-3' : 'grid-cols-4'} max-w-md mx-auto`}>
         {/* Dashboard / My Results */}
         <button
           onClick={() => onChangeTab('dashboard')}
           className={`flex flex-col items-center justify-center py-1.5 mx-0.5 rounded-xl transition min-h-[48px] cursor-pointer ${
             activeTab === 'dashboard'
-              ? 'text-teal-700 font-bold bg-teal-50 border border-teal-400 shadow-2xs'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'text-rose-800 font-bold bg-rose-50 border border-rose-300 shadow-2xs'
+              : 'text-slate-500 hover:text-rose-900'
           }`}
         >
           <LayoutDashboard className="w-5 h-5" />
@@ -40,12 +40,12 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           onClick={() => onChangeTab('new_screening')}
           className={`flex flex-col items-center justify-center py-1.5 mx-0.5 rounded-xl transition relative min-h-[48px] cursor-pointer ${
             activeTab === 'new_screening'
-              ? 'text-emerald-700 font-bold bg-emerald-50 border border-emerald-400 shadow-2xs'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'text-pink-800 font-bold bg-pink-50 border border-pink-300 shadow-2xs'
+              : 'text-slate-500 hover:text-pink-900'
           }`}
         >
           <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-md -mt-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-pink-600 to-rose-600 text-white flex items-center justify-center shadow-md -mt-2">
               <UserPlus className="w-4 h-4" />
             </div>
           </div>
@@ -57,8 +57,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
           onClick={() => onChangeTab('patient_list')}
           className={`flex flex-col items-center justify-center py-1.5 mx-0.5 rounded-xl transition relative min-h-[48px] cursor-pointer ${
             activeTab === 'patient_list'
-              ? 'text-blue-700 font-bold bg-blue-50 border border-blue-400 shadow-2xs'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'text-rose-900 font-bold bg-rose-50 border border-rose-300 shadow-2xs'
+              : 'text-slate-500 hover:text-rose-900'
           }`}
         >
           <div className="relative">
@@ -78,8 +78,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             onClick={() => onChangeTab('members')}
             className={`flex flex-col items-center justify-center py-1.5 mx-0.5 rounded-xl transition min-h-[48px] cursor-pointer ${
               activeTab === 'members'
-                ? 'text-purple-700 font-bold bg-purple-50 border border-purple-400 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-800'
+                ? 'text-fuchsia-900 font-bold bg-fuchsia-50 border border-fuchsia-300 shadow-2xs'
+                : 'text-slate-500 hover:text-fuchsia-900'
             }`}
           >
             <ShieldAlert className="w-5 h-5" />

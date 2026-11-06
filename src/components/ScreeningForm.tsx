@@ -324,7 +324,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-teal-600"></span>
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
               <h2 className="text-lg sm:text-xl font-bold text-slate-900">
                 {isCitizen
                   ? (editingPatient ? 'แก้ไขแบบประเมินสุขภาพใจตนเอง' : 'ทำแบบประเมินสุขภาพใจตนเอง')
@@ -339,7 +339,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
-            <UserCheck className="w-4 h-4 text-teal-600" />
+            <UserCheck className="w-4 h-4 text-rose-600" />
             <span>
               {isCitizen ? 'ผู้ประเมินตนเอง: ' : 'ผู้ประเมิน: '}
               <strong className="text-slate-800">{currentUser.fullName}</strong>
@@ -352,7 +352,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
         {/* SECTION 1: Patient Demographic & Chronic Disease */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-5">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <span className="w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-xs flex items-center justify-center">
+            <span className="w-6 h-6 rounded-full bg-rose-100 text-rose-800 font-bold text-xs flex items-center justify-center">
               1
             </span>
             <h3 className="font-bold text-slate-800 text-base">
@@ -372,7 +372,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="เช่น นายคำปัน มะโนชัย"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-sm outline-none transition"
               />
             </div>
 
@@ -389,7 +389,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                 value={age}
                 onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="เช่น 56"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-sm outline-none transition"
               />
             </div>
 
@@ -401,7 +401,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value as any)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition bg-white"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-sm outline-none transition bg-white"
               >
                 <option value="ชาย">ชาย</option>
                 <option value="หญิง">หญิง</option>
@@ -420,7 +420,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                 onChange={(e) => handleIdCardChange(e.target.value)}
                 placeholder="ถ้ามี / ไม่บังคับ"
                 maxLength={17}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition placeholder:text-slate-400"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-sm outline-none transition placeholder:text-slate-400"
               />
             </div>
 
@@ -434,7 +434,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="เช่น 081-234-5678"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-sm outline-none transition"
               />
             </div>
           </div>
@@ -452,7 +452,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                   value={addressNo}
                   onChange={(e) => setAddressNo(e.target.value)}
                   placeholder="เช่น 45/2"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
                 />
               </div>
 
@@ -463,7 +463,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                 <select
                   value={tambon}
                   onChange={(e) => handleTambonChange(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-white font-medium text-teal-900"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none bg-white font-medium text-rose-950"
                 >
                   {Object.keys(CHIANG_KLANG_TAMBONS).map((t) => (
                     <option key={t} value={t}>
@@ -480,7 +480,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                 <select
                   value={villageName}
                   onChange={(e) => setVillageName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-white font-medium"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none bg-white font-medium"
                 >
                   {availableVillages.map((v) => (
                     <option key={v} value={v}>
@@ -499,7 +499,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
               <select
                 value={mentorHospital}
                 onChange={(e) => setMentorHospital(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-slate-50 font-medium text-slate-800"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none bg-slate-50 font-medium text-slate-800"
               >
                 {availableHospitals.map((h) => (
                   <option key={h} value={h}>
@@ -525,14 +525,14 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                     onClick={() => toggleChronicDisease(item)}
                     className={`flex items-center gap-2 p-2.5 rounded-xl border text-xs text-left transition ${
                       checked
-                        ? 'border-teal-500 bg-teal-50/80 text-teal-900 font-medium shadow-xs'
+                        ? 'border-rose-500 bg-rose-50/80 text-rose-950 font-medium shadow-xs'
                         : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700'
                     }`}
                   >
                     <div
                       className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] shrink-0 ${
                         checked
-                          ? 'bg-teal-600 border-teal-600 text-white font-bold'
+                          ? 'bg-rose-600 border-rose-600 text-white font-bold'
                           : 'border-slate-300 bg-white'
                       }`}
                     >
@@ -550,7 +550,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                 value={otherChronicDisease}
                 onChange={(e) => setOtherChronicDisease(e.target.value)}
                 placeholder="ระบุโรคประจำตัว หรือปัจจัยเสี่ยงอื่นๆ เพิ่มเติม (ถ้ามี)..."
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
               />
             </div>
           </div>
@@ -568,7 +568,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                   value={caregiverName}
                   onChange={(e) => setCaregiverName(e.target.value)}
                   placeholder="เช่น นางบัวลอย วงศ์เมืองน่าน"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
                 />
               </div>
 
@@ -579,7 +579,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                   value={caregiverRelation}
                   onChange={(e) => setCaregiverRelation(e.target.value)}
                   placeholder="เช่น ภรรยา, บุตร, มารดา, เพื่อนบ้าน"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
                 />
               </div>
 
@@ -590,7 +590,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                   value={caregiverPhone}
                   onChange={(e) => setCaregiverPhone(e.target.value)}
                   placeholder="เช่น 089-112-3345"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
                 />
               </div>
             </div>
@@ -647,7 +647,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                     onClick={() => setSelectedStressLevel(opt.level)}
                     className={`p-3.5 rounded-2xl border-2 transition-all cursor-pointer text-left flex flex-col justify-between group relative ${
                       isSelected
-                        ? `${opt.bgClass} ${opt.borderClass} shadow-md ring-2 ring-teal-500/40 scale-[1.02]`
+                        ? `${opt.bgClass} ${opt.borderClass} shadow-md ring-2 ring-rose-500/40 scale-[1.02]`
                         : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'
                     }`}
                   >
@@ -657,7 +657,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                         {opt.emoji}
                       </div>
                       {isSelected && (
-                        <span className="w-5 h-5 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs shadow-2xs font-bold">
+                        <span className="w-5 h-5 rounded-full bg-rose-600 text-white flex items-center justify-center text-xs shadow-2xs font-bold">
                           ✓
                         </span>
                       )}
@@ -761,10 +761,10 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
           {/* Conditional based on whether current user has rights to record OAS */}
           {!canRecordOAS ? (
             /* For VHV (นสช.) or General Citizens (บุคคลทั่วไป) */
-            <div className="p-4 rounded-2xl border-2 border-dashed border-teal-200 bg-teal-50/50 space-y-3">
+            <div className="p-4 rounded-2xl border-2 border-dashed border-rose-200 bg-rose-50/50 space-y-3">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl bg-teal-100 text-teal-800 flex items-center justify-center shrink-0 mt-0.5">
-                  <Building2 className="w-5 h-5 text-teal-700" />
+                <div className="w-9 h-9 rounded-xl bg-rose-100 text-rose-800 flex items-center justify-center shrink-0 mt-0.5">
+                  <Building2 className="w-5 h-5 text-rose-700" />
                 </div>
                 <div className="flex-1">
                   <div className="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
@@ -778,9 +778,9 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
 
               {editingPatient?.oasAssessment ? (
                 /* Previously recorded OAS data exists */
-                <div className="bg-white p-3.5 rounded-xl border border-teal-200 space-y-2 mt-2">
+                <div className="bg-white p-3.5 rounded-xl border border-rose-200 space-y-2 mt-2">
                   <div className="flex flex-wrap items-center justify-between text-xs font-semibold text-slate-700 border-b border-slate-100 pb-2">
-                    <span className="flex items-center gap-1.5 text-teal-800 font-bold">
+                    <span className="flex items-center gap-1.5 text-rose-900 font-bold">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                       ผลการประเมิน OAS ล่าสุดโดยเจ้าหน้าที่ รพ.สต.:
                     </span>
@@ -821,8 +821,8 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                   )}
                 </div>
               ) : (
-                <div className="bg-white/80 p-3 rounded-xl border border-teal-200 text-xs text-teal-800 flex items-center gap-2">
-                  <Info className="w-4 h-4 text-teal-600 shrink-0" />
+                <div className="bg-white/80 p-3 rounded-xl border border-rose-200 text-xs text-rose-900 flex items-center gap-2">
+                  <Info className="w-4 h-4 text-rose-600 shrink-0" />
                   <span>ยังไม่มีการบันทึกประเมิน OAS สำหรับคนไข้รายนี้ (รพ.สต. พี่เลี้ยงจะดำเนินการเมื่อรับการประสาน/ส่งต่อ)</span>
                 </div>
               )}
@@ -831,14 +831,14 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
             /* Authorized Health Officer / Admin Form Input */
             <div className="space-y-4">
               {/* Active Recorder Banner */}
-              <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-teal-900">
+              <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-rose-950">
                 <div className="flex items-center gap-2">
-                  <UserCheck className="w-4 h-4 text-teal-700 shrink-0" />
+                  <UserCheck className="w-4 h-4 text-rose-700 shrink-0" />
                   <span>
                     ผู้บันทึกการประเมิน: <strong>{currentUser.fullName}</strong> ({currentUser.roleLabel})
                   </span>
                 </div>
-                <div className="text-[11px] text-teal-700 font-medium">
+                <div className="text-[11px] text-rose-700 font-medium">
                   {currentUser.hospital || 'รพ.เชียงกลาง'}
                 </div>
               </div>
@@ -982,7 +982,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-xs flex items-center justify-center">
+              <span className="w-6 h-6 rounded-full bg-rose-100 text-rose-800 font-bold text-xs flex items-center justify-center">
                 3
               </span>
               <div>
@@ -1013,7 +1013,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
             <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="text-sm text-slate-800 font-medium">
-                  <span className="font-bold text-teal-700 mr-1.5">ข้อ 1:</span>
+                  <span className="font-bold text-rose-700 mr-1.5">ข้อ 1:</span>
                   ใน 2 สัปดาห์ที่ผ่านมารวมวันนี้ <span className="font-semibold text-slate-900">ท่านรู้สึกหดหู่ เศร้า หรือท้อแท้สิ้นหวังหรือไม่</span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
@@ -1047,7 +1047,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
             <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="text-sm text-slate-800 font-medium">
-                  <span className="font-bold text-teal-700 mr-1.5">ข้อ 2:</span>
+                  <span className="font-bold text-rose-700 mr-1.5">ข้อ 2:</span>
                   ใน 2 สัปดาห์ที่ผ่านมารวมวันนี้ <span className="font-semibold text-slate-900">ท่านรู้สึกเบื่อ ทำอะไรก็ไม่เพลิดเพลินหรือไม่</span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
@@ -1202,7 +1202,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div className="space-y-0.5">
                         <div className="text-sm font-semibold text-slate-800">
-                          <span className="text-teal-700 mr-1.5">ข้อที่ {q.number}:</span>
+                          <span className="text-rose-700 mr-1.5">ข้อที่ {q.number}:</span>
                           {q.question}
                           {isYes && (
                             <span className="ml-2 text-xs font-bold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded">
@@ -1316,7 +1316,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
             <button
               type="button"
               onClick={() => setQ1Depressed(true)}
-              className="text-xs font-semibold text-teal-700 hover:text-teal-800 underline inline-flex items-center gap-1"
+              className="text-xs font-semibold text-rose-700 hover:text-rose-800 underline inline-flex items-center gap-1"
             >
               <Info className="w-3.5 h-3.5" />
               ต้องการเปิดทำแบบประเมิน 8Q เพิ่มเติมด้วยตนเอง คลิกที่นี่
@@ -1327,7 +1327,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
         {/* SECTION 5: Follow-up Status & Notes */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <span className="w-6 h-6 rounded-full bg-teal-100 text-teal-800 font-bold text-xs flex items-center justify-center">
+            <span className="w-6 h-6 rounded-full bg-rose-100 text-rose-800 font-bold text-xs flex items-center justify-center">
               5
             </span>
             <h3 className="font-bold text-slate-800 text-base">
@@ -1343,7 +1343,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
               <select
                 value={followUpStatus}
                 onChange={(e) => setFollowUpStatus(e.target.value as any)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition bg-white font-medium"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-sm outline-none transition bg-white font-medium"
               >
                 <option value="ปกติไม่ต้องติดตาม">ปกติไม่ต้องติดตาม</option>
                 <option value="ติดตามเฝ้าระวัง">ติดตามเฝ้าระวัง (เยี่ยมบ้านสม่ำเสมอ)</option>
@@ -1360,7 +1360,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                 type="date"
                 value={screeningDate}
                 onChange={(e) => setScreeningDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-sm outline-none transition"
               />
             </div>
           </div>
@@ -1374,7 +1374,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="เช่น ผู้ป่วยเล่าว่าเครียดจากพืชผลการเกษตรเสียหาย ญาติให้ความร่วมมือดี นัดเยี่ยมบ้านสัปดาห์หน้า..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none transition"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-sm outline-none transition"
             />
           </div>
         </div>
@@ -1390,7 +1390,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
           </button>
           <button
             type="submit"
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-sm font-bold shadow-md hover:shadow-lg transition flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 via-rose-700 to-pink-600 hover:from-rose-700 hover:via-rose-800 hover:to-pink-700 text-white text-sm font-bold shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 shadow-rose-200/50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{editingPatient ? 'บันทึกการแก้ไข' : 'บันทึกข้อมูลแบบประเมิน'}</span>

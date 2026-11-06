@@ -135,14 +135,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6 pb-24">
       {/* Welcome & Area Scope Header */}
-      <div className="bg-gradient-to-r from-teal-800 to-teal-700 rounded-3xl p-5 sm:p-7 text-white shadow-lg relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#9F1239] via-[#881337] to-[#BE185D] rounded-3xl p-5 sm:p-7 text-white shadow-lg relative overflow-hidden">
         {/* Background decorative patterns */}
-        <div className="absolute -right-10 -bottom-10 w-60 h-60 rounded-full bg-teal-600/20 pointer-events-none"></div>
-        <div className="absolute right-24 -top-10 w-40 h-40 rounded-full bg-teal-500/10 pointer-events-none"></div>
+        <div className="absolute -right-10 -bottom-10 w-60 h-60 rounded-full bg-pink-400/10 pointer-events-none"></div>
+        <div className="absolute right-24 -top-10 w-40 h-40 rounded-full bg-rose-400/10 pointer-events-none"></div>
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
           <div className="space-y-1.5 max-w-2xl">
-            <div className="inline-flex items-center gap-1.5 bg-teal-900/60 backdrop-blur-xs px-3 py-1 rounded-full text-xs text-teal-200 border border-teal-700/60 font-medium">
+            <div className="inline-flex items-center gap-1.5 bg-rose-950/60 backdrop-blur-xs px-3 py-1 rounded-full text-xs text-pink-200 border border-rose-700/60 font-medium">
               <MapPin className="w-3.5 h-3.5 text-amber-300" />
               <span>
                 {currentUser.role === 'ADMIN'
@@ -153,7 +153,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-white">
               ระบบประเมินและคัดกรองความเสี่ยงการฆ่าตัวตาย
             </h1>
-            <p className="text-xs sm:text-sm text-teal-100/90 leading-relaxed">
+            <p className="text-xs sm:text-sm text-pink-100/90 leading-relaxed">
               โรงพยาบาลเชียงกลาง • รพ.สต. และ นสช. ร่วมดูแลสุขภาพใจชุมชน ไม่ทอดทิ้งใครไว้ข้างหลัง
             </p>
           </div>
@@ -161,14 +161,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               onClick={onStartScreening}
-              className="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-teal-950 font-bold text-xs sm:text-sm shadow-md transition flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl bg-pink-400 hover:bg-pink-300 text-rose-950 font-bold text-xs sm:text-sm shadow-md transition flex items-center gap-2 cursor-pointer"
             >
-              <PlusCircle className="w-4 h-4 text-teal-950" />
+              <PlusCircle className="w-4 h-4 text-rose-950" />
               <span>+ บันทึกคัดกรองคนไข้ใหม่</span>
             </button>
             <button
               onClick={handleExportExcel}
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs sm:text-sm border border-white/20 backdrop-blur-xs transition flex items-center gap-2 shadow-xs"
+              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-xs sm:text-sm border border-white/20 backdrop-blur-xs transition flex items-center gap-2 shadow-xs cursor-pointer"
               title="ส่งออกรายงาน Excel (.xlsx)"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-300" />
@@ -179,8 +179,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Filter bar for Tambon (Admin & Health Officers can choose) */}
         {(currentUser.role === 'ADMIN' || currentUser.role === 'HEALTH_OFFICER') && (
-          <div className="mt-4 pt-3.5 border-t border-teal-600/70 flex flex-wrap items-center gap-2 text-xs">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-950/80 border-2 border-teal-400 text-amber-300 font-bold shadow-xs shrink-0">
+          <div className="mt-4 pt-3.5 border-t border-rose-700/70 flex flex-wrap items-center gap-2 text-xs">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/80 border-2 border-pink-400 text-amber-300 font-bold shadow-xs shrink-0">
               <Filter className="w-3.5 h-3.5 text-amber-300 shrink-0" />
               <span>แสดงข้อมูลตำบล:</span>
             </div>
@@ -190,15 +190,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               onClick={() => setSelectedTambonFilter('ทั้งหมด')}
               className={`px-3 py-1.5 rounded-xl transition-all font-bold border-2 cursor-pointer shadow-xs flex items-center gap-1 shrink-0 ${
                 selectedTambonFilter === 'ทั้งหมด'
-                  ? 'bg-white text-teal-950 border-amber-400 shadow-md ring-2 ring-amber-300/70 scale-[1.03]'
-                  : 'bg-teal-950/70 text-teal-100 hover:text-white border-teal-400/90 hover:border-teal-200 hover:bg-teal-900'
+                  ? 'bg-white text-rose-950 border-pink-400 shadow-md ring-2 ring-pink-300/70 scale-[1.03]'
+                  : 'bg-rose-950/70 text-pink-100 hover:text-white border-pink-400/80 hover:border-pink-200 hover:bg-rose-900'
               }`}
             >
               <span>ทั้งหมด (6 ตำบล)</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-0.5 ${
                 selectedTambonFilter === 'ทั้งหมด'
-                  ? 'bg-teal-900 text-teal-100'
-                  : 'bg-teal-800 text-teal-200'
+                  ? 'bg-rose-900 text-pink-100'
+                  : 'bg-rose-800 text-pink-200'
               }`}>
                 {patients.length}
               </span>
@@ -214,8 +214,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   onClick={() => setSelectedTambonFilter(t)}
                   className={`px-3 py-1.5 rounded-xl transition-all font-bold border-2 cursor-pointer shadow-xs flex items-center gap-1 shrink-0 ${
                     isSelected
-                      ? 'bg-white text-teal-950 border-amber-400 shadow-md ring-2 ring-amber-300/70 scale-[1.03]'
-                      : 'bg-teal-950/70 text-teal-100 hover:text-white border-teal-400/90 hover:border-teal-200 hover:bg-teal-900'
+                      ? 'bg-white text-rose-950 border-pink-400 shadow-md ring-2 ring-pink-300/70 scale-[1.03]'
+                      : 'bg-rose-950/70 text-pink-100 hover:text-white border-pink-400/80 hover:border-pink-200 hover:bg-rose-900'
                   }`}
                   title={`แสดงข้อมูลเฉพาะตำบล${t} (${countInTambon} คน)`}
                 >

@@ -170,7 +170,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-teal-700 text-white flex items-center justify-center shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 to-pink-600 text-white flex items-center justify-center shadow-xs">
               <UserIcon className="w-5 h-5" />
             </div>
             <div>
@@ -226,11 +226,11 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
                   onClick={() => handleRoleChange('HEALTH_OFFICER')}
                   className={`p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 transition cursor-pointer ${
                     role === 'HEALTH_OFFICER'
-                      ? 'border-teal-500 bg-teal-50 text-teal-900 ring-2 ring-teal-500/20'
+                      ? 'border-rose-500 bg-rose-50 text-rose-950 ring-2 ring-rose-500/20'
                       : 'border-slate-200 hover:bg-slate-50 text-slate-600'
                   }`}
                 >
-                  <ShieldCheck className="w-4 h-4 text-teal-600" />
+                  <ShieldCheck className="w-4 h-4 text-rose-600" />
                   <span>เจ้าหน้าที่</span>
                   <span className="text-[10px] font-normal text-slate-500">รพ.สต. พี่เลี้ยง</span>
                 </button>
@@ -439,7 +439,7 @@ export const UserEditModal: React.FC<UserEditModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-5 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>บันทึกการเปลี่ยนแปลง</span>

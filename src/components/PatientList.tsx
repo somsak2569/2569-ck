@@ -149,7 +149,7 @@ export const PatientList: React.FC<PatientListProps> = ({
             <select
               value={riskFilter}
               onChange={(e) => setRiskFilter(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none bg-white font-medium text-slate-700"
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none bg-white font-medium text-slate-700"
             >
               <option value="ALL">ความเสี่ยงทั้งหมด</option>
               <option value="HIGH">🔴 เสี่ยงรุนแรง (8Q &gt;= 17)</option>
@@ -165,7 +165,7 @@ export const PatientList: React.FC<PatientListProps> = ({
               <select
                 value={tambonFilter}
                 onChange={(e) => setTambonFilter(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border-2 border-teal-500 hover:border-teal-600 focus:border-teal-700 text-xs focus:ring-2 focus:ring-teal-400 outline-none bg-teal-50/50 font-bold text-teal-900 shadow-2xs"
+                className="w-full px-3 py-2 rounded-xl border-2 border-rose-500 hover:border-rose-600 focus:border-rose-700 text-xs focus:ring-2 focus:ring-rose-400 outline-none bg-rose-50/50 font-bold text-rose-950 shadow-2xs"
               >
                 <option value="ALL">📍 แสดงข้อมูลทุกตำบล (6 ตำบล)</option>
                 {Object.keys(CHIANG_KLANG_TAMBONS).map((t) => (
@@ -191,7 +191,7 @@ export const PatientList: React.FC<PatientListProps> = ({
           </p>
           <button
             onClick={onStartNewScreening}
-            className="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold rounded-xl transition inline-flex items-center gap-1.5"
+            className="px-4 py-2 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white text-xs font-bold rounded-xl transition inline-flex items-center gap-1.5 shadow-sm"
           >
             <UserPlus className="w-4 h-4" />
             <span>บันทึกคัดกรองคนไข้ใหม่</span>
@@ -207,14 +207,14 @@ export const PatientList: React.FC<PatientListProps> = ({
             return (
               <div
                 key={patient.id}
-                className="bg-white rounded-2xl border border-slate-200 hover:border-teal-400 p-4 transition shadow-xs hover:shadow-md space-y-3"
+                className="bg-white rounded-2xl border border-rose-100/80 hover:border-rose-300 p-4 transition shadow-xs hover:shadow-md space-y-3"
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3
                         onClick={() => onViewPatient(patient)}
-                        className="font-bold text-base text-slate-900 hover:text-teal-700 cursor-pointer transition flex items-center gap-1"
+                        className="font-bold text-base text-slate-900 hover:text-rose-700 cursor-pointer transition flex items-center gap-1"
                       >
                         {patient.fullName}
                       </h3>
@@ -268,7 +268,7 @@ export const PatientList: React.FC<PatientListProps> = ({
                           <PhoneCall className="w-3.5 h-3.5 text-slate-400" />
                           <a
                             href={`tel:${patient.phone}`}
-                            className="text-teal-700 hover:underline"
+                            className="text-rose-700 hover:underline"
                           >
                             {patient.phone}
                           </a>
@@ -285,7 +285,7 @@ export const PatientList: React.FC<PatientListProps> = ({
                   <div className="flex items-center gap-1.5 self-end sm:self-start">
                     <button
                       onClick={() => onViewPatient(patient)}
-                      className="px-2.5 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-semibold transition flex items-center gap-1"
+                      className="px-2.5 py-1.5 rounded-lg bg-pink-50 hover:bg-pink-100 text-rose-800 text-xs font-semibold transition flex items-center gap-1"
                       title="ดูรายละเอียดฉบับเต็ม"
                     >
                       <Eye className="w-3.5 h-3.5" />
@@ -345,7 +345,7 @@ export const PatientList: React.FC<PatientListProps> = ({
                     {patient.caregiverPhone && (
                       <a
                         href={`tel:${patient.caregiverPhone}`}
-                        className="text-teal-700 font-medium hover:underline inline-flex items-center gap-0.5"
+                        className="text-rose-700 font-medium hover:underline inline-flex items-center gap-0.5"
                       >
                         <PhoneCall className="w-3 h-3" />
                         <span>{patient.caregiverPhone}</span>

@@ -17,23 +17,23 @@ export const EmergencyGuideModal: React.FC<EmergencyGuideModalProps> = ({
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
       <div className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in fade-in zoom-in-95 max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="bg-teal-800 text-white p-4 sm:p-5 flex items-center justify-between shrink-0">
+        <div className="bg-gradient-to-r from-[#9F1239] via-[#881337] to-[#BE185D] text-white p-4 sm:p-5 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-teal-700 flex items-center justify-center">
-              <HeartHandshake className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 rounded-xl bg-rose-900/80 flex items-center justify-center">
+              <HeartHandshake className="w-5 h-5 text-pink-200" />
             </div>
             <div>
               <h3 className="font-bold text-base sm:text-lg">
                 คู่มือช่วยเหลือและหลักการ 3 ส.
               </h3>
-              <p className="text-xs text-teal-200">
+              <p className="text-xs text-pink-200">
                 แนวทางปฏิบัติสำหรับ นสช. และเจ้าหน้าที่สาธารณสุขอำเภอเชียงกลาง
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-teal-200 hover:text-white rounded-lg transition"
+            className="p-1.5 text-pink-200 hover:text-white rounded-lg transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>

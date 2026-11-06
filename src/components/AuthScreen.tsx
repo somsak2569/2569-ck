@@ -301,24 +301,24 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900 flex flex-col justify-between py-6 px-3 sm:px-6">
+    <div className="min-h-screen bg-gradient-to-b from-[#FFE4E8] via-[#FFF0F3] to-[#FFDDE4] flex flex-col justify-between py-6 px-3 sm:px-6">
       {/* Top Banner & App Identity */}
       <div className="max-w-md w-full mx-auto my-auto space-y-4 animate-in fade-in slide-in-from-bottom-3 duration-500">
         <div className="text-center space-y-1.5">
           {/* Logo Badge */}
-          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-3xl bg-gradient-to-br from-teal-400 to-emerald-500 shadow-xl text-white border-2 border-teal-300/40 mx-auto">
+          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-3xl bg-gradient-to-br from-rose-500 to-pink-600 shadow-xl text-white border-2 border-rose-300/40 mx-auto">
             <HeartHandshake className="w-8 h-8 sm:w-9 sm:h-9" />
           </div>
 
           <div className="space-y-0.5">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-rose-950 tracking-tight">
               คนเชียงกลางไม่ทิ้งกัน
             </h1>
-            <p className="text-xs sm:text-sm text-teal-200 font-medium">
+            <p className="text-xs sm:text-sm text-rose-700 font-medium">
               โรงพยาบาลเชียงกลาง จังหวัดน่าน
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2 pt-0.5">
-              <span className="bg-teal-800/80 backdrop-blur-xs border border-teal-600/70 text-teal-100 text-[11px] px-3 py-0.5 rounded-full font-semibold">
+              <span className="bg-rose-100/90 backdrop-blur-xs border border-rose-300/80 text-rose-900 text-[11px] px-3 py-0.5 rounded-full font-semibold">
                 ระบบประเมินและคัดกรองความเสี่ยงการฆ่าตัวตาย (2Q Plus & 8Q)
               </span>
             </div>
@@ -326,26 +326,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         </div>
 
         {/* Auth Frame / Card */}
-        <div className="bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
+        <div className="bg-white rounded-3xl shadow-xl border border-rose-100 overflow-hidden">
           {/* Frame Header */}
           {authMode === 'LOGIN' ? (
-            <div className="bg-gradient-to-r from-teal-800 to-teal-700 px-5 sm:px-6 py-4 text-white flex items-center justify-between">
+            <div className="bg-gradient-to-r from-rose-700 via-rose-600 to-pink-700 px-5 sm:px-6 py-4 text-white flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
-                  <LogIn className="w-4 h-4 text-teal-200" />
+                  <LogIn className="w-4 h-4 text-pink-200" />
                 </div>
                 <div>
                   <h2 className="font-bold text-sm sm:text-base leading-tight">เข้าสู่ระบบ</h2>
-                  <p className="text-[11px] text-teal-200">บุคคลทั่วไป • โรงพยาบาลเชียงกลาง • รพ.สต. • นสช.</p>
+                  <p className="text-[11px] text-pink-100">บุคคลทั่วไป • โรงพยาบาลเชียงกลาง • รพ.สต. • นสช.</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 bg-teal-900/60 border border-teal-500/30 px-2.5 py-1 rounded-full text-[11px] text-teal-100 font-medium">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+              <div className="flex items-center gap-1 bg-rose-900/40 border border-rose-400/30 px-2.5 py-1 rounded-full text-[11px] text-pink-100 font-medium">
+                <ShieldCheck className="w-3.5 h-3.5 text-pink-300" />
                 <span>ความปลอดภัยสูง</span>
               </div>
             </div>
           ) : authMode === 'REGISTER_CITIZEN' ? (
-            <div className="bg-gradient-to-r from-emerald-800 to-teal-800 px-5 sm:px-6 py-4 text-white flex items-center justify-between">
+            <div className="bg-gradient-to-r from-pink-700 via-rose-600 to-rose-700 px-5 sm:px-6 py-4 text-white flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"
@@ -353,20 +353,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
                   title="กลับไปหน้าเข้าสู่ระบบ"
                 >
-                  <ArrowLeft className="w-4 h-4 text-emerald-200" />
+                  <ArrowLeft className="w-4 h-4 text-pink-200" />
                 </button>
                 <div>
                   <h2 className="font-bold text-sm sm:text-base leading-tight">ลงทะเบียน บุคคลทั่วไป (ประเมินตนเอง)</h2>
-                  <p className="text-[11px] text-emerald-200">สำหรับประชาชนในอำเภอเชียงกลาง จังหวัดน่าน</p>
+                  <p className="text-[11px] text-pink-100">สำหรับประชาชนในอำเภอเชียงกลาง จังหวัดน่าน</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 bg-emerald-950/70 border border-emerald-400/40 px-2.5 py-1 rounded-full text-[11px] text-emerald-200 font-bold">
-                <Smile className="w-3.5 h-3.5 text-emerald-300" />
+              <div className="flex items-center gap-1 bg-pink-950/60 border border-pink-400/40 px-2.5 py-1 rounded-full text-[11px] text-pink-100 font-bold">
+                <Smile className="w-3.5 h-3.5 text-pink-300" />
                 <span>บุคคลทั่วไป</span>
               </div>
             </div>
           ) : authMode === 'REGISTER_ADMIN' ? (
-            <div className="bg-gradient-to-r from-indigo-900 to-indigo-800 px-5 sm:px-6 py-4 text-white flex items-center justify-between">
+            <div className="bg-gradient-to-r from-rose-900 to-pink-900 px-5 sm:px-6 py-4 text-white flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"
@@ -374,20 +374,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
                   title="กลับไปหน้าเข้าสู่ระบบ"
                 >
-                  <ArrowLeft className="w-4 h-4 text-indigo-200" />
+                  <ArrowLeft className="w-4 h-4 text-pink-200" />
                 </button>
                 <div>
                   <h2 className="font-bold text-sm sm:text-base leading-tight">ลงทะเบียน ผู้ดูแลระบบ (Admin)</h2>
-                  <p className="text-[11px] text-indigo-200">โรงพยาบาลเชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)</p>
+                  <p className="text-[11px] text-pink-200">โรงพยาบาลเชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 bg-indigo-950/70 border border-indigo-400/40 px-2.5 py-1 rounded-full text-[11px] text-amber-300 font-bold">
+              <div className="flex items-center gap-1 bg-rose-950/70 border border-pink-400/40 px-2.5 py-1 rounded-full text-[11px] text-amber-300 font-bold">
                 <Crown className="w-3.5 h-3.5 text-amber-400" />
                 <span>สิทธิ์ ADMIN</span>
               </div>
             </div>
           ) : (
-            <div className="bg-gradient-to-r from-teal-800 to-emerald-800 px-5 sm:px-6 py-4 text-white flex items-center justify-between">
+            <div className="bg-gradient-to-r from-rose-800 to-pink-700 px-5 sm:px-6 py-4 text-white flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"
@@ -395,15 +395,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
                   title="กลับไปหน้าเข้าสู่ระบบ"
                 >
-                  <ArrowLeft className="w-4 h-4 text-teal-200" />
+                  <ArrowLeft className="w-4 h-4 text-pink-200" />
                 </button>
                 <div>
                   <h2 className="font-bold text-sm sm:text-base leading-tight">ลงทะเบียน เจ้าหน้าที่ รพ.สต. / นสช.</h2>
-                  <p className="text-[11px] text-teal-200">บุคลากรประจำตำบลและหมู่บ้าน อ.เชียงกลาง</p>
+                  <p className="text-[11px] text-pink-200">บุคลากรประจำตำบลและหมู่บ้าน อ.เชียงกลาง</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 bg-teal-950/70 border border-teal-400/40 px-2.5 py-1 rounded-full text-[11px] text-emerald-200 font-bold">
-                <HeartHandshake className="w-3.5 h-3.5 text-emerald-300" />
+              <div className="flex items-center gap-1 bg-rose-950/70 border border-pink-400/40 px-2.5 py-1 rounded-full text-[11px] text-pink-100 font-bold">
+                <HeartHandshake className="w-3.5 h-3.5 text-pink-300" />
                 <span>พื้นที่ดูแล</span>
               </div>
             </div>
@@ -481,7 +481,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
                   <button
                     type="submit"
-                    className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 cursor-pointer mt-2"
+                    className="w-full py-3 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-bold rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2 cursor-pointer mt-2"
                   >
                     <LogIn className="w-4 h-4" />
                     <span>เข้าสู่ระบบ</span>
@@ -786,7 +786,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
                   <button
                     type="submit"
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer mt-2"
+                    className="w-full py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-xl shadow-md transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer mt-2"
                   >
                     <UserPlus className="w-4 h-4" />
                     <span>ยืนยันการลงทะเบียนและเข้าใช้งานทันที</span>
@@ -962,7 +962,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
                   <button
                     type="submit"
-                    className="w-full py-3 bg-indigo-700 hover:bg-indigo-800 text-white font-bold rounded-xl shadow-md transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer mt-2"
+                    className="w-full py-3 bg-gradient-to-r from-rose-800 to-pink-800 hover:from-rose-900 hover:to-pink-900 text-white font-bold rounded-xl shadow-md transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer mt-2"
                   >
                     <Crown className="w-4 h-4 text-amber-300" />
                     <span>ยืนยันการลงทะเบียน Admin และเข้าใช้งานทันที</span>
@@ -1217,7 +1217,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
 
                   <button
                     type="submit"
-                    className="w-full py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-md transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer mt-2"
+                    className="w-full py-3 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-bold rounded-xl shadow-md transition text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer mt-2"
                   >
                     <UserPlus className="w-4 h-4" />
                     <span>ยืนยันการลงทะเบียนและเข้าใช้งานทันที</span>
@@ -1263,14 +1263,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         <PWAInstallButton variant="card" />
 
         {/* Emergency Hotline Strip */}
-        <div className="bg-teal-950/60 backdrop-blur-md rounded-2xl p-3 border border-teal-700/50 flex items-center justify-between text-xs text-teal-100">
+        <div className="bg-rose-900/80 backdrop-blur-md rounded-2xl p-3 border border-rose-700/50 flex items-center justify-between text-xs text-pink-100">
           <div className="flex items-center gap-2">
-            <PhoneCall className="w-4 h-4 text-rose-400 shrink-0" />
+            <PhoneCall className="w-4 h-4 text-pink-300 shrink-0" />
             <span>สายด่วนสุขภาพจิต 24 ชม.</span>
           </div>
           <a
             href="tel:1323"
-            className="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1 rounded-lg transition text-xs"
+            className="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1 rounded-lg transition text-xs shadow-xs"
           >
             โทร 1323
           </a>
@@ -1278,11 +1278,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       </div>
 
       {/* Footer Credit */}
-      <div className="text-center text-teal-300/80 text-xs py-2 mt-4 space-y-0.5">
+      <div className="text-center text-rose-800/80 text-xs py-2 mt-4 space-y-0.5">
         <div>
           ระบบ “คนเชียงกลางไม่ทิ้งกัน” โรงพยาบาลเชียงกลาง จังหวัดน่าน
         </div>
-        <div className="font-semibold text-amber-300">
+        <div className="font-semibold text-rose-900">
           ผู้พัฒนาระบบ: สมศักดิ์ สุทธการ
         </div>
       </div>

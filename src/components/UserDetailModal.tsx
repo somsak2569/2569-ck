@@ -60,11 +60,11 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
         };
       case 'HEALTH_OFFICER':
         return {
-          bg: 'bg-teal-50',
-          border: 'border-teal-200',
-          badgeBg: 'bg-teal-100 text-teal-800 border-teal-300',
-          iconBg: 'bg-teal-600 text-white',
-          titleColor: 'text-teal-900',
+          bg: 'bg-rose-50',
+          border: 'border-rose-200',
+          badgeBg: 'bg-rose-100 text-rose-800 border-rose-300',
+          iconBg: 'bg-rose-600 text-white',
+          titleColor: 'text-rose-950',
           icon: <ShieldCheck className="w-5 h-5" />,
           label: 'เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง)',
         };
@@ -265,7 +265,7 @@ export const UserDetailModal: React.FC<UserDetailModalProps> = ({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onEdit(user)}
-                className="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 <span>แก้ไขข้อมูล</span>

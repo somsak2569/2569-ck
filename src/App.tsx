@@ -277,7 +277,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans selection:bg-teal-600 selection:text-white pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+    <div className="min-h-screen bg-[#FFF0F3] flex flex-col font-sans selection:bg-rose-500 selection:text-white pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
       <OfflineIndicator />
       {/* Top Navbar with Integrated Responsive Menu Bar */}
       <Navbar

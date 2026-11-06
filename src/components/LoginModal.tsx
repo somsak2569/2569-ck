@@ -269,18 +269,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
       <div className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden my-auto animate-in fade-in zoom-in-95">
         {/* Header Bar */}
-        <div className="bg-teal-800 text-white p-4 sm:p-5 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#9F1239] via-[#881337] to-[#BE185D] text-white p-4 sm:p-5 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold">
               {mode === 'REGISTER' ? 'ลงทะเบียนสมาชิกใหม่ (Admin)' : 'เข้าสู่ระบบ / สลับบัญชีผู้ใช้งาน'}
             </h2>
-            <p className="text-xs text-teal-200 mt-0.5">
+            <p className="text-xs text-pink-200 mt-0.5">
               ระบบ “คนเชียงกลางไม่ทิ้งกัน” โรงพยาบาลเชียงกลาง จ.น่าน
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-teal-200 hover:text-white rounded-lg transition cursor-pointer"
+            className="p-1.5 text-pink-200 hover:text-white rounded-lg transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -311,7 +311,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   value={loginInput}
                   onChange={(e) => setLoginInput(e.target.value)}
                   placeholder="เช่น admin หรือ ชื่อผู้ใช้ที่ลงทะเบียน"
-                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none"
+                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-sm outline-none"
                 />
               </div>
             </div>
@@ -332,7 +332,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   placeholder="กรอกรหัสผ่านของคุณ"
-                  className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm outline-none"
+                  className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-sm outline-none"
                 />
                 <button
                   type="button"
@@ -346,7 +346,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
             <button
               type="submit"
-              className="w-full py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-xs transition text-sm flex items-center justify-center gap-1.5 cursor-pointer mt-1"
+              className="w-full py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-bold rounded-xl shadow-xs transition text-sm flex items-center justify-center gap-1.5 cursor-pointer mt-1"
             >
               <LogIn className="w-4 h-4" />
               <span>เข้าสู่ระบบ</span>
@@ -519,7 +519,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   value={regFullName}
                   onChange={(e) => setRegFullName(e.target.value)}
                   placeholder={regRole === 'ADMIN' ? 'เช่น นายอนุชา บริสุทธิ์' : 'เช่น นางดวงใจ ปัญญาวงศ์'}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
@@ -528,7 +528,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   <label className="block text-xs font-semibold text-slate-700">
                     ชื่อผู้ใช้ (Username) <span className="text-rose-500">*</span>
                   </label>
-                  <span className="text-[10px] text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md font-medium border border-teal-200">
+                  <span className="text-[10px] text-rose-800 bg-rose-50 px-2 py-0.5 rounded-md font-medium border border-rose-200">
                     ใช้ภาษาไทย ภาษาอังกฤษ หรือตัวเลขได้
                   </span>
                 </div>
@@ -538,7 +538,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   value={regUsername}
                   onChange={(e) => setRegUsername(e.target.value)}
                   placeholder={regRole === 'ADMIN' ? 'เช่น แอดมินรพ หรือ admin_ck' : 'เช่น นสชดวงใจ หรือ duangjai_vhv'}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
@@ -557,7 +557,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     placeholder="กำหนดรหัสผ่าน..."
-                    className="w-full px-3 pr-8 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full px-3 pr-8 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-rose-500"
                   />
                   <button
                     type="button"
@@ -587,7 +587,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     value={regConfirmPassword}
                     onChange={(e) => setRegConfirmPassword(e.target.value)}
                     placeholder="พิมพ์ซ้ำอีกครั้ง..."
-                    className="w-full px-3 pr-8 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full px-3 pr-8 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-rose-500"
                   />
                   <button
                     type="button"
@@ -608,7 +608,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   value={regPhone}
                   onChange={(e) => setRegPhone(e.target.value)}
                   placeholder="เช่น 081-999-8888"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
@@ -682,7 +682,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
             <button
               type="submit"
-              className="w-full mt-2 py-2.5 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-xs transition text-sm flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full mt-2 py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-bold rounded-xl shadow-xs transition text-sm flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
               <span>ยืนยันการลงทะเบียนและเข้าใช้งานทันที</span>

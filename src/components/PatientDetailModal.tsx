@@ -39,10 +39,10 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
       <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh] flex flex-col animate-in fade-in zoom-in-95">
         {/* Header */}
-        <div className="bg-teal-800 text-white p-4 sm:p-5 flex items-start justify-between shrink-0">
+        <div className="bg-gradient-to-r from-[#881337] via-[#9F1239] to-[#BE185D] text-white p-4 sm:p-5 flex items-start justify-between shrink-0">
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs bg-teal-700 text-teal-200 px-2 py-0.5 rounded font-mono">
+              <span className="text-xs bg-rose-950/60 text-pink-200 px-2 py-0.5 rounded font-mono border border-pink-300/30">
                 HN/ID: {patient.id}
               </span>
               <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${riskBadge.badge}`}>
@@ -52,7 +52,7 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
             <h2 className="text-lg sm:text-xl font-bold tracking-tight">
               {patient.fullName}
             </h2>
-            <p className="text-xs text-teal-200">
+            <p className="text-xs text-pink-100/90">
               เพศ {patient.gender} • อายุ {patient.age} ปี • {patient.villageName}, ตำบล{patient.tambon}
             </p>
           </div>
@@ -60,14 +60,14 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
           <div className="flex items-center gap-1">
             <button
               onClick={handlePrint}
-              className="p-2 text-teal-200 hover:text-white rounded-lg transition"
+              className="p-2 text-pink-200 hover:text-white rounded-lg transition"
               title="พิมพ์เอกสาร"
             >
               <Printer className="w-5 h-5" />
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-teal-200 hover:text-white rounded-lg transition"
+              className="p-2 text-pink-200 hover:text-white rounded-lg transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -113,7 +113,7 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
               <div>
                 <span className="text-slate-400">เบอร์โทรศัพท์: </span>
                 {patient.phone ? (
-                  <a href={`tel:${patient.phone}`} className="font-medium text-teal-700 underline">
+                  <a href={`tel:${patient.phone}`} className="font-medium text-rose-700 underline">
                     {patient.phone}
                   </a>
                 ) : (
@@ -128,7 +128,7 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
               </div>
               <div>
                 <span className="text-slate-400">รพ.สต. พี่เลี้ยง: </span>
-                <span className="font-medium text-teal-800">{patient.mentorHospital}</span>
+                <span className="font-medium text-rose-900">{patient.mentorHospital}</span>
               </div>
             </div>
 
@@ -141,7 +141,7 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
                 {patient.chronicDiseases.map((d) => (
                   <span
                     key={d}
-                    className="bg-teal-100 text-teal-900 font-medium px-2.5 py-0.5 rounded-full text-xs"
+                    className="bg-pink-100 text-rose-950 font-medium px-2.5 py-0.5 rounded-full text-xs"
                   >
                     {d}
                   </span>
@@ -177,7 +177,7 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
                 {patient.caregiverPhone ? (
                   <a
                     href={`tel:${patient.caregiverPhone}`}
-                    className="font-bold text-teal-700 inline-flex items-center gap-1 hover:underline"
+                    className="font-bold text-rose-700 inline-flex items-center gap-1 hover:underline"
                   >
                     <PhoneCall className="w-3 h-3" />
                     <span>{patient.caregiverPhone}</span>
@@ -298,7 +298,7 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
                 <button
                   type="button"
                   onClick={() => onEdit(patient)}
-                  className="text-teal-700 font-bold hover:underline"
+                  className="text-rose-700 font-bold hover:underline"
                 >
                   + บันทึกประเมิน OAS
                 </button>
@@ -395,7 +395,7 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
                 <span className="text-slate-400">สถานะการดูแล: </span>
-                <span className="font-bold text-teal-800">{patient.followUpStatus}</span>
+                <span className="font-bold text-rose-900">{patient.followUpStatus}</span>
               </div>
               <div>
                 <span className="text-slate-400">วันที่คัดกรอง: </span>

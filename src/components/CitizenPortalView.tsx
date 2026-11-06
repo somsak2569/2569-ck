@@ -46,27 +46,27 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
   return (
     <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-6 pb-24">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-teal-800 via-teal-700 to-emerald-800 rounded-3xl p-5 sm:p-7 text-white shadow-xl relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#9F1239] via-[#881337] to-[#BE185D] rounded-3xl p-5 sm:p-7 text-white shadow-xl relative overflow-hidden">
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-white/5 rounded-l-full pointer-events-none transform translate-x-8"></div>
         <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 bg-teal-900/60 border border-teal-400/30 text-teal-200 text-xs px-3 py-1 rounded-full font-medium">
+            <div className="inline-flex items-center gap-1.5 bg-rose-950/60 border border-pink-400/30 text-pink-200 text-xs px-3 py-1 rounded-full font-medium">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />
               <span>ระบบประเมินสุขภาพใจตนเอง • บุคคลทั่วไป</span>
             </div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
               ยินดีต้อนรับ คุณ{currentUser.fullName}
             </h1>
-            <p className="text-xs sm:text-sm text-teal-100 max-w-xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-pink-100 max-w-xl leading-relaxed">
               พื้นที่ประเมินสุขภาพจิตและคัดกรองอารมณ์ตนเองด้วยความปลอดภัย ข้อมูลของคุณจะถูกเก็บรักษาเป็นความลับเพื่อการดูแลส่งเสริมสุขภาพใจ
             </p>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-teal-200 pt-1">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-pink-200 pt-1">
               <span className="flex items-center gap-1">
                 <MapPin className="w-3.5 h-3.5 text-amber-300" />
                 <span>ตำบล{currentUser.tambon} {currentUser.village && `(${currentUser.village})`}</span>
               </span>
               <span className="flex items-center gap-1">
-                <Building2 className="w-3.5 h-3.5 text-teal-300" />
+                <Building2 className="w-3.5 h-3.5 text-pink-300" />
                 <span>{currentUser.hospital || 'รพ.สต. ในพื้นที่'}</span>
               </span>
             </div>
@@ -75,9 +75,9 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
           <button
             type="button"
             onClick={onStartScreening}
-            className="w-full sm:w-auto px-5 py-3.5 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-teal-950 font-bold rounded-2xl shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer shrink-0 text-sm"
+            className="w-full sm:w-auto px-5 py-3.5 bg-pink-400 hover:bg-pink-300 active:bg-pink-500 text-rose-950 font-bold rounded-2xl shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer shrink-0 text-sm"
           >
-            <UserPlus className="w-4 h-4 text-teal-950" />
+            <UserPlus className="w-4 h-4 text-rose-950" />
             <span>ทำแบบประเมินสุขภาพตนเอง</span>
           </button>
         </div>
@@ -87,7 +87,7 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Activity className="w-5 h-5 text-teal-700" />
+            <Activity className="w-5 h-5 text-rose-700" />
             <h2 className="text-base sm:text-lg font-bold text-slate-800">
               ผลการประเมินสุขภาพตนเองล่าสุด
             </h2>
@@ -102,9 +102,9 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
 
         {!latestAssessment ? (
           /* Empty State */
-          <div className="bg-white rounded-3xl p-8 sm:p-10 text-center border border-slate-200 shadow-sm space-y-4">
-            <div className="w-16 h-16 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mx-auto border-2 border-teal-100">
-              <Smile className="w-8 h-8 text-teal-600" />
+          <div className="bg-white rounded-3xl p-8 sm:p-10 text-center border border-rose-100 shadow-sm space-y-4">
+            <div className="w-16 h-16 rounded-full bg-pink-50 text-rose-600 flex items-center justify-center mx-auto border-2 border-pink-100">
+              <Smile className="w-8 h-8 text-rose-600" />
             </div>
             <div className="max-w-md mx-auto space-y-1">
               <h3 className="font-bold text-base text-slate-800">ยังไม่มีประวัติการประเมินตนเอง</h3>
@@ -115,7 +115,7 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
             <button
               type="button"
               onClick={onStartScreening}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-teal-700 hover:bg-teal-800 text-white font-bold rounded-xl shadow-md transition text-sm cursor-pointer"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-700 to-pink-700 hover:from-rose-800 hover:to-pink-800 text-white font-bold rounded-xl shadow-md transition text-sm cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
               <span>เริ่มทำแบบประเมินตนเองครั้งแรก</span>
@@ -135,7 +135,7 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
               <button
                 type="button"
                 onClick={() => onViewPatient(latestAssessment)}
-                className="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1 cursor-pointer"
+                className="text-xs font-bold text-rose-700 hover:text-rose-900 flex items-center gap-1 cursor-pointer"
               >
                 <span>ดูรายละเอียดคำตอบทั้งหมด</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -249,9 +249,9 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
               </div>
 
               {/* Recommendations & Action Guidance */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-teal-50/70 border border-teal-200 space-y-3">
-                <div className="flex items-center gap-2 text-teal-900 font-bold text-xs sm:text-sm">
-                  <HelpCircle className="w-4 h-4 text-teal-700" />
+              <div className="p-4 sm:p-5 rounded-2xl bg-rose-50/70 border border-rose-200 space-y-3">
+                <div className="flex items-center gap-2 text-rose-950 font-bold text-xs sm:text-sm">
+                  <HelpCircle className="w-4 h-4 text-rose-700" />
                   <span>คำแนะนำและการดูแลสุขภาพใจสำหรับท่าน</span>
                 </div>
                 <ul className="text-xs text-slate-700 space-y-1.5 list-disc list-inside leading-relaxed">
@@ -284,7 +284,7 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
                   <button
                     type="button"
                     onClick={onStartScreening}
-                    className="inline-flex items-center gap-1.5 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
+                    className="inline-flex items-center gap-1.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
                   >
                     <UserPlus className="w-3.5 h-3.5" />
                     <span>ทำแบบประเมินใหม่เพื่อติดตามผล</span>
@@ -301,7 +301,7 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-teal-700" />
+              <Clock className="w-5 h-5 text-rose-700" />
               <h2 className="text-base sm:text-lg font-bold text-slate-800">
                 ประวัติการประเมินตนเอง ({sortedAssessments.length} ครั้ง)
               </h2>
@@ -321,7 +321,7 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
                   className="p-4 sm:p-5 hover:bg-slate-50/80 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                 >
                   <div className="flex items-start sm:items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-200/80 flex items-center justify-center text-2xl shrink-0">
+                    <div className="w-10 h-10 rounded-2xl bg-pink-50 border border-pink-200/80 flex items-center justify-center text-2xl shrink-0">
                       {stress?.emoji || stressDetails?.emoji || '😐'}
                     </div>
 
@@ -355,9 +355,9 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
                   <button
                     type="button"
                     onClick={() => onViewPatient(assessment)}
-                    className="self-end sm:self-auto px-3.5 py-1.5 rounded-xl border border-slate-300 hover:border-teal-500 hover:text-teal-700 bg-white text-slate-700 font-semibold text-xs transition flex items-center gap-1 cursor-pointer"
+                    className="self-end sm:self-auto px-3.5 py-1.5 rounded-xl border border-slate-300 hover:border-rose-400 hover:text-rose-700 bg-white text-slate-700 font-semibold text-xs transition flex items-center gap-1 cursor-pointer"
                   >
-                    <FileText className="w-3.5 h-3.5 text-slate-400 group-hover:text-teal-600" />
+                    <FileText className="w-3.5 h-3.5 text-slate-400 group-hover:text-rose-600" />
                     <span>ดูผลฉบับเต็ม</span>
                   </button>
                 </div>
