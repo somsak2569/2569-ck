@@ -78,6 +78,31 @@ export function subscribeToUsers(
 }
 
 /**
+ * Recursively removes undefined fields from an object to ensure Firestore never throws
+ * "Unsupported field value: undefined" errors.
+ */
+export function sanitizeForFirestore<T>(data: T): T {
+  if (data === undefined) {
+    return null as unknown as T;
+  }
+  if (data === null || typeof data !== 'object') {
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return data
+      .filter((item) => item !== undefined)
+      .map((item) => sanitizeForFirestore(item)) as unknown as T;
+  }
+  const clean: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      clean[key] = sanitizeForFirestore(value);
+    }
+  }
+  return clean as T;
+}
+
+/**
  * Save / Update a user in Firestore
  */
 export async function saveUserToFirestore(user: User): Promise<void> {
@@ -86,7 +111,8 @@ export async function saveUserToFirestore(user: User): Promise<void> {
   }
   const path = `${USERS_COLLECTION}/${user.id}`;
   try {
-    await setDoc(doc(db, USERS_COLLECTION, user.id), user, { merge: true });
+    const cleanUser = sanitizeForFirestore(user);
+    await setDoc(doc(db, USERS_COLLECTION, user.id), cleanUser, { merge: true });
     console.info(`User ${user.username} saved to Firestore successfully`);
   } catch (err) {
     console.error(`Failed to save user ${user.username} to Firestore:`, err);
@@ -127,7 +153,8 @@ export async function fetchPatientsFromFirestore(): Promise<PatientScreening[]> 
 export async function savePatientToFirestore(patient: PatientScreening): Promise<void> {
   const path = `${PATIENTS_COLLECTION}/${patient.id}`;
   try {
-    await setDoc(doc(db, PATIENTS_COLLECTION, patient.id), patient, { merge: true });
+    const cleanPatient = sanitizeForFirestore(patient);
+    await setDoc(doc(db, PATIENTS_COLLECTION, patient.id), cleanPatient, { merge: true });
     console.info(`Patient ${patient.fullName} saved to Firestore successfully`);
   } catch (err) {
     console.error(`Failed to save patient ${patient.fullName} to Firestore:`, err);
@@ -178,7 +205,7 @@ export async function seedInitialDataIfEmpty(initialUsers: User[], initialPatien
     if (userSnap.empty && initialUsers.length > 0) {
       for (const u of initialUsers) {
         if (!isUserSomsak(u)) {
-          await setDoc(doc(db, USERS_COLLECTION, u.id), u);
+          await setDoc(doc(db, USERS_COLLECTION, u.id), sanitizeForFirestore(u));
         }
       }
       console.info('Seeded initial users into Firestore');
@@ -187,7 +214,7 @@ export async function seedInitialDataIfEmpty(initialUsers: User[], initialPatien
     const patientSnap = await getDocs(collection(db, PATIENTS_COLLECTION));
     if (patientSnap.empty && initialPatients.length > 0) {
       for (const p of initialPatients) {
-        await setDoc(doc(db, PATIENTS_COLLECTION, p.id), p);
+        await setDoc(doc(db, PATIENTS_COLLECTION, p.id), sanitizeForFirestore(p));
       }
       console.info('Seeded initial patients into Firestore');
     }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PatientScreening, User, RiskLevel, StressLevel } from '../types';
+import { PatientScreening, User, RiskLevel, StressLevel, ScreeningGroupType } from '../types';
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
 import { getRiskColorBadge, STRESS_LEVEL_OPTIONS, getOASRiskBadge, OAS_CATEGORIES } from '../utils/assessment';
 import { exportPatientDataToExcel } from '../utils/excelExport';
@@ -46,11 +46,49 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onViewPatientList,
 }) => {
   const [selectedTambonFilter, setSelectedTambonFilter] = useState<string>('ทั้งหมด');
+  const [selectedGroupFilter, setSelectedGroupFilter] = useState<'ALL' | ScreeningGroupType>('ALL');
 
-  // Filter patients based on user selection in dashboard
-  const displayPatients = patients.filter((p) => {
+  // Filter patients based on Tambon selection first (for group breakdown cards)
+  const tambonFilteredPatients = patients.filter((p) => {
     if (selectedTambonFilter === 'ทั้งหมด') return true;
     return p.tambon === selectedTambonFilter;
+  });
+
+  // Group counts from Section 1 checkboxes
+  const depressionSuicidePatients = tambonFilteredPatients.filter(
+    (p) => p.screeningGroup === 'DEPRESSION_SUICIDE'
+  );
+  const violenceRiskPatients = tambonFilteredPatients.filter(
+    (p) => p.screeningGroup === 'VIOLENCE_RISK'
+  );
+  const unspecifiedGroupPatients = tambonFilteredPatients.filter((p) => !p.screeningGroup);
+
+  const depressionSuicideCount = depressionSuicidePatients.length;
+  const violenceRiskCount = violenceRiskPatients.length;
+  const unspecifiedGroupCount = unspecifiedGroupPatients.length;
+  const totalInTambonCount = tambonFilteredPatients.length;
+
+  const depressionHigh8QCount = depressionSuicidePatients.filter(
+    (p) => p.eightQ?.riskLevel === 'HIGH'
+  ).length;
+  const depression2QRiskCount = depressionSuicidePatients.filter(
+    (p) => p.twoQ?.hasDepressionRisk
+  ).length;
+
+  const violenceHighOASCount = violenceRiskPatients.filter(
+    (p) => p.oasAssessment?.riskLevel === 'HIGH'
+  ).length;
+  const violenceActiveOASCount = violenceRiskPatients.filter(
+    (p) =>
+      p.oasAssessment?.riskLevel === 'HIGH' ||
+      p.oasAssessment?.riskLevel === 'MEDIUM' ||
+      p.oasAssessment?.riskLevel === 'LOW'
+  ).length;
+
+  // Filter patients based on both Tambon and Group selection
+  const displayPatients = tambonFilteredPatients.filter((p) => {
+    if (selectedGroupFilter === 'ALL') return true;
+    return p.screeningGroup === selectedGroupFilter;
   });
 
   // Calculate metrics
@@ -121,10 +159,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const tambonStats = Object.keys(CHIANG_KLANG_TAMBONS).map((tName) => {
     const list = patients.filter((p) => p.tambon === tName);
     const high = list.filter((p) => p.eightQ?.riskLevel === 'HIGH').length;
+    const depCount = list.filter((p) => p.screeningGroup === 'DEPRESSION_SUICIDE').length;
+    const vioCount = list.filter((p) => p.screeningGroup === 'VIOLENCE_RISK').length;
     return {
       name: tName,
       total: list.length,
       high,
+      depCount,
+      vioCount,
     };
   });
 
@@ -297,6 +339,200 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* SCREENING GROUP SUMMARY (ประมวลผลส่วนแรกของแบบบันทึก: เครียดซึมเศร้า อยากตาย vs กลุ่มเสี่ยงก่อความรุนแรง) */}
+      <div className="bg-white rounded-3xl p-4 sm:p-5 border border-rose-200/80 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+              <h2 className="font-bold text-slate-900 text-sm sm:text-base">
+                สรุปผลประมวลกลุ่มเป้าหมายจากการคัดกรอง (ส่วนที่ 1)
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              จำแนกตามการเช็คถูกประเภทกลุ่มคัดกรอง {selectedTambonFilter === 'ทั้งหมด' ? 'ทุกตำบล' : `ตำบล${selectedTambonFilter}`} (คลิกที่การ์ดเพื่อกรองดูข้อมูลเฉพาะกลุ่ม)
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {selectedGroupFilter !== 'ALL' && (
+              <button
+                type="button"
+                onClick={() => setSelectedGroupFilter('ALL')}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+              >
+                แสดงทั้งหมด ({totalInTambonCount} ราย)
+              </button>
+            )}
+            <span className="text-[11px] font-bold bg-pink-50 text-rose-800 border border-pink-200 px-3 py-1 rounded-full">
+              ทั้งหมด {totalInTambonCount} ราย
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {/* Card 1: เครียดซึมเศร้า อยากตาย */}
+          <button
+            type="button"
+            onClick={() =>
+              setSelectedGroupFilter((prev) =>
+                prev === 'DEPRESSION_SUICIDE' ? 'ALL' : 'DEPRESSION_SUICIDE'
+              )
+            }
+            className={`text-left p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+              selectedGroupFilter === 'DEPRESSION_SUICIDE'
+                ? 'bg-rose-50/90 border-rose-600 shadow-md ring-2 ring-rose-300/60'
+                : 'bg-gradient-to-br from-rose-50/60 to-white border-rose-200 hover:border-rose-400'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                  <Heart className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-sm sm:text-base font-extrabold text-rose-950">
+                    เครียดซึมเศร้า อยากตาย
+                  </div>
+                  <div className="text-[11px] text-rose-700">
+                    กลุ่มคัดกรองภาวะซึมเศร้าและความเสี่ยงฆ่าตัวตาย
+                  </div>
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-2xl sm:text-3xl font-black text-rose-700 leading-none">
+                  {depressionSuicideCount}
+                </div>
+                <div className="text-[11px] font-bold text-rose-600 mt-0.5">
+                  ราย ({totalInTambonCount > 0 ? ((depressionSuicideCount / totalInTambonCount) * 100).toFixed(1) : '0.0'}%)
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-[11px] pt-2 border-t border-rose-200/70">
+              <span className="bg-white px-2.5 py-1 rounded-lg border border-rose-200 font-semibold text-rose-800">
+                8Q เสี่ยงรุนแรง: <strong>{depressionHigh8QCount}</strong> ราย
+              </span>
+              <span className="bg-white px-2.5 py-1 rounded-lg border border-rose-200 font-semibold text-slate-700">
+                2Q+ พบความเสี่ยง: <strong>{depression2QRiskCount}</strong> ราย
+              </span>
+              {selectedGroupFilter === 'DEPRESSION_SUICIDE' && (
+                <span className="ml-auto bg-rose-600 text-white px-2 py-0.5 rounded-full font-bold text-[10px]">
+                  กำลังกรองแสดงกลุ่มนี้
+                </span>
+              )}
+            </div>
+          </button>
+
+          {/* Card 2: กลุ่มเสี่ยงก่อความรุนแรง */}
+          <button
+            type="button"
+            onClick={() =>
+              setSelectedGroupFilter((prev) =>
+                prev === 'VIOLENCE_RISK' ? 'ALL' : 'VIOLENCE_RISK'
+              )
+            }
+            className={`text-left p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between gap-3 ${
+              selectedGroupFilter === 'VIOLENCE_RISK'
+                ? 'bg-amber-50/90 border-amber-600 shadow-md ring-2 ring-amber-300/60'
+                : 'bg-gradient-to-br from-amber-50/60 to-white border-amber-200 hover:border-amber-400'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-xs shrink-0">
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-sm sm:text-base font-extrabold text-amber-950">
+                    กลุ่มเสี่ยงก่อความรุนแรง
+                  </div>
+                  <div className="text-[11px] text-amber-800">
+                    กลุ่มเฝ้าระวังพฤติกรรมก้าวร้าวรุนแรงและเหตุคุกคาม
+                  </div>
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-2xl sm:text-3xl font-black text-amber-700 leading-none">
+                  {violenceRiskCount}
+                </div>
+                <div className="text-[11px] font-bold text-amber-700 mt-0.5">
+                  ราย ({totalInTambonCount > 0 ? ((violenceRiskCount / totalInTambonCount) * 100).toFixed(1) : '0.0'}%)
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-[11px] pt-2 border-t border-amber-200/70">
+              <span className="bg-white px-2.5 py-1 rounded-lg border border-amber-200 font-semibold text-rose-800">
+                OAS รุนแรงมาก: <strong>{violenceHighOASCount}</strong> ราย
+              </span>
+              <span className="bg-white px-2.5 py-1 rounded-lg border border-amber-200 font-semibold text-amber-800">
+                มีพฤติกรรม OAS (&gt;0): <strong>{violenceActiveOASCount}</strong> ราย
+              </span>
+              {selectedGroupFilter === 'VIOLENCE_RISK' && (
+                <span className="ml-auto bg-amber-600 text-white px-2 py-0.5 rounded-full font-bold text-[10px]">
+                  กำลังกรองแสดงกลุ่มนี้
+                </span>
+              )}
+            </div>
+          </button>
+        </div>
+
+        {/* Visual Comparison Bar */}
+        {totalInTambonCount > 0 && (
+          <div className="space-y-1.5 pt-1">
+            <div className="flex flex-wrap justify-between items-center text-[11px] text-slate-600 gap-2">
+              <span className="font-semibold">สัดส่วนการจำแนกกลุ่มคัดกรอง (ส่วนที่ 1):</span>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+                  <span>เครียดซึมเศร้า อยากตาย ({depressionSuicideCount})</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                  <span>กลุ่มเสี่ยงก่อความรุนแรง ({violenceRiskCount})</span>
+                </span>
+                {unspecifiedGroupCount > 0 && (
+                  <span className="flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                    <span>ยังไม่ระบุ ({unspecifiedGroupCount})</span>
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="h-4 w-full rounded-full bg-slate-100 overflow-hidden flex shadow-inner">
+              {depressionSuicideCount > 0 && (
+                <div
+                  style={{ width: `${(depressionSuicideCount / totalInTambonCount) * 100}%` }}
+                  className="h-full bg-rose-600 transition-all flex items-center justify-center text-[10px] text-white font-bold"
+                  title={`เครียดซึมเศร้า อยากตาย: ${depressionSuicideCount} ราย`}
+                >
+                  {(depressionSuicideCount / totalInTambonCount) * 100 >= 12 &&
+                    `${((depressionSuicideCount / totalInTambonCount) * 100).toFixed(0)}%`}
+                </div>
+              )}
+              {violenceRiskCount > 0 && (
+                <div
+                  style={{ width: `${(violenceRiskCount / totalInTambonCount) * 100}%` }}
+                  className="h-full bg-amber-500 transition-all flex items-center justify-center text-[10px] text-white font-bold"
+                  title={`กลุ่มเสี่ยงก่อความรุนแรง: ${violenceRiskCount} ราย`}
+                >
+                  {(violenceRiskCount / totalInTambonCount) * 100 >= 12 &&
+                    `${((violenceRiskCount / totalInTambonCount) * 100).toFixed(0)}%`}
+                </div>
+              )}
+              {unspecifiedGroupCount > 0 && (
+                <div
+                  style={{ width: `${(unspecifiedGroupCount / totalInTambonCount) * 100}%` }}
+                  className="h-full bg-slate-300 transition-all flex items-center justify-center text-[10px] text-slate-700 font-bold"
+                  title={`ยังไม่ระบุกลุ่ม: ${unspecifiedGroupCount} ราย`}
+                />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* KPI METRIC CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
@@ -1140,12 +1376,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   </div>
                   <div className="text-[10px] text-slate-500">ผู้รับการประเมิน</div>
 
+                  <div className="mt-1.5 flex items-center justify-center gap-1.5 text-[10px] font-semibold">
+                    <span className="text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200" title="เครียดซึมเศร้า อยากตาย">
+                      ซึมเศร้า {item.depCount}
+                    </span>
+                    <span className="text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200" title="กลุ่มเสี่ยงก่อความรุนแรง">
+                      รุนแรง {item.vioCount}
+                    </span>
+                  </div>
+
                   {item.high > 0 ? (
-                    <div className="mt-2 text-[10px] font-bold text-rose-700 bg-rose-100 py-0.5 px-2 rounded-full inline-block border border-rose-300">
-                      เสี่ยงรุนแรง {item.high}
+                    <div className="mt-1.5 text-[10px] font-bold text-rose-700 bg-rose-100 py-0.5 px-2 rounded-full inline-block border border-rose-300">
+                      เสี่ยงรุนแรง 8Q {item.high}
                     </div>
                   ) : (
-                    <div className="mt-2 text-[10px] font-medium text-emerald-700 bg-emerald-50 py-0.5 px-2 rounded-full inline-block border border-emerald-300">
+                    <div className="mt-1.5 text-[10px] font-medium text-emerald-700 bg-emerald-50 py-0.5 px-2 rounded-full inline-block border border-emerald-300">
                       ปลอดภัย
                     </div>
                   )}

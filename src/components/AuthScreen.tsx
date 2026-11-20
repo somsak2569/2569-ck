@@ -27,7 +27,7 @@ import { PWAInstallButton } from './PWAInstallButton';
 interface AuthScreenProps {
   users: User[];
   onLoginSuccess: (user: User) => void;
-  onRegisterUser?: (newUser: User) => void;
+  onRegisterUser?: (newUser: User) => void | Promise<void>;
 }
 
 type AuthMode = 'LOGIN' | 'REGISTER_ADMIN' | 'REGISTER_OFFICER_VHV' | 'REGISTER_CITIZEN';
@@ -186,7 +186,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     onLoginSuccess(userFound);
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     setRegSuccess('');
@@ -270,7 +270,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         ? 'โรงพยาบาลเชียงกลาง'
         : isCitizen
         ? (CHIANG_KLANG_TAMBONS[regTambon]?.hospitals[0] || 'รพ.เชียงกลาง')
-        : regHospital,
+        : (regHospital || CHIANG_KLANG_TAMBONS[regTambon]?.hospitals[0] || 'โรงพยาบาลเชียงกลาง'),
       phone: regPhone.trim(),
       idCard: regIdCard.trim() || undefined,
       age: regAge ? Number(regAge) : undefined,
@@ -279,12 +279,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
     };
 
     if (onRegisterUser) {
-      onRegisterUser(newUser);
+      await onRegisterUser(newUser);
     }
     setRegSuccess(`ลงทะเบียน ${newUser.fullName} เรียบร้อยแล้ว กำลังเข้าสู่ระบบ...`);
     setTimeout(() => {
       onLoginSuccess(newUser);
-    }, 600);
+    }, 500);
   };
 
   const switchToMode = (mode: AuthMode) => {
@@ -378,7 +378,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 </button>
                 <div>
                   <h2 className="font-bold text-sm sm:text-base leading-tight">ลงทะเบียน ผู้ดูแลระบบ (Admin)</h2>
-                  <p className="text-[11px] text-pink-200">โรงพยาบาลเชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)</p>
+                  <p className="text-[11px] text-pink-200">ผู้ดูแลระบบ โรงพยาบาลเชียงกลาง/ปลัดอำเภอ/ตำรวจ</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 bg-rose-950/70 border border-pink-400/40 px-2.5 py-1 rounded-full text-[11px] text-amber-300 font-bold">
@@ -399,7 +399,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 </button>
                 <div>
                   <h2 className="font-bold text-sm sm:text-base leading-tight">ลงทะเบียน เจ้าหน้าที่ รพ.สต. / นสช.</h2>
-                  <p className="text-[11px] text-pink-200">บุคลากรประจำตำบลและหมู่บ้าน อ.เชียงกลาง</p>
+                  <p className="text-[11px] text-pink-200">จนท.รพ.สต./นสช.ประจำหมู่บ้าน/อสมและผู้นำชุมชน</p>
                 </div>
               </div>
               <div className="flex items-center gap-1 bg-rose-950/70 border border-pink-400/40 px-2.5 py-1 rounded-full text-[11px] text-pink-100 font-bold">
@@ -544,7 +544,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                         <span className="text-[10px] bg-indigo-100 text-indigo-800 font-semibold px-1.5 py-0.2 rounded">รพ.</span>
                       </div>
                       <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
-                        ผู้ดูแลระบบ โรงพยาบาลเชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)
+                        ผู้ดูแลระบบ โรงพยาบาลเชียงกลาง/ปลัดอำเภอ/ตำรวจ
                       </p>
                     </div>
                   </button>
@@ -563,7 +563,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                         <span>ลงทะเบียน รพ.สต. / นสช.</span>
                       </div>
                       <p className="text-[11px] text-slate-500 leading-snug mt-0.5">
-                        จนท. รพ.สต. (พี่เลี้ยง) และ นสช.ประจำหมู่บ้าน
+                        จนท.รพ.สต./นสช.ประจำหมู่บ้าน/อสมและผู้นำชุมชน
                       </p>
                     </div>
                   </button>
@@ -833,7 +833,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                 <div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs space-y-1">
                   <div className="flex items-center gap-1.5 font-bold text-amber-800">
                     <Crown className="w-4 h-4 text-amber-600" />
-                    <span>ส่วนลงทะเบียนผู้ดูแลระบบ โรงพยาบาลเชียงกลาง</span>
+                    <span>ส่วนลงทะเบียนผู้ดูแลระบบ โรงพยาบาลเชียงกลาง/ปลัดอำเภอ/ตำรวจ</span>
                   </div>
                   <p className="text-[11px] text-amber-700 leading-relaxed">
                     สิทธิระดับแอดมินสามารถเข้าถึงข้อมูลสถิติภาพรวม, ข้อมูลผู้ป่วย, ผลคัดกรอง 2Q+ / 8Q และจัดการสมาชิกได้ครบทุกตำบล
@@ -953,7 +953,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                   {/* Agency info */}
                   <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 flex items-center justify-between">
                     <div>
-                      <strong>หน่วยงาน:</strong> โรงพยาบาลเชียงกลาง
+                      <strong>หน่วยงาน:</strong> โรงพยาบาลเชียงกลาง/ปลัดอำเภอ/ตำรวจ
                     </div>
                     <div>
                       <strong>พื้นที่กำกับ:</strong> ครอบคลุมทั้ง 6 ตำบล
@@ -1060,23 +1060,43 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     </div>
 
                     {regRole === 'VHV' ? (
-                      <div>
-                        <label className="block text-xs font-bold text-teal-900 mb-1 flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-emerald-700" />
-                          <span>หมู่บ้านที่รับผิดชอบ</span>
-                        </label>
-                        <select
-                          value={regVillage}
-                          onChange={(e) => setRegVillage(e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl border border-teal-300 text-xs bg-white outline-none focus:ring-2 focus:ring-teal-500"
-                        >
-                          {CHIANG_KLANG_TAMBONS[regTambon]?.villages.map((v) => (
-                            <option key={v} value={v}>
-                              {v}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      <>
+                        <div>
+                          <label className="block text-xs font-bold text-teal-900 mb-1 flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-emerald-700" />
+                            <span>หมู่บ้านที่รับผิดชอบ</span>
+                          </label>
+                          <select
+                            value={regVillage}
+                            onChange={(e) => setRegVillage(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl border border-teal-300 text-xs bg-white outline-none focus:ring-2 focus:ring-teal-500"
+                          >
+                            {CHIANG_KLANG_TAMBONS[regTambon]?.villages.map((v) => (
+                              <option key={v} value={v}>
+                                {v}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs font-bold text-teal-900 mb-1 flex items-center gap-1">
+                            <Building2 className="w-3 h-3 text-teal-700" />
+                            <span>รพ.สต. พี่เลี้ยง (หน่วยบริการที่สังกัด)</span>
+                          </label>
+                          <select
+                            value={regHospital}
+                            onChange={(e) => setRegHospital(e.target.value)}
+                            className="w-full px-3 py-2 rounded-xl border border-teal-300 text-xs bg-white outline-none focus:ring-2 focus:ring-teal-500"
+                          >
+                            {CHIANG_KLANG_TAMBONS[regTambon]?.hospitals.map((h) => (
+                              <option key={h} value={h}>
+                                {h}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </>
                     ) : (
                       <div>
                         <label className="block text-xs font-bold text-teal-900 mb-1 flex items-center gap-1">
@@ -1139,17 +1159,33 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      เบอร์โทรศัพท์ติดต่อ
-                    </label>
-                    <input
-                      type="tel"
-                      value={regPhone}
-                      onChange={(e) => setRegPhone(e.target.value)}
-                      placeholder="เช่น 089-755-1234"
-                      className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50/50 focus:bg-white"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        เบอร์โทรศัพท์ติดต่อ
+                      </label>
+                      <input
+                        type="tel"
+                        value={regPhone}
+                        onChange={(e) => setRegPhone(e.target.value)}
+                        placeholder="เช่น 089-755-1234"
+                        className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50/50 focus:bg-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        เลขประจำตัวประชาชน <span className="text-slate-400 font-normal">(ถ้ามี / ไม่บังคับ)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={regIdCard}
+                        onChange={(e) => handleIdCardChange(e.target.value)}
+                        placeholder="ถ้ามี / ไม่บังคับ"
+                        maxLength={17}
+                        className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-teal-500 bg-slate-50/50 focus:bg-white placeholder:text-slate-400"
+                      />
+                    </div>
                   </div>
 
                   {/* Password & Confirm */}
@@ -1263,17 +1299,31 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
         <PWAInstallButton variant="card" />
 
         {/* Emergency Hotline Strip */}
-        <div className="bg-rose-900/80 backdrop-blur-md rounded-2xl p-3 border border-rose-700/50 flex items-center justify-between text-xs text-pink-100">
-          <div className="flex items-center gap-2">
-            <PhoneCall className="w-4 h-4 text-pink-300 shrink-0" />
-            <span>สายด่วนสุขภาพจิต 24 ชม.</span>
+        <div className="bg-rose-900/80 backdrop-blur-md rounded-2xl p-3 border border-rose-700/50 space-y-2 text-xs text-pink-100">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <PhoneCall className="w-4 h-4 text-pink-300 shrink-0" />
+              <span className="truncate font-semibold">สายด่วน ศูนย์พึ่งพาได้ รพ.เชียงกลาง (หมออรทัย)</span>
+            </div>
+            <a
+              href="tel:0979184142"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1 rounded-lg transition text-xs shadow-xs shrink-0"
+            >
+              โทร 0979184142
+            </a>
           </div>
-          <a
-            href="tel:1323"
-            className="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1 rounded-lg transition text-xs shadow-xs"
-          >
-            โทร 1323
-          </a>
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-rose-700/40">
+            <div className="flex items-center gap-2">
+              <PhoneCall className="w-4 h-4 text-pink-300 shrink-0" />
+              <span>สายด่วนสุขภาพจิต 24 ชม.</span>
+            </div>
+            <a
+              href="tel:1323"
+              className="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1 rounded-lg transition text-xs shadow-xs shrink-0"
+            >
+              โทร 1323
+            </a>
+          </div>
         </div>
       </div>
 

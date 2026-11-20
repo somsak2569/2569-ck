@@ -39,6 +39,7 @@ export const PatientList: React.FC<PatientListProps> = ({
   onStartNewScreening,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [groupFilter, setGroupFilter] = useState<string>('ALL');
   const [riskFilter, setRiskFilter] = useState<string>('ALL');
   const [tambonFilter, setTambonFilter] = useState<string>('ALL');
   const [patientToDelete, setPatientToDelete] = useState<PatientScreening | null>(null);
@@ -53,6 +54,12 @@ export const PatientList: React.FC<PatientListProps> = ({
       p.villageName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.phone.includes(searchTerm) ||
       (p.caregiverName && p.caregiverName.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    // Screening group filter
+    let matchGroup = true;
+    if (groupFilter !== 'ALL') {
+      matchGroup = p.screeningGroup === groupFilter;
+    }
 
     // Risk Level filter
     let matchRisk = true;
@@ -69,7 +76,7 @@ export const PatientList: React.FC<PatientListProps> = ({
       matchTambon = p.tambon === tambonFilter;
     }
 
-    return matchSearch && matchRisk && matchTambon;
+    return matchSearch && matchGroup && matchRisk && matchTambon;
   });
 
   const handleExport = () => {
@@ -123,9 +130,9 @@ export const PatientList: React.FC<PatientListProps> = ({
         </div>
 
         {/* Filter controls */}
-        <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {/* Search box */}
-          <div className="sm:col-span-2 relative">
+          <div className={`${currentUser.role === 'ADMIN' ? 'lg:col-span-2' : 'sm:col-span-2 lg:col-span-3'} relative`}>
             <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
             <input
               type="text"
@@ -142,6 +149,19 @@ export const PatientList: React.FC<PatientListProps> = ({
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
+          </div>
+
+          {/* Screening Group Filter */}
+          <div>
+            <select
+              value={groupFilter}
+              onChange={(e) => setGroupFilter(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none bg-white font-medium text-slate-700"
+            >
+              <option value="ALL">กลุ่มคัดกรองทั้งหมด</option>
+              <option value="DEPRESSION_SUICIDE">เครียดซึมเศร้า อยากตาย</option>
+              <option value="VIOLENCE_RISK">กลุ่มเสี่ยงก่อความรุนแรง</option>
+            </select>
           </div>
 
           {/* Risk Level Filter */}
@@ -221,6 +241,19 @@ export const PatientList: React.FC<PatientListProps> = ({
                       <span className="text-xs text-slate-500">
                         ({patient.gender}, {patient.age} ปี)
                       </span>
+                      {patient.screeningGroup && (
+                        <span
+                          className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                            patient.screeningGroup === 'DEPRESSION_SUICIDE'
+                              ? 'bg-pink-50 text-rose-800 border-pink-200'
+                              : 'bg-amber-50 text-amber-800 border-amber-200'
+                          }`}
+                        >
+                          {patient.screeningGroup === 'DEPRESSION_SUICIDE'
+                            ? 'เครียดซึมเศร้า อยากตาย'
+                            : 'กลุ่มเสี่ยงก่อความรุนแรง'}
+                        </span>
+                      )}
                       <span
                         className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${riskBadge.badge}`}
                       >

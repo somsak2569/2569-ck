@@ -22,6 +22,9 @@ export interface User {
 
 export type RiskLevel = 'NONE' | 'LOW' | 'MEDIUM' | 'HIGH';
 
+// ประเภทกลุ่มเป้าหมายในส่วนแรกของแบบคัดกรอง (เลือกเช็คถูกอย่างใดอย่างหนึ่ง)
+export type ScreeningGroupType = 'DEPRESSION_SUICIDE' | 'VIOLENCE_RISK';
+
 // ระดับความเครียดตามเกณฑ์มาตรฐานกรมสุขภาพจิต (5 ระดับ)
 export type StressLevel = 'NONE' | 'LOW' | 'MILD' | 'MODERATE' | 'SEVERE';
 
@@ -72,6 +75,8 @@ export interface OASAssessment {
 export interface PatientScreening {
   id: string;
   screeningDate: string;
+  // ประเภทกลุ่มเป้าหมายจากการเช็คถูกส่วนที่ 1
+  screeningGroup?: ScreeningGroupType;
   // Patient basic info
   fullName: string;
   idCard: string; // 13 digits or mask

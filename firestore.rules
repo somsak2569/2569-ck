@@ -39,7 +39,7 @@ service cloud.firestore {
       return data.id is string && data.id.size() <= 128 &&
              data.username is string && data.username.size() <= 100 &&
              data.fullName is string && data.fullName.size() <= 200 &&
-             data.role in ['ADMIN', 'HEALTH_OFFICER', 'VHV'] &&
+             data.role in ['ADMIN', 'HEALTH_OFFICER', 'VHV', 'CITIZEN'] &&
              data.tambon is string && data.tambon.size() <= 100 &&
              data.village is string && data.village.size() <= 150 &&
              data.hospital is string && data.hospital.size() <= 150;

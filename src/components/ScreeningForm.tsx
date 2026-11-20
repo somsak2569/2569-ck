@@ -3,6 +3,7 @@ import {
   PatientScreening, 
   User, 
   RiskLevel,
+  ScreeningGroupType,
   StressLevel,
   StressAssessment,
   OASAssessment
@@ -58,6 +59,12 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
   onCancel,
 }) => {
   const isCitizen = currentUser.role === 'CITIZEN';
+
+  // 0. Screening Group Checkbox State (ส่วนแรกของแบบบันทึก: เลือกเช็คถูกอันใดอันหนึ่ง)
+  const [screeningGroup, setScreeningGroup] = useState<ScreeningGroupType | undefined>(
+    editingPatient?.screeningGroup
+  );
+  const [groupError, setGroupError] = useState(false);
 
   // 1. Patient Demographics State
   const [fullName, setFullName] = useState(
@@ -246,6 +253,15 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!screeningGroup) {
+      setGroupError(true);
+      const el = document.getElementById('screening-group-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
     if (!fullName.trim()) {
       alert('กรุณากรอกชื่อ-สกุล ของคนไข้');
       return;
@@ -259,6 +275,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
     const patientData: PatientScreening = {
       id: editingPatient ? editingPatient.id : `pt-${Date.now()}`,
       screeningDate,
+      screeningGroup,
       fullName: fullName.trim(),
       idCard: idCard.trim(),
       age: Number(age),
@@ -358,6 +375,92 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
             <h3 className="font-bold text-slate-800 text-base">
               ข้อมูลทั่วไปคนไข้ (ผู้รับการประเมิน)
             </h3>
+          </div>
+
+          {/* ประเภทกลุ่มคัดกรอง (เช็คถูกเลือกอันใดอันหนึ่ง) */}
+          <div
+            id="screening-group-section"
+            className={`p-3.5 sm:p-4 rounded-2xl border-2 transition-all space-y-2.5 ${
+              groupError
+                ? 'bg-rose-50/90 border-rose-500 ring-2 ring-rose-300/60'
+                : 'bg-pink-50/60 border-pink-200'
+            }`}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <label className="text-xs sm:text-sm font-bold text-rose-950 flex items-center gap-1.5">
+                <span>ประเภทกลุ่มเป้าหมายการคัดกรอง</span>
+                <span className="text-rose-600">*</span>
+                <span className="text-[11px] font-medium text-rose-700 bg-white/80 px-2 py-0.5 rounded-md border border-pink-200">
+                  กรุณาเลือกเช็คถูกอย่างใดอย่างหนึ่ง
+                </span>
+              </label>
+              {groupError && (
+                <span className="text-xs font-bold text-rose-600 flex items-center gap-1">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>กรุณาเลือกเช็คถูก 1 ข้อก่อนบันทึก</span>
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Checkbox 1: เครียดซึมเศร้า อยากตาย */}
+              <label
+                className={`flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all select-none ${
+                  screeningGroup === 'DEPRESSION_SUICIDE'
+                    ? 'bg-white border-rose-600 shadow-sm ring-2 ring-rose-400/30'
+                    : 'bg-white/90 border-slate-200 hover:border-rose-300'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={screeningGroup === 'DEPRESSION_SUICIDE'}
+                  onChange={() => {
+                    setScreeningGroup((prev) =>
+                      prev === 'DEPRESSION_SUICIDE' ? undefined : 'DEPRESSION_SUICIDE'
+                    );
+                    setGroupError(false);
+                  }}
+                  className="w-5 h-5 rounded border-slate-300 accent-rose-600 cursor-pointer shrink-0"
+                />
+                <div className="min-w-0">
+                  <div className="text-sm font-extrabold text-rose-950">
+                    เครียดซึมเศร้า อยากตาย
+                  </div>
+                  <div className="text-[11px] text-slate-500">
+                    ผู้มีภาวะเครียด ซึมเศร้า ท้อแท้ หรือมีความเสี่ยงทำร้ายตนเอง
+                  </div>
+                </div>
+              </label>
+
+              {/* Checkbox 2: กลุ่มเสี่ยงก่อความรุนแรง */}
+              <label
+                className={`flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all select-none ${
+                  screeningGroup === 'VIOLENCE_RISK'
+                    ? 'bg-white border-amber-600 shadow-sm ring-2 ring-amber-400/30'
+                    : 'bg-white/90 border-slate-200 hover:border-amber-300'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={screeningGroup === 'VIOLENCE_RISK'}
+                  onChange={() => {
+                    setScreeningGroup((prev) =>
+                      prev === 'VIOLENCE_RISK' ? undefined : 'VIOLENCE_RISK'
+                    );
+                    setGroupError(false);
+                  }}
+                  className="w-5 h-5 rounded border-slate-300 accent-amber-600 cursor-pointer shrink-0"
+                />
+                <div className="min-w-0">
+                  <div className="text-sm font-extrabold text-amber-950">
+                    กลุ่มเสี่ยงก่อความรุนแรง
+                  </div>
+                  <div className="text-[11px] text-slate-500">
+                    ผู้มีพฤติกรรมก้าวร้าว คุกคาม ใช้สารเสพติด/สุรา หรือเสี่ยงก่อเหตุรุนแรง
+                  </div>
+                </div>
+              </label>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -726,12 +829,183 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
           </div>
         </div>
 
-        {/* SECTION 2: แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (Overt Aggression Scale: OAS) */}
+        {/* SECTION 2: 2Q PLUS Assessment */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-rose-100 text-rose-800 font-bold text-xs flex items-center justify-center">
+                2
+              </span>
+              <div>
+                <h3 className="font-bold text-slate-800 text-base">
+                  แบบประเมินความเสี่ยงโรคซึมเศร้าและฆ่าตัวตาย (2Q Plus)
+                </h3>
+                <p className="text-xs text-slate-500">
+                  ในช่วง 2 สัปดาห์ที่ผ่านมารวมถึงวันนี้
+                </p>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <span
+                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+                  twoQResult.hasDepressionRisk
+                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                    : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                }`}
+              >
+                {twoQResult.hasDepressionRisk ? '⚠️ พบความเสี่ยง' : '✓ ปกติ'}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {/* Question 1 */}
+            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="text-sm text-slate-800 font-medium">
+                  <span className="font-bold text-rose-700 mr-1.5">ข้อ 1:</span>
+                  ใน 2 สัปดาห์ที่ผ่านมารวมวันนี้ <span className="font-semibold text-slate-900">ท่านรู้สึกหดหู่ เศร้า หรือท้อแท้สิ้นหวังหรือไม่</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setQ1Depressed(false)}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                      !q1Depressed
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    ไม่มี
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQ1Depressed(true)}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                      q1Depressed
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    มี
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Question 2 */}
+            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="text-sm text-slate-800 font-medium">
+                  <span className="font-bold text-rose-700 mr-1.5">ข้อ 2:</span>
+                  ใน 2 สัปดาห์ที่ผ่านมารวมวันนี้ <span className="font-semibold text-slate-900">ท่านรู้สึกเบื่อ ทำอะไรก็ไม่เพลิดเพลินหรือไม่</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setQ2Anhedonia(false)}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                      !q2Anhedonia
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    ไม่มี
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQ2Anhedonia(true)}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                      q2Anhedonia
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    มี
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Question Plus */}
+            <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/40 hover:bg-amber-50/70 transition">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="text-sm text-slate-800 font-medium">
+                  <span className="font-bold text-amber-700 mr-1.5">ข้อ Plus:</span>
+                  ใน 2 สัปดาห์ที่ผ่านมารวมวันนี้ <span className="font-semibold text-slate-900">ท่านมีความคิดอยากทำร้ายตนเอง หรือคิดว่าตายไปจะดีกว่าหรือไม่</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setQPlusSelfHarm(false)}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                      !qPlusSelfHarm
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    ไม่มี
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQPlusSelfHarm(true)}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                      qPlusSelfHarm
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    มี
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2Q Interpretation Banner */}
+          <div
+            className={`p-3.5 rounded-xl border flex items-start gap-3 transition ${
+              twoQResult.hasDepressionRisk
+                ? 'bg-amber-50 border-amber-300 text-amber-900'
+                : 'bg-emerald-50 border-emerald-300 text-emerald-900'
+            }`}
+          >
+            {twoQResult.hasDepressionRisk ? (
+              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            ) : (
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            )}
+            <div className="text-xs sm:text-sm">
+              {twoQResult.hasDepressionRisk ? (
+                <>
+                  <div className="font-bold text-amber-900">
+                    แปลผล 2Q Plus: มีความเสี่ยงซึมเศร้า (ตอบ "มี" อย่างน้อย 1 ข้อ)
+                  </div>
+                  <div className="text-amber-800 mt-0.5 text-xs">
+                    ระบบเปิดแบบประเมินการฆ่าตัวตาย (8Q) อัตโนมัติตามเกณฑ์กรมสุขภาพจิต เพื่อประเมินระดับความรุนแรงและวางแผนการช่วยเหลือทันที
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="font-bold text-emerald-900">
+                    แปลผล 2Q Plus: ปกติ / ไม่พบความเสี่ยงโรคซึมเศร้าในปัจจุบัน
+                  </div>
+                  <div className="text-emerald-800 mt-0.5 text-xs">
+                    ตอบ "ไม่มี" ครบทั้ง 3 ข้อ แนะนำให้กำลังใจและติดตามตามรอบปกติ
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 3: แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (Overt Aggression Scale: OAS) */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-rose-100 text-rose-800 font-bold text-xs flex items-center justify-center">
-                2
+                3
               </span>
               <div>
                 <h3 className="font-bold text-slate-800 text-base flex flex-wrap items-center gap-2">
@@ -978,177 +1252,6 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
           )}
         </div>
 
-        {/* SECTION 3: 2Q PLUS Assessment */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-rose-100 text-rose-800 font-bold text-xs flex items-center justify-center">
-                3
-              </span>
-              <div>
-                <h3 className="font-bold text-slate-800 text-base">
-                  แบบประเมินความเสี่ยงโรคซึมเศร้าและฆ่าตัวตาย (2Q Plus)
-                </h3>
-                <p className="text-xs text-slate-500">
-                  ในช่วง 2 สัปดาห์ที่ผ่านมารวมถึงวันนี้
-                </p>
-              </div>
-            </div>
-
-            <div className="text-right">
-              <span
-                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
-                  twoQResult.hasDepressionRisk
-                    ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                    : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                }`}
-              >
-                {twoQResult.hasDepressionRisk ? '⚠️ พบความเสี่ยง' : '✓ ปกติ'}
-              </span>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            {/* Question 1 */}
-            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="text-sm text-slate-800 font-medium">
-                  <span className="font-bold text-rose-700 mr-1.5">ข้อ 1:</span>
-                  ใน 2 สัปดาห์ที่ผ่านมารวมวันนี้ <span className="font-semibold text-slate-900">ท่านรู้สึกหดหู่ เศร้า หรือท้อแท้สิ้นหวังหรือไม่</span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                  <button
-                    type="button"
-                    onClick={() => setQ1Depressed(false)}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
-                      !q1Depressed
-                        ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    ไม่มี
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setQ1Depressed(true)}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
-                      q1Depressed
-                        ? 'bg-rose-600 text-white shadow-xs'
-                        : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    มี
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Question 2 */}
-            <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="text-sm text-slate-800 font-medium">
-                  <span className="font-bold text-rose-700 mr-1.5">ข้อ 2:</span>
-                  ใน 2 สัปดาห์ที่ผ่านมารวมวันนี้ <span className="font-semibold text-slate-900">ท่านรู้สึกเบื่อ ทำอะไรก็ไม่เพลิดเพลินหรือไม่</span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                  <button
-                    type="button"
-                    onClick={() => setQ2Anhedonia(false)}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
-                      !q2Anhedonia
-                        ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    ไม่มี
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setQ2Anhedonia(true)}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
-                      q2Anhedonia
-                        ? 'bg-rose-600 text-white shadow-xs'
-                        : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    มี
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Question Plus */}
-            <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50/40 hover:bg-amber-50/70 transition">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="text-sm text-slate-800 font-medium">
-                  <span className="font-bold text-amber-700 mr-1.5">ข้อ Plus:</span>
-                  ใน 2 สัปดาห์ที่ผ่านมารวมวันนี้ <span className="font-semibold text-slate-900">ท่านมีความคิดอยากทำร้ายตนเอง หรือคิดว่าตายไปจะดีกว่าหรือไม่</span>
-                </div>
-                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                  <button
-                    type="button"
-                    onClick={() => setQPlusSelfHarm(false)}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
-                      !qPlusSelfHarm
-                        ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    ไม่มี
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setQPlusSelfHarm(true)}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
-                      qPlusSelfHarm
-                        ? 'bg-rose-600 text-white shadow-xs'
-                        : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    มี
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 2Q Interpretation Banner */}
-          <div
-            className={`p-3.5 rounded-xl border flex items-start gap-3 transition ${
-              twoQResult.hasDepressionRisk
-                ? 'bg-amber-50 border-amber-300 text-amber-900'
-                : 'bg-emerald-50 border-emerald-300 text-emerald-900'
-            }`}
-          >
-            {twoQResult.hasDepressionRisk ? (
-              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            ) : (
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-            )}
-            <div className="text-xs sm:text-sm">
-              {twoQResult.hasDepressionRisk ? (
-                <>
-                  <div className="font-bold text-amber-900">
-                    แปลผล 2Q Plus: มีความเสี่ยงซึมเศร้า (ตอบ "มี" อย่างน้อย 1 ข้อ)
-                  </div>
-                  <div className="text-amber-800 mt-0.5 text-xs">
-                    ระบบเปิดแบบประเมินการฆ่าตัวตาย (8Q) อัตโนมัติตามเกณฑ์กรมสุขภาพจิต เพื่อประเมินระดับความรุนแรงและวางแผนการช่วยเหลือทันที
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="font-bold text-emerald-900">
-                    แปลผล 2Q Plus: ปกติ / ไม่พบความเสี่ยงโรคซึมเศร้าในปัจจุบัน
-                  </div>
-                  <div className="text-emerald-800 mt-0.5 text-xs">
-                    ตอบ "ไม่มี" ครบทั้ง 3 ข้อ แนะนำให้กำลังใจและติดตามตามรอบปกติ
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
         {/* SECTION 4: 8Q Suicide Risk Assessment (Auto-triggered when 2Q is positive or manually opened) */}
         {is8QTriggered ? (
           <div className="bg-white rounded-2xl shadow-sm border-2 border-rose-200 p-4 sm:p-6 space-y-4 animate-in fade-in slide-in-from-top-4">
@@ -1269,7 +1372,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
                     <ul className="list-disc pl-4 space-y-0.5 text-xs text-rose-800">
                       <li><strong>ห้ามปล่อยให้อยู่ตามลำพังเด็ดขาด</strong> ตลอด 24 ชั่วโมง</li>
                       <li>ให้ญาติหรือผู้ดูแลเก็บสิ่งของอันตราย (เชือก อาวุธ ยาฆ่าแมลง ยาเม็ดจำนวนมาก)</li>
-                      <li>ประสานส่งต่อด่วนไปยัง <strong>รพ.เชียงกลาง (054-791111)</strong> หรือสายด่วน <strong>1669 / 1323</strong></li>
+                      <li>ประสานส่งต่อด่วนไปยัง <strong>สายด่วน ศูนย์พึ่งพาได้ รพ.เชียงกลาง (หมออรทัย) 0979184142</strong>, <strong>รพ.เชียงกลาง (054-791111)</strong> หรือสายด่วน <strong>1669 / 1323</strong></li>
                       <li>แจ้ง รพ.สต. พี่เลี้ยง และผู้ดูแลระบบ โรงพยาบาลเชียงกลาง เพื่อติดตามต่อเนื่อง</li>
                     </ul>
                   </div>

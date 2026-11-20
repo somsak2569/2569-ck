@@ -11,6 +11,12 @@ export const exportPatientDataToExcel = (
     return {
       'ลำดับ': index + 1,
       'วันที่ประเมิน': p.screeningDate,
+      'กลุ่มคัดกรอง (ส่วนที่ 1)':
+        p.screeningGroup === 'DEPRESSION_SUICIDE'
+          ? 'เครียดซึมเศร้า อยากตาย'
+          : p.screeningGroup === 'VIOLENCE_RISK'
+          ? 'กลุ่มเสี่ยงก่อความรุนแรง'
+          : 'ไม่ระบุ',
       'ชื่อ-สกุล': p.fullName,
       'เลขประจำตัวประชาชน': p.idCard || '-',
       'อายุ (ปี)': p.age,
@@ -57,6 +63,14 @@ export const exportPatientDataToExcel = (
 
   // 2. Prepare Summary Sheet
   const totalScreened = patients.length;
+  const depressionSuicideGroupCount = patients.filter(
+    (p) => p.screeningGroup === 'DEPRESSION_SUICIDE'
+  ).length;
+  const violenceRiskGroupCount = patients.filter(
+    (p) => p.screeningGroup === 'VIOLENCE_RISK'
+  ).length;
+  const unspecifiedGroupCount = totalScreened - depressionSuicideGroupCount - violenceRiskGroupCount;
+
   const highRisk = patients.filter((p) => p.eightQ?.riskLevel === 'HIGH').length;
   const mediumRisk = patients.filter((p) => p.eightQ?.riskLevel === 'MEDIUM').length;
   const lowRisk = patients.filter((p) => p.eightQ?.riskLevel === 'LOW').length;
@@ -83,6 +97,17 @@ export const exportPatientDataToExcel = (
     { 'หัวข้อสรุป': '', 'รายละเอียด': '' },
     { 'หัวข้อสรุป': '== สรุปจำนวนผู้รับการคัดกรอง ==', 'รายละเอียด': '' },
     { 'หัวข้อสรุป': 'จำนวนผู้ได้รับการคัดกรองทั้งหมด', 'รายละเอียด': `${totalScreened} คน` },
+    {
+      'หัวข้อสรุป': 'กลุ่มเป้าหมาย (ส่วนที่ 1): เครียดซึมเศร้า อยากตาย',
+      'รายละเอียด': `${depressionSuicideGroupCount} คน (${totalScreened > 0 ? ((depressionSuicideGroupCount / totalScreened) * 100).toFixed(1) : 0}%)`,
+    },
+    {
+      'หัวข้อสรุป': 'กลุ่มเป้าหมาย (ส่วนที่ 1): กลุ่มเสี่ยงก่อความรุนแรง',
+      'รายละเอียด': `${violenceRiskGroupCount} คน (${totalScreened > 0 ? ((violenceRiskGroupCount / totalScreened) * 100).toFixed(1) : 0}%)`,
+    },
+    ...(unspecifiedGroupCount > 0
+      ? [{ 'หัวข้อสรุป': 'กลุ่มเป้าหมาย (ส่วนที่ 1): ยังไม่ระบุ', 'รายละเอียด': `${unspecifiedGroupCount} คน` }]
+      : []),
     { 'หัวข้อสรุป': 'เสี่ยงรุนแรง (8Q >= 17)', 'รายละเอียด': `${highRisk} คน (${totalScreened > 0 ? ((highRisk / totalScreened) * 100).toFixed(1) : 0}%)` },
     { 'หัวข้อสรุป': 'เสี่ยงปานกลาง (8Q 9-16)', 'รายละเอียด': `${mediumRisk} คน (${totalScreened > 0 ? ((mediumRisk / totalScreened) * 100).toFixed(1) : 0}%)` },
     { 'หัวข้อสรุป': 'เสี่ยงน้อย (8Q 1-8)', 'รายละเอียด': `${lowRisk} คน (${totalScreened > 0 ? ((lowRisk / totalScreened) * 100).toFixed(1) : 0}%)` },
@@ -119,6 +144,7 @@ export const exportPatientDataToExcel = (
   wsPatients['!cols'] = [
     { wch: 6 },  // ลำดับ
     { wch: 12 }, // วันที่
+    { wch: 24 }, // กลุ่มคัดกรอง (ส่วนที่ 1)
     { wch: 22 }, // ชื่อสกุล
     { wch: 18 }, // บัตร
     { wch: 8 },  // อายุ

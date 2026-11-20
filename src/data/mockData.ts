@@ -91,6 +91,7 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
   {
     id: 'pt-001',
     screeningDate: '2026-03-28',
+    screeningGroup: 'DEPRESSION_SUICIDE',
     fullName: 'นายสมเกียรติ วงศ์เมืองน่าน',
     idCard: '3-5503-00123-45-1',
     age: 58,
@@ -159,6 +160,7 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
   {
     id: 'pt-002',
     screeningDate: '2026-03-29',
+    screeningGroup: 'DEPRESSION_SUICIDE',
     fullName: 'นางจันทร์แก้ว สุริยะ',
     idCard: '3-5503-00456-78-2',
     age: 64,
@@ -226,6 +228,7 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
   {
     id: 'pt-003',
     screeningDate: '2026-03-30',
+    screeningGroup: 'DEPRESSION_SUICIDE',
     fullName: 'นายทองดี เมืองปัน',
     idCard: '5-5503-00789-11-3',
     age: 72,
@@ -293,6 +296,7 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
   {
     id: 'pt-004',
     screeningDate: '2026-04-01',
+    screeningGroup: 'DEPRESSION_SUICIDE',
     fullName: 'นางบัวผัน อินต๊ะเสน',
     idCard: '3-5503-00999-33-4',
     age: 51,
@@ -346,6 +350,7 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
   {
     id: 'pt-005',
     screeningDate: '2026-04-02',
+    screeningGroup: 'VIOLENCE_RISK',
     fullName: 'นายบุญส่ง ใจหาญ',
     idCard: '3-5503-01234-88-5',
     age: 46,
@@ -413,6 +418,7 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
   {
     id: 'pt-006',
     screeningDate: '2026-04-03',
+    screeningGroup: 'DEPRESSION_SUICIDE',
     fullName: 'นางบัวลอย สิทธิราช',
     idCard: '3-5503-01456-22-6',
     age: 60,
@@ -479,6 +485,7 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
   {
     id: 'pt-007',
     screeningDate: '2026-04-04',
+    screeningGroup: 'VIOLENCE_RISK',
     fullName: 'นายมนัส ปัญญาแก้ว',
     idCard: '3-5503-01889-44-7',
     age: 41,
@@ -546,6 +553,7 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
   {
     id: 'pt-008',
     screeningDate: '2026-04-05',
+    screeningGroup: 'DEPRESSION_SUICIDE',
     fullName: 'นายคำหมั้น ดวงตา',
     idCard: '3-5503-02111-55-8',
     age: 68,
@@ -587,6 +595,7 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
   {
     id: 'pt-009',
     screeningDate: '2026-04-06',
+    screeningGroup: 'DEPRESSION_SUICIDE',
     fullName: 'นายประสิทธิ์ ส้อเมือง',
     idCard: '3-5503-02334-11-9',
     age: 55,
@@ -641,6 +650,7 @@ export const INITIAL_PATIENTS: PatientScreening[] = [
   {
     id: 'pt-010',
     screeningDate: '2026-04-07',
+    screeningGroup: 'DEPRESSION_SUICIDE',
     fullName: 'นางบัวตอง ผาน้ำใส',
     idCard: '3-5503-02555-88-0',
     age: 49,

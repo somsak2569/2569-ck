@@ -27,9 +27,11 @@ interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
   users: User[];
-  currentUser: User;
+  currentUser: User | null;
   onSelectUser: (user: User) => void;
   onRegisterUser: (user: User) => void;
+  initialMode?: 'LOGIN' | 'REGISTER';
+  defaultRole?: UserRole;
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({
@@ -39,8 +41,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   currentUser,
   onSelectUser,
   onRegisterUser,
+  initialMode = 'LOGIN',
+  defaultRole = 'VHV',
 }) => {
-  const [mode, setMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
+  const [mode, setMode] = useState<'LOGIN' | 'REGISTER'>(initialMode);
 
   // Login form state
   const [loginInput, setLoginInput] = useState('');
@@ -56,7 +60,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
   const [adminPasscode, setAdminPasscode] = useState('admin2569');
-  const [regRole, setRegRole] = useState<UserRole>('ADMIN');
+  const [regRole, setRegRole] = useState<UserRole>(defaultRole);
   const [regTambon, setRegTambon] = useState<string>('เชียงกลาง');
   const [regVillage, setRegVillage] = useState<string>(
     CHIANG_KLANG_TAMBONS['เชียงกลาง']?.villages[0] || 'หมู่ 1 บ้านศรีอุดม'
@@ -65,9 +69,39 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     CHIANG_KLANG_TAMBONS['เชียงกลาง']?.hospitals[0] || 'โรงพยาบาลเชียงกลาง'
   );
   const [regPhone, setRegPhone] = useState('');
+  const [regIdCard, setRegIdCard] = useState('');
   const [regSuccess, setRegSuccess] = useState('');
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setMode(initialMode);
+      if (defaultRole) setRegRole(defaultRole);
+      setLoginError('');
+      setRegSuccess('');
+    }
+  }, [isOpen, initialMode, defaultRole]);
+
   if (!isOpen) return null;
+
+  const handleIdCardChange = (val: string) => {
+    if (!val) {
+      setRegIdCard('');
+      return;
+    }
+    const digits = val.replace(/\D/g, '');
+    const hasLetters = /[a-zA-Z]/.test(val);
+    if (!hasLetters && digits.length > 0) {
+      const trimmed = digits.slice(0, 13);
+      let formatted = trimmed.slice(0, 1);
+      if (trimmed.length > 1) formatted += '-' + trimmed.slice(1, Math.min(5, trimmed.length));
+      if (trimmed.length > 5) formatted += '-' + trimmed.slice(5, Math.min(10, trimmed.length));
+      if (trimmed.length > 10) formatted += '-' + trimmed.slice(10, Math.min(12, trimmed.length));
+      if (trimmed.length > 12) formatted += '-' + trimmed.slice(12, 13);
+      setRegIdCard(formatted);
+    } else {
+      setRegIdCard(val.slice(0, 20));
+    }
+  };
 
   const handleTambonChange = (newTambon: string) => {
     setRegTambon(newTambon);
@@ -252,14 +286,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         ? 'โรงพยาบาลเชียงกลาง'
         : isCitizen
         ? (CHIANG_KLANG_TAMBONS[regTambon]?.hospitals[0] || 'รพ.เชียงกลาง')
-        : regHospital,
+        : (regHospital || CHIANG_KLANG_TAMBONS[regTambon]?.hospitals[0] || 'โรงพยาบาลเชียงกลาง'),
       phone: regPhone.trim(),
+      idCard: regIdCard.trim() || undefined,
       createdAt: new Date().toISOString().slice(0, 10),
     };
 
     onRegisterUser(newUser);
-    onSelectUser(newUser);
-    setRegSuccess('ลงทะเบียนสำเร็จ เข้าสู่ระบบเรียบร้อยแล้ว!');
+    if (!currentUser || currentUser.role !== 'ADMIN') {
+      onSelectUser(newUser);
+    }
+    setRegSuccess(`ลงทะเบียนสมาชิก ${newUser.fullName} สำเร็จ เรียบร้อยแล้ว`);
     setTimeout(() => {
       onClose();
     }, 1000);
@@ -454,7 +491,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                       <span>Admin</span>
                     </div>
                     <span className="text-[10px] text-slate-500 mt-1">
-                      โรงพยาบาลเชียงกลาง
+                      รพ.เชียงกลาง/ปลัดอำเภอ/ตำรวจ
                     </span>
                   </button>
 
@@ -501,10 +538,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <div className="sm:col-span-2 p-2.5 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl text-xs space-y-1">
                   <div className="flex items-center gap-1.5 font-bold text-amber-800">
                     <Crown className="w-3.5 h-3.5 text-amber-600" />
-                    <span>สิทธิ์ผู้ดูแลระบบ โรงพยาบาลเชียงกลาง (ครอบคลุมทั้ง 6 ตำบล)</span>
+                    <span>สิทธิ์ผู้ดูแลระบบ โรงพยาบาลเชียงกลาง/ปลัดอำเภอ/ตำรวจ</span>
                   </div>
                   <p className="text-[11px] text-amber-700">
-                    สามารถเข้าถึงข้อมูลผู้ป่วย สถิติ และสมาชิก นสช. ได้ครบทุกตำบลในอำเภอเชียงกลาง
+                    สามารถเข้าถึงข้อมูลผู้ป่วย สถิติ และสมาชิก จนท.รพ.สต./นสช.ประจำหมู่บ้าน/อสมและผู้นำชุมชน ได้ครบทุกตำบลในอำเภอเชียงกลาง
                   </p>
                 </div>
               )}
@@ -599,7 +636,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 </div>
               </div>
 
-              <div className="sm:col-span-2">
+              <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   เบอร์โทรศัพท์
                 </label>
@@ -609,6 +646,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   onChange={(e) => setRegPhone(e.target.value)}
                   placeholder="เช่น 081-999-8888"
                   className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-rose-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  เลขประจำตัวประชาชน <span className="text-slate-400 font-normal">(ถ้ามี / ไม่บังคับ)</span>
+                </label>
+                <input
+                  type="text"
+                  value={regIdCard}
+                  onChange={(e) => handleIdCardChange(e.target.value)}
+                  placeholder="ถ้ามี / ไม่บังคับ"
+                  maxLength={17}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs outline-none focus:ring-2 focus:ring-rose-500 placeholder:text-slate-400"
                 />
               </div>
 
@@ -633,22 +684,41 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   </div>
 
                   {regRole === 'VHV' ? (
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        หมู่บ้านที่รับผิดชอบ
-                      </label>
-                      <select
-                        value={regVillage}
-                        onChange={(e) => setRegVillage(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none"
-                      >
-                        {CHIANG_KLANG_TAMBONS[regTambon]?.villages.map((v) => (
-                          <option key={v} value={v}>
-                            {v}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <>
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          หมู่บ้านที่รับผิดชอบ
+                        </label>
+                        <select
+                          value={regVillage}
+                          onChange={(e) => setRegVillage(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none"
+                        >
+                          {CHIANG_KLANG_TAMBONS[regTambon]?.villages.map((v) => (
+                            <option key={v} value={v}>
+                              {v}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          รพ.สต. พี่เลี้ยง (สังกัด)
+                        </label>
+                        <select
+                          value={regHospital}
+                          onChange={(e) => setRegHospital(e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white outline-none"
+                        >
+                          {CHIANG_KLANG_TAMBONS[regTambon]?.hospitals.map((h) => (
+                            <option key={h} value={h}>
+                              {h}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </>
                   ) : (
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -671,7 +741,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               ) : (
                 <div className="sm:col-span-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600 flex items-center justify-between">
                   <div>
-                    <strong>หน่วยงาน:</strong> โรงพยาบาลเชียงกลาง
+                    <strong>หน่วยงาน:</strong> โรงพยาบาลเชียงกลาง/ปลัดอำเภอ/ตำรวจ
                   </div>
                   <div>
                     <strong>พื้นที่:</strong> ทั้ง 6 ตำบลใน อ.เชียงกลาง

@@ -126,11 +126,24 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
           <div className="bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden">
             {/* Header Status Strip */}
             <div className="bg-slate-50 px-5 sm:px-6 py-3.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 <span className="text-xs sm:text-sm font-bold text-slate-700">
                   แบบประเมินสุขภาพจิต (2Q Plus, 8Q และระดับความเครียด)
                 </span>
+                {latestAssessment.screeningGroup && (
+                  <span
+                    className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                      latestAssessment.screeningGroup === 'DEPRESSION_SUICIDE'
+                        ? 'bg-pink-100 text-rose-900 border-pink-300'
+                        : 'bg-amber-100 text-amber-900 border-amber-300'
+                    }`}
+                  >
+                    {latestAssessment.screeningGroup === 'DEPRESSION_SUICIDE'
+                      ? 'เครียดซึมเศร้า อยากตาย'
+                      : 'กลุ่มเสี่ยงก่อความรุนแรง'}
+                  </span>
+                )}
               </div>
               <button
                 type="button"
@@ -275,6 +288,13 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
                 {/* Hotlines inside card */}
                 <div className="pt-2 flex flex-wrap items-center gap-2">
                   <a
+                    href="tel:0979184142"
+                    className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs"
+                  >
+                    <PhoneCall className="w-3.5 h-3.5" />
+                    <span>สายด่วน ศูนย์พึ่งพาได้ รพ.เชียงกลาง (หมออรทัย) 0979184142</span>
+                  </a>
+                  <a
                     href="tel:1323"
                     className="inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs"
                   >
@@ -333,6 +353,19 @@ export const CitizenPortalView: React.FC<CitizenPortalViewProps> = ({
                         {idx === 0 && (
                           <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
                             ล่าสุด
+                          </span>
+                        )}
+                        {assessment.screeningGroup && (
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                              assessment.screeningGroup === 'DEPRESSION_SUICIDE'
+                                ? 'bg-pink-50 text-rose-800 border-pink-200'
+                                : 'bg-amber-50 text-amber-800 border-amber-200'
+                            }`}
+                          >
+                            {assessment.screeningGroup === 'DEPRESSION_SUICIDE'
+                              ? 'เครียดซึมเศร้า อยากตาย'
+                              : 'กลุ่มเสี่ยงก่อความรุนแรง'}
                           </span>
                         )}
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${riskBadge.bg}`}>

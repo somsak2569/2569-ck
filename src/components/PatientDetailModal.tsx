@@ -45,6 +45,19 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
               <span className="text-xs bg-rose-950/60 text-pink-200 px-2 py-0.5 rounded font-mono border border-pink-300/30">
                 HN/ID: {patient.id}
               </span>
+              {patient.screeningGroup && (
+                <span
+                  className={`text-xs px-2.5 py-0.5 rounded-full font-bold border ${
+                    patient.screeningGroup === 'DEPRESSION_SUICIDE'
+                      ? 'bg-pink-100 text-rose-900 border-pink-300'
+                      : 'bg-amber-100 text-amber-900 border-amber-300'
+                  }`}
+                >
+                  {patient.screeningGroup === 'DEPRESSION_SUICIDE'
+                    ? 'เครียดซึมเศร้า อยากตาย'
+                    : 'กลุ่มเสี่ยงก่อความรุนแรง'}
+                </span>
+              )}
               <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${riskBadge.badge}`}>
                 {patient.eightQ ? `8Q: ${patient.eightQ.totalScore} คะแนน (${riskBadge.label})` : '2Q ปกติ'}
               </span>
@@ -87,10 +100,17 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
                 <div className="text-xs text-rose-700 leading-relaxed">
                   ต้องเฝ้าระวังไม่ให้อยู่ตามลำพังเด็ดขาด เก็บสิ่งของอันตราย และประสานส่งต่อจิตแพทย์ รพ.เชียงกลาง ทันที
                 </div>
-                <div className="pt-1 flex gap-2">
+                <div className="pt-1 flex flex-wrap gap-2">
+                  <a
+                    href="tel:0979184142"
+                    className="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-xs"
+                  >
+                    <PhoneCall className="w-3 h-3" />
+                    <span>สายด่วน ศูนย์พึ่งพาได้ รพ.เชียงกลาง (หมออรทัย) 0979184142</span>
+                  </a>
                   <a
                     href="tel:054791111"
-                    className="inline-flex items-center gap-1 bg-rose-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-xs"
+                    className="inline-flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-xs"
                   >
                     <PhoneCall className="w-3 h-3" />
                     <span>โทรด่วน รพ.เชียงกลาง (054-791111)</span>
@@ -106,6 +126,24 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
               ข้อมูลทั่วไปและที่อยู่
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+              <div className="sm:col-span-2 pb-1">
+                <span className="text-slate-400">กลุ่มเป้าหมายการคัดกรอง (ส่วนที่ 1): </span>
+                {patient.screeningGroup ? (
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-bold text-xs border ${
+                      patient.screeningGroup === 'DEPRESSION_SUICIDE'
+                        ? 'bg-pink-100 text-rose-900 border-pink-300'
+                        : 'bg-amber-100 text-amber-900 border-amber-300'
+                    }`}
+                  >
+                    {patient.screeningGroup === 'DEPRESSION_SUICIDE'
+                      ? '☑ เครียดซึมเศร้า อยากตาย'
+                      : '☑ กลุ่มเสี่ยงก่อความรุนแรง'}
+                  </span>
+                ) : (
+                  <span className="text-slate-500">ไม่ได้ระบุ</span>
+                )}
+              </div>
               <div>
                 <span className="text-slate-400">เลขประจำตัวประชาชน: </span>
                 <span className="font-medium text-slate-800">{patient.idCard || 'ไม่ได้ระบุ (ถ้ามี / ไม่บังคับ)'}</span>
@@ -217,6 +255,45 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
             );
           })()}
 
+          {/* Section: 2Q Plus Answers Breakdown */}
+          <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
+            <div className="flex justify-between items-center">
+              <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
+                ผลการคัดกรอง 2Q Plus
+              </h3>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+                  patient.twoQ.hasDepressionRisk
+                    ? 'bg-amber-100 text-amber-800'
+                    : 'bg-emerald-100 text-emerald-800'
+                }`}
+              >
+                {patient.twoQ.hasDepressionRisk ? 'พบความเสี่ยงซึมเศร้า' : 'ปกติ'}
+              </span>
+            </div>
+
+            <div className="space-y-1.5 pt-1 text-xs">
+              <div className="flex justify-between p-2 rounded-lg bg-slate-50">
+                <span>1. รู้สึกหดหู่ เศร้า ท้อแท้สิ้นหวัง</span>
+                <span className={patient.twoQ.q1Depressed ? 'font-bold text-rose-600' : 'text-slate-600'}>
+                  {patient.twoQ.q1Depressed ? 'มี' : 'ไม่มี'}
+                </span>
+              </div>
+              <div className="flex justify-between p-2 rounded-lg bg-slate-50">
+                <span>2. รู้สึกเบื่อ ไม่เพลิดเพลิน</span>
+                <span className={patient.twoQ.q2Anhedonia ? 'font-bold text-rose-600' : 'text-slate-600'}>
+                  {patient.twoQ.q2Anhedonia ? 'มี' : 'ไม่มี'}
+                </span>
+              </div>
+              <div className="flex justify-between p-2 rounded-lg bg-amber-50/70 border border-amber-200">
+                <span className="font-medium text-amber-900">Plus: ความคิดอยากทำร้ายตนเองหรือตายไปจะดีกว่า</span>
+                <span className={patient.twoQ.qPlusSelfHarm ? 'font-bold text-rose-600' : 'text-slate-600'}>
+                  {patient.twoQ.qPlusSelfHarm ? 'มี' : 'ไม่มี'}
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Section: แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (Overt Aggression Scale: OAS) */}
           {patient.oasAssessment ? (
             (() => {
@@ -305,45 +382,6 @@ export const PatientDetailModal: React.FC<PatientDetailModalProps> = ({
               )}
             </div>
           )}
-
-          {/* Section: 2Q Plus Answers Breakdown */}
-          <div className="p-4 rounded-2xl border border-slate-200 bg-white space-y-2">
-            <div className="flex justify-between items-center">
-              <h3 className="font-bold text-slate-800 text-xs uppercase tracking-wider">
-                ผลการคัดกรอง 2Q Plus
-              </h3>
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full font-bold ${
-                  patient.twoQ.hasDepressionRisk
-                    ? 'bg-amber-100 text-amber-800'
-                    : 'bg-emerald-100 text-emerald-800'
-                }`}
-              >
-                {patient.twoQ.hasDepressionRisk ? 'พบความเสี่ยงซึมเศร้า' : 'ปกติ'}
-              </span>
-            </div>
-
-            <div className="space-y-1.5 pt-1 text-xs">
-              <div className="flex justify-between p-2 rounded-lg bg-slate-50">
-                <span>1. รู้สึกหดหู่ เศร้า ท้อแท้สิ้นหวัง</span>
-                <span className={patient.twoQ.q1Depressed ? 'font-bold text-rose-600' : 'text-slate-600'}>
-                  {patient.twoQ.q1Depressed ? 'มี' : 'ไม่มี'}
-                </span>
-              </div>
-              <div className="flex justify-between p-2 rounded-lg bg-slate-50">
-                <span>2. รู้สึกเบื่อ ไม่เพลิดเพลิน</span>
-                <span className={patient.twoQ.q2Anhedonia ? 'font-bold text-rose-600' : 'text-slate-600'}>
-                  {patient.twoQ.q2Anhedonia ? 'มี' : 'ไม่มี'}
-                </span>
-              </div>
-              <div className="flex justify-between p-2 rounded-lg bg-amber-50/70 border border-amber-200">
-                <span className="font-medium text-amber-900">Plus: ความคิดอยากทำร้ายตนเองหรือตายไปจะดีกว่า</span>
-                <span className={patient.twoQ.qPlusSelfHarm ? 'font-bold text-rose-600' : 'text-slate-600'}>
-                  {patient.twoQ.qPlusSelfHarm ? 'มี' : 'ไม่มี'}
-                </span>
-              </div>
-            </div>
-          </div>
 
           {/* Section: 8Q Answers Breakdown (If executed) */}
           {patient.eightQ && (

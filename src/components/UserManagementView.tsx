@@ -110,7 +110,7 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              หน้าต่างข้อมูลและจัดการแก้ไขหรือลบข้อมูล: ผู้ดูแลระบบ (Admin), เจ้าหน้าที่ รพ.สต. (พี่เลี้ยง) และ นสช.ประจำหมู่บ้าน
+              หน้าต่างข้อมูลและจัดการแก้ไขหรือลบข้อมูล: ผู้ดูแลระบบ โรงพยาบาลเชียงกลาง/ปลัดอำเภอ/ตำรวจ และ จนท.รพ.สต./นสช.ประจำหมู่บ้าน/อสมและผู้นำชุมชน
             </p>
             <div className="flex items-center gap-1.5 mt-2 text-[11px] text-rose-800 bg-pink-50 border border-pink-200 px-2.5 py-1 rounded-lg w-fit">
               <Database className="w-3.5 h-3.5 text-rose-600" />

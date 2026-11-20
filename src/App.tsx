@@ -56,6 +56,7 @@ export default function App() {
   const [editingPatient, setEditingPatient] = useState<PatientScreening | null>(null);
   const [viewingPatient, setViewingPatient] = useState<PatientScreening | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [loginModalMode, setLoginModalMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
   const [isEmergencyGuideOpen, setIsEmergencyGuideOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'info' | 'error' } | null>(null);
 
@@ -81,8 +82,17 @@ export default function App() {
         const cloudUsers = await fetchUsersFromFirestore();
         if (cloudUsers && cloudUsers.length > 0) {
           const cleanCloudUsers = cloudUsers.filter((u) => !isUserSomsak(u));
-          setUsersState(cleanCloudUsers);
-          saveUsers(cleanCloudUsers);
+          setUsersState((prev) => {
+            const cloudIds = new Set(cleanCloudUsers.map((u) => u.id));
+            const merged = [...cleanCloudUsers];
+            for (const localUser of prev) {
+              if (!cloudIds.has(localUser.id) && !isUserSomsak(localUser)) {
+                merged.push(localUser);
+              }
+            }
+            saveUsers(merged);
+            return merged;
+          });
         } else {
           await seedInitialDataIfEmpty(users, patients);
         }
@@ -104,8 +114,17 @@ export default function App() {
     // 3. Attach realtime listeners for both users and patients across all devices
     const unsubscribeUsers = subscribeToUsers((cloudUsers) => {
       if (cloudUsers && cloudUsers.length > 0) {
-        setUsersState(cloudUsers);
-        saveUsers(cloudUsers);
+        setUsersState((prevUsers) => {
+          const cloudIdSet = new Set(cloudUsers.map((u) => u.id));
+          const merged = [...cloudUsers];
+          for (const localUser of prevUsers) {
+            if (!cloudIdSet.has(localUser.id) && !isUserSomsak(localUser)) {
+              merged.push(localUser);
+            }
+          }
+          saveUsers(merged);
+          return merged;
+        });
       }
     });
 
@@ -157,12 +176,17 @@ export default function App() {
     showToast(`เข้าสู่ระบบในชื่อ: ${user.fullName} (${user.roleLabel})`, 'info');
   };
 
-  const handleRegisterUser = (newUser: User) => {
+  const handleRegisterUser = async (newUser: User) => {
     const cleanCurrent = users.filter((u) => !isUserSomsak(u));
     const updatedUsers = [...cleanCurrent, newUser];
     setUsersState(updatedUsers);
     saveUsers(updatedUsers);
-    saveUserToFirestore(newUser).catch((e) => console.warn('User saved locally, cloud sync pending:', e));
+    try {
+      await saveUserToFirestore(newUser);
+      console.info('User successfully synced to Firestore:', newUser.username);
+    } catch (e) {
+      console.warn('User saved locally, cloud sync pending:', e);
+    }
     showToast(`ลงทะเบียนผู้ใช้ ${newUser.fullName} เรียบร้อยแล้ว`, 'success');
   };
 
@@ -282,7 +306,10 @@ export default function App() {
       {/* Top Navbar with Integrated Responsive Menu Bar */}
       <Navbar
         currentUser={currentUser}
-        onOpenLogin={() => setIsLoginModalOpen(true)}
+        onOpenLogin={() => {
+          setLoginModalMode('LOGIN');
+          setIsLoginModalOpen(true);
+        }}
         onLogout={handleLogout}
         onOpenEmergencyGuide={() => setIsEmergencyGuideOpen(true)}
         highRiskCount={highRiskCount}
@@ -367,7 +394,10 @@ export default function App() {
           <UserManagementView
             currentUser={currentUser}
             users={users}
-            onOpenRegister={() => setIsLoginModalOpen(true)}
+            onOpenRegister={() => {
+              setLoginModalMode('REGISTER');
+              setIsLoginModalOpen(true);
+            }}
             onUpdateUser={handleUpdateUser}
             onDeleteUser={handleDeleteUser}
           />
@@ -387,6 +417,8 @@ export default function App() {
       {/* Login & Registration Modal */}
       <LoginModal
         isOpen={isLoginModalOpen}
+        initialMode={loginModalMode}
+        defaultRole="VHV"
         onClose={() => setIsLoginModalOpen(false)}
         users={users}
         currentUser={currentUser}
