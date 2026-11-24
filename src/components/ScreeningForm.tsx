@@ -6,7 +6,8 @@ import {
   ScreeningGroupType,
   StressLevel,
   StressAssessment,
-  OASAssessment
+  OASAssessment,
+  AssessmentRound
 } from '../types';
 import { 
   CHIANG_KLANG_TAMBONS, 
@@ -21,7 +22,9 @@ import {
   getStressLevelDetails,
   OAS_CATEGORIES,
   calculateOAS,
-  getOASRiskBadge
+  getOASRiskBadge,
+  getPatientAssessmentRounds,
+  syncPatientLatestRound
 } from '../utils/assessment';
 import { 
   UserCheck, 
@@ -48,6 +51,8 @@ import confetti from 'canvas-confetti';
 interface ScreeningFormProps {
   currentUser: User;
   editingPatient?: PatientScreening | null;
+  formMode?: 'NEW_PATIENT' | 'NEW_ROUND' | 'EDIT_PATIENT';
+  editingRoundId?: string;
   onSave: (patient: PatientScreening) => void;
   onCancel: () => void;
 }
@@ -55,14 +60,31 @@ interface ScreeningFormProps {
 export const ScreeningForm: React.FC<ScreeningFormProps> = ({
   currentUser,
   editingPatient,
+  formMode,
+  editingRoundId,
   onSave,
   onCancel,
 }) => {
   const isCitizen = currentUser.role === 'CITIZEN';
+  const resolvedMode: 'NEW_PATIENT' | 'NEW_ROUND' | 'EDIT_PATIENT' =
+    formMode || (editingPatient ? 'EDIT_PATIENT' : 'NEW_PATIENT');
+
+  const existingRounds = editingPatient ? getPatientAssessmentRounds(editingPatient) : [];
+  const nextRoundNumber = existingRounds.length + 1;
+  const targetEditRound: AssessmentRound | undefined =
+    resolvedMode === 'EDIT_PATIENT' && editingPatient
+      ? (editingRoundId
+          ? existingRounds.find((r) => r.roundId === editingRoundId)
+          : undefined) || existingRounds[existingRounds.length - 1]
+      : undefined;
+  const previousRound: AssessmentRound | undefined =
+    resolvedMode === 'NEW_ROUND' && existingRounds.length > 0
+      ? existingRounds[existingRounds.length - 1]
+      : undefined;
 
   // 0. Screening Group Checkbox State (ส่วนแรกของแบบบันทึก: เลือกเช็คถูกอันใดอันหนึ่ง)
   const [screeningGroup, setScreeningGroup] = useState<ScreeningGroupType | undefined>(
-    editingPatient?.screeningGroup
+    targetEditRound?.screeningGroup ?? editingPatient?.screeningGroup
   );
   const [groupError, setGroupError] = useState(false);
 
@@ -137,28 +159,21 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
 
   // 1.5 Stress Level State (เกณฑ์มาตรฐานกรมสุขภาพจิต พร้อมอิโมจิ ก่อนหัวข้อ 2Q Plus)
   const [selectedStressLevel, setSelectedStressLevel] = useState<StressLevel>(
-    editingPatient?.stressAssessment?.level || 'NONE'
+    resolvedMode === 'NEW_ROUND'
+      ? 'NONE'
+      : targetEditRound?.stressAssessment?.level || editingPatient?.stressAssessment?.level || 'NONE'
   );
 
   // สิทธิ์การบันทึก OAS: เจ้าหน้าที่ รพ.สต./พี่เลี้ยง หรือ ผู้ดูแลระบบ
   const canRecordOAS = currentUser.role === 'HEALTH_OFFICER' || currentUser.role === 'ADMIN';
 
   // 2. OAS State (แบบประเมินพฤติกรรมก้าวร้าวรุนแรง Overt Aggression Scale: OAS)
-  const [oasVerbalScore, setOasVerbalScore] = useState<number>(
-    editingPatient?.oasAssessment?.verbalScore ?? 0
-  );
-  const [oasPropertyScore, setOasPropertyScore] = useState<number>(
-    editingPatient?.oasAssessment?.propertyScore ?? 0
-  );
-  const [oasSelfScore, setOasSelfScore] = useState<number>(
-    editingPatient?.oasAssessment?.selfScore ?? 0
-  );
-  const [oasOtherScore, setOasOtherScore] = useState<number>(
-    editingPatient?.oasAssessment?.otherScore ?? 0
-  );
-  const [oasNotes, setOasNotes] = useState<string>(
-    editingPatient?.oasAssessment?.notes ?? ''
-  );
+  const initialOAS = resolvedMode === 'NEW_ROUND' ? undefined : (targetEditRound?.oasAssessment ?? editingPatient?.oasAssessment);
+  const [oasVerbalScore, setOasVerbalScore] = useState<number>(initialOAS?.verbalScore ?? 0);
+  const [oasPropertyScore, setOasPropertyScore] = useState<number>(initialOAS?.propertyScore ?? 0);
+  const [oasSelfScore, setOasSelfScore] = useState<number>(initialOAS?.selfScore ?? 0);
+  const [oasOtherScore, setOasOtherScore] = useState<number>(initialOAS?.otherScore ?? 0);
+  const [oasNotes, setOasNotes] = useState<string>(initialOAS?.notes ?? '');
 
   const liveOAS = calculateOAS(
     oasVerbalScore,
@@ -166,33 +181,37 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
     oasSelfScore,
     oasOtherScore,
     {
-      assessedByRole: canRecordOAS ? currentUser.roleLabel : editingPatient?.oasAssessment?.assessedByRole,
-      assessedByName: canRecordOAS ? currentUser.fullName : editingPatient?.oasAssessment?.assessedByName,
-      assessedDate: canRecordOAS ? (editingPatient?.oasAssessment?.assessedDate || new Date().toISOString().slice(0, 10)) : editingPatient?.oasAssessment?.assessedDate,
+      assessedByRole: canRecordOAS ? currentUser.roleLabel : initialOAS?.assessedByRole,
+      assessedByName: canRecordOAS ? currentUser.fullName : initialOAS?.assessedByName,
+      assessedDate: canRecordOAS ? (initialOAS?.assessedDate || new Date().toISOString().slice(0, 10)) : initialOAS?.assessedDate,
       notes: oasNotes,
     }
   );
   const oasRiskBadge = getOASRiskBadge(liveOAS.riskLevel);
 
   // 3. 2Q Plus State
-  const [q1Depressed, setQ1Depressed] = useState<boolean>(editingPatient?.twoQ.q1Depressed || false);
-  const [q2Anhedonia, setQ2Anhedonia] = useState<boolean>(editingPatient?.twoQ.q2Anhedonia || false);
-  const [qPlusSelfHarm, setQPlusSelfHarm] = useState<boolean>(editingPatient?.twoQ.qPlusSelfHarm || false);
+  const initialTwoQ = resolvedMode === 'NEW_ROUND' ? undefined : (targetEditRound?.twoQ ?? editingPatient?.twoQ);
+  const [q1Depressed, setQ1Depressed] = useState<boolean>(initialTwoQ?.q1Depressed || false);
+  const [q2Anhedonia, setQ2Anhedonia] = useState<boolean>(initialTwoQ?.q2Anhedonia || false);
+  const [qPlusSelfHarm, setQPlusSelfHarm] = useState<boolean>(initialTwoQ?.qPlusSelfHarm || false);
 
   // Derived 2Q status
   const twoQResult = evaluateTwoQ(q1Depressed, q2Anhedonia, qPlusSelfHarm);
-  const is8QTriggered = twoQResult.hasDepressionRisk || !!editingPatient?.eightQTriggered;
+  const is8QTriggered =
+    twoQResult.hasDepressionRisk ||
+    (resolvedMode !== 'NEW_ROUND' && !!(targetEditRound?.eightQTriggered ?? editingPatient?.eightQTriggered));
 
   // 3. 8Q Assessment State
+  const initialEightQ = resolvedMode === 'NEW_ROUND' ? undefined : (targetEditRound?.eightQ ?? editingPatient?.eightQ);
   const [eightQAnswers, setEightQAnswers] = useState({
-    q1WishDead: editingPatient?.eightQ?.q1WishDead || 0,
-    q2SelfHarmWant: editingPatient?.eightQ?.q2SelfHarmWant || 0,
-    q3SuicideThought: editingPatient?.eightQ?.q3SuicideThought || 0,
-    q4SuicidePlan: editingPatient?.eightQ?.q4SuicidePlan || 0,
-    q5SuicidePrepare: editingPatient?.eightQ?.q5SuicidePrepare || 0,
-    q6SelfHarmAttemptNonFatal: editingPatient?.eightQ?.q6SelfHarmAttemptNonFatal || 0,
-    q7SuicideAttemptFatal: editingPatient?.eightQ?.q7SuicideAttemptFatal || 0,
-    q8LifetimeAttempt: editingPatient?.eightQ?.q8LifetimeAttempt || 0,
+    q1WishDead: initialEightQ?.q1WishDead || 0,
+    q2SelfHarmWant: initialEightQ?.q2SelfHarmWant || 0,
+    q3SuicideThought: initialEightQ?.q3SuicideThought || 0,
+    q4SuicidePlan: initialEightQ?.q4SuicidePlan || 0,
+    q5SuicidePrepare: initialEightQ?.q5SuicidePrepare || 0,
+    q6SelfHarmAttemptNonFatal: initialEightQ?.q6SelfHarmAttemptNonFatal || 0,
+    q7SuicideAttemptFatal: initialEightQ?.q7SuicideAttemptFatal || 0,
+    q8LifetimeAttempt: initialEightQ?.q8LifetimeAttempt || 0,
   });
 
   // Calculate live 8Q score
@@ -200,7 +219,9 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
 
   // 4. Follow-up & Survey info
   const defaultFollowUp = (): 'ปกติไม่ต้องติดตาม' | 'ติดตามเฝ้าระวัง' | 'ส่งต่อ รพ.สต.' | 'ส่งต่อด่วน รพ.เชียงกลาง' => {
-    if (editingPatient?.followUpStatus) return editingPatient.followUpStatus;
+    if (resolvedMode === 'EDIT_PATIENT' && (targetEditRound?.followUpStatus || editingPatient?.followUpStatus)) {
+      return targetEditRound?.followUpStatus || editingPatient!.followUpStatus;
+    }
     if (!twoQResult.hasDepressionRisk) return 'ปกติไม่ต้องติดตาม';
     if (eightQResult.riskLevel === 'HIGH') return 'ส่งต่อด่วน รพ.เชียงกลาง';
     if (eightQResult.riskLevel === 'MEDIUM') return 'ส่งต่อ รพ.สต.';
@@ -208,12 +229,18 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
   };
 
   const [followUpStatus, setFollowUpStatus] = useState<'ปกติไม่ต้องติดตาม' | 'ติดตามเฝ้าระวัง' | 'ส่งต่อ รพ.สต.' | 'ส่งต่อด่วน รพ.เชียงกลาง'>(defaultFollowUp());
-  const [notes, setNotes] = useState(editingPatient?.notes || '');
-  const [screeningDate, setScreeningDate] = useState(editingPatient?.screeningDate || new Date().toISOString().slice(0, 10));
+  const [notes, setNotes] = useState(
+    resolvedMode === 'NEW_ROUND' ? '' : (targetEditRound?.notes ?? editingPatient?.notes ?? '')
+  );
+  const [screeningDate, setScreeningDate] = useState(
+    resolvedMode === 'NEW_ROUND'
+      ? new Date().toISOString().slice(0, 10)
+      : targetEditRound?.screeningDate || editingPatient?.screeningDate || new Date().toISOString().slice(0, 10)
+  );
 
   // Update default follow-up when 8Q risk level shifts
   useEffect(() => {
-    if (!editingPatient) {
+    if (resolvedMode !== 'EDIT_PATIENT') {
       if (!twoQResult.hasDepressionRisk) {
         setFollowUpStatus('ปกติไม่ต้องติดตาม');
       } else if (eightQResult.riskLevel === 'HIGH') {
@@ -224,7 +251,7 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
         setFollowUpStatus('ติดตามเฝ้าระวัง');
       }
     }
-  }, [twoQResult.hasDepressionRisk, eightQResult.riskLevel, editingPatient]);
+  }, [twoQResult.hasDepressionRisk, eightQResult.riskLevel, resolvedMode]);
 
   // Handle Tambon change -> update available villages and hospitals
   const handleTambonChange = (newTambon: string) => {
@@ -272,8 +299,84 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
       return;
     }
 
-    const patientData: PatientScreening = {
-      id: editingPatient ? editingPatient.id : `pt-${Date.now()}`,
+    const stressDetails = getStressLevelDetails(selectedStressLevel);
+    const stressObj: StressAssessment = {
+      level: selectedStressLevel,
+      score: stressDetails.score,
+      label: stressDetails.label,
+      emoji: stressDetails.emoji,
+      description: stressDetails.description,
+    };
+
+    const patientId = editingPatient ? editingPatient.id : `pt-${Date.now()}`;
+    const nowIso = new Date().toISOString();
+
+    const roundOas = canRecordOAS
+      ? liveOAS
+      : resolvedMode === 'EDIT_PATIENT'
+      ? (targetEditRound?.oasAssessment ?? editingPatient?.oasAssessment)
+      : undefined;
+
+    const currentRound: AssessmentRound = {
+      roundId:
+        resolvedMode === 'EDIT_PATIENT' && targetEditRound
+          ? targetEditRound.roundId
+          : `${patientId}-round-${Date.now()}`,
+      roundNumber:
+        resolvedMode === 'EDIT_PATIENT' && targetEditRound
+          ? targetEditRound.roundNumber
+          : resolvedMode === 'NEW_ROUND'
+          ? nextRoundNumber
+          : 1,
+      screeningDate,
+      screeningGroup,
+      stressAssessment: stressObj,
+      oasAssessment: roundOas,
+      twoQ: twoQResult,
+      eightQTriggered: is8QTriggered,
+      eightQ: is8QTriggered ? eightQResult : undefined,
+      followUpStatus,
+      notes: notes.trim(),
+      surveyorName:
+        resolvedMode === 'EDIT_PATIENT' && targetEditRound
+          ? targetEditRound.surveyorName
+          : currentUser.fullName,
+      surveyorRole:
+        resolvedMode === 'EDIT_PATIENT' && targetEditRound
+          ? targetEditRound.surveyorRole
+          : isCitizen
+          ? 'ประเมินตนเอง (บุคคลทั่วไป)'
+          : currentUser.roleLabel,
+      surveyorPhone:
+        resolvedMode === 'EDIT_PATIENT' && targetEditRound
+          ? targetEditRound.surveyorPhone
+          : currentUser.phone,
+      surveyorUserId:
+        resolvedMode === 'EDIT_PATIENT' && targetEditRound
+          ? targetEditRound.surveyorUserId
+          : currentUser.id,
+      recordedAt:
+        resolvedMode === 'EDIT_PATIENT' && targetEditRound
+          ? targetEditRound.recordedAt || nowIso
+          : nowIso,
+    };
+
+    let updatedRounds: AssessmentRound[];
+    if (resolvedMode === 'NEW_ROUND' && editingPatient) {
+      updatedRounds = [...existingRounds, currentRound];
+    } else if (resolvedMode === 'EDIT_PATIENT' && editingPatient) {
+      updatedRounds = existingRounds.map((r) =>
+        r.roundId === currentRound.roundId ? currentRound : r
+      );
+      if (!updatedRounds.some((r) => r.roundId === currentRound.roundId)) {
+        updatedRounds = [currentRound];
+      }
+    } else {
+      updatedRounds = [currentRound];
+    }
+
+    const basePatient: PatientScreening = {
+      id: patientId,
       screeningDate,
       screeningGroup,
       fullName: fullName.trim(),
@@ -294,20 +397,8 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
       caregiverRelation: caregiverRelation.trim(),
       caregiverPhone: caregiverPhone.trim(),
 
-      stressAssessment: (() => {
-        const details = getStressLevelDetails(selectedStressLevel);
-        return {
-          level: selectedStressLevel,
-          score: details.score,
-          label: details.label,
-          emoji: details.emoji,
-          description: details.description,
-        };
-      })(),
-
-      // แบบประเมินพฤติกรรมก้าวร้าวรุนแรง (Overt Aggression Scale: OAS)
-      oasAssessment: canRecordOAS ? liveOAS : editingPatient?.oasAssessment,
-
+      stressAssessment: stressObj,
+      oasAssessment: roundOas,
       twoQ: twoQResult,
       eightQTriggered: is8QTriggered,
       eightQ: is8QTriggered ? eightQResult : undefined,
@@ -320,8 +411,10 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
 
       followUpStatus,
       notes: notes.trim(),
-      updatedAt: new Date().toISOString(),
+      updatedAt: nowIso,
     };
+
+    const patientData = syncPatientLatestRound(basePatient, updatedRounds);
 
     if (eightQResult.riskLevel === 'NONE' && !twoQResult.hasDepressionRisk) {
       try {
@@ -337,19 +430,30 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
   return (
     <div className="max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 pb-24">
       {/* Title Bar */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 mb-5">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 mb-5 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
               <h2 className="text-lg sm:text-xl font-bold text-slate-900">
-                {isCitizen
+                {resolvedMode === 'NEW_ROUND'
+                  ? `บันทึกการประเมินครั้งที่ ${nextRoundNumber} (ติดตามผล)`
+                  : isCitizen
                   ? (editingPatient ? 'แก้ไขแบบประเมินสุขภาพใจตนเอง' : 'ทำแบบประเมินสุขภาพใจตนเอง')
-                  : (editingPatient ? 'แก้ไขแบบประเมินคัดกรอง' : 'บันทึกแบบประเมินคัดกรองคนไข้')}
+                  : (editingPatient
+                      ? `แก้ไขแบบประเมินคัดกรอง (ครั้งที่ ${targetEditRound?.roundNumber || 1})`
+                      : 'บันทึกแบบประเมินคัดกรองคนไข้ (ครั้งที่ 1)')}
               </h2>
+              {resolvedMode === 'NEW_ROUND' && (
+                <span className="text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300 px-2.5 py-0.5 rounded-full">
+                  ครั้งที่ {nextRoundNumber}
+                </span>
+              )}
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              {isCitizen
+              {resolvedMode === 'NEW_ROUND' && editingPatient
+                ? `บันทึกติดตามอาการต่อเนื่องของ ${editingPatient.fullName} เพื่อนำมาเปรียบเทียบแนวโน้มรายบุคคลและภาพรวม`
+                : isCitizen
                 ? 'ประเมินระดับความเครียด, คัดกรองภาวะซึมเศร้า (2Q Plus) และประเมินความเสี่ยงการฆ่าตัวตาย (8Q)'
                 : 'ระบบคัดกรอง 2Q Plus และ 8Q กรมสุขภาพจิต • อ.เชียงกลาง จ.น่าน'}
             </p>
@@ -363,6 +467,30 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
             </span>
           </div>
         </div>
+
+        {/* Previous Round Reference Banner when recording NEW_ROUND */}
+        {previousRound && (
+          <div className="p-3 rounded-xl bg-amber-50/80 border border-amber-200 text-xs flex flex-wrap items-center justify-between gap-2 text-amber-950">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold text-amber-800">
+                อ้างอิงผลครั้งก่อนหน้า (ครั้งที่ {previousRound.roundNumber} เมื่อ {previousRound.screeningDate}):
+              </span>
+              <span className="bg-white px-2 py-0.5 rounded-md border border-amber-200 font-semibold">
+                8Q: {previousRound.eightQ?.totalScore ?? 0} คะแนน
+              </span>
+              <span className="bg-white px-2 py-0.5 rounded-md border border-amber-200 font-semibold">
+                OAS: {previousRound.oasAssessment?.totalScore ?? 0}/16
+              </span>
+              <span className="bg-white px-2 py-0.5 rounded-md border border-amber-200 font-semibold">
+                {getStressLevelDetails(previousRound.stressAssessment?.level || 'NONE').emoji}{' '}
+                {getStressLevelDetails(previousRound.stressAssessment?.level || 'NONE').label}
+              </span>
+            </div>
+            <span className="text-[11px] text-amber-700 font-medium">
+              สถานะเดิม: {previousRound.followUpStatus}
+            </span>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -1496,7 +1624,13 @@ export const ScreeningForm: React.FC<ScreeningFormProps> = ({
             className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 via-rose-700 to-pink-600 hover:from-rose-700 hover:via-rose-800 hover:to-pink-700 text-white text-sm font-bold shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 shadow-rose-200/50 cursor-pointer"
           >
             <Save className="w-4 h-4" />
-            <span>{editingPatient ? 'บันทึกการแก้ไข' : 'บันทึกข้อมูลแบบประเมิน'}</span>
+            <span>
+              {resolvedMode === 'NEW_ROUND'
+                ? `บันทึกการประเมินครั้งที่ ${nextRoundNumber}`
+                : editingPatient
+                ? 'บันทึกการแก้ไข'
+                : 'บันทึกข้อมูลแบบประเมิน'}
+            </span>
           </button>
         </div>
       </form>

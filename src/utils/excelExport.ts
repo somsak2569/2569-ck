@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { PatientScreening, User } from '../types';
+import { getPatientAssessmentRounds, getStressLevelDetails } from './assessment';
 
 export const exportPatientDataToExcel = (
   patients: PatientScreening[],
@@ -8,9 +9,11 @@ export const exportPatientDataToExcel = (
 ) => {
   // 1. Prepare Patient Details Sheet
   const patientRows = patients.map((p, index) => {
+    const rounds = getPatientAssessmentRounds(p);
     return {
       'ลำดับ': index + 1,
-      'วันที่ประเมิน': p.screeningDate,
+      'จำนวนครั้งที่ประเมิน': rounds.length,
+      'วันที่ประเมินล่าสุด': p.screeningDate,
       'กลุ่มคัดกรอง (ส่วนที่ 1)':
         p.screeningGroup === 'DEPRESSION_SUICIDE'
           ? 'เครียดซึมเศร้า อยากตาย'
@@ -63,6 +66,10 @@ export const exportPatientDataToExcel = (
 
   // 2. Prepare Summary Sheet
   const totalScreened = patients.length;
+  const totalAssessmentRounds = patients.reduce(
+    (sum, p) => sum + getPatientAssessmentRounds(p).length,
+    0
+  );
   const depressionSuicideGroupCount = patients.filter(
     (p) => p.screeningGroup === 'DEPRESSION_SUICIDE'
   ).length;
@@ -96,7 +103,7 @@ export const exportPatientDataToExcel = (
     { 'หัวข้อสรุป': 'ขอบเขตพื้นที่ในรายงาน', 'รายละเอียด': currentUser.role === 'ADMIN' ? 'ทุกตำบลในอำเภอเชียงกลาง' : `ตำบล${currentUser.tambon} (${currentUser.hospital})` },
     { 'หัวข้อสรุป': '', 'รายละเอียด': '' },
     { 'หัวข้อสรุป': '== สรุปจำนวนผู้รับการคัดกรอง ==', 'รายละเอียด': '' },
-    { 'หัวข้อสรุป': 'จำนวนผู้ได้รับการคัดกรองทั้งหมด', 'รายละเอียด': `${totalScreened} คน` },
+    { 'หัวข้อสรุป': 'จำนวนผู้ได้รับการคัดกรองทั้งหมด', 'รายละเอียด': `${totalScreened} คน (รวมประวัติการประเมินทั้งหมด ${totalAssessmentRounds} ครั้ง)` },
     {
       'หัวข้อสรุป': 'กลุ่มเป้าหมาย (ส่วนที่ 1): เครียดซึมเศร้า อยากตาย',
       'รายละเอียด': `${depressionSuicideGroupCount} คน (${totalScreened > 0 ? ((depressionSuicideGroupCount / totalScreened) * 100).toFixed(1) : 0}%)`,
@@ -134,16 +141,56 @@ export const exportPatientDataToExcel = (
     })),
   ];
 
+  // 3. Prepare Multi-Round History Sheet
+  const historyRows: Record<string, string | number>[] = [];
+  patients.forEach((p) => {
+    const rounds = getPatientAssessmentRounds(p);
+    rounds.forEach((r) => {
+      const stress = getStressLevelDetails(r.stressAssessment?.level || 'NONE');
+      const groupLabel =
+        (r.screeningGroup ?? p.screeningGroup) === 'DEPRESSION_SUICIDE'
+          ? 'เครียดซึมเศร้า อยากตาย'
+          : (r.screeningGroup ?? p.screeningGroup) === 'VIOLENCE_RISK'
+          ? 'กลุ่มเสี่ยงก่อความรุนแรง'
+          : 'ไม่ระบุ';
+      historyRows.push({
+        'รหัสคนไข้': p.id,
+        'ชื่อ-สกุล': p.fullName,
+        'หมู่บ้าน': p.villageName,
+        'ตำบล': p.tambon,
+        'ประเมินครั้งที่': r.roundNumber,
+        'วันที่ประเมิน': r.screeningDate,
+        'กลุ่มคัดกรอง': groupLabel,
+        'ระดับความเครียด (1-5)': `${stress.emoji} ${stress.label} (${stress.score}/5)`,
+        'ผล 2Q Plus': r.twoQ.hasDepressionRisk ? 'เสี่ยงซึมเศร้า' : 'ปกติ',
+        'คะแนน OAS รวม (0-16)': r.oasAssessment ? r.oasAssessment.totalScore : '-',
+        'OAS วาจา': r.oasAssessment ? r.oasAssessment.verbalScore : '-',
+        'OAS สิ่งของ': r.oasAssessment ? r.oasAssessment.propertyScore : '-',
+        'OAS ตนเอง': r.oasAssessment ? r.oasAssessment.selfScore : '-',
+        'OAS ผู้อื่น': r.oasAssessment ? r.oasAssessment.otherScore : '-',
+        'ระดับความเสี่ยง OAS': r.oasAssessment ? r.oasAssessment.riskLabel : 'ยังไม่ได้ประเมิน',
+        'คะแนน 8Q': r.eightQ ? r.eightQ.totalScore : 0,
+        'ระดับความเสี่ยง 8Q': r.eightQ ? r.eightQ.riskLabel : 'ปกติ (2Q ผ่าน)',
+        'สถานะติดตาม': r.followUpStatus,
+        'ผู้ประเมิน': r.surveyorName || p.surveyorName,
+        'ตำแหน่งผู้ประเมิน': r.surveyorRole || p.surveyorRole,
+        'หมายเหตุ': r.notes || '-',
+      });
+    });
+  });
+
   // Create workbook and append worksheets
   const wb = XLSX.utils.book_new();
 
   const wsPatients = XLSX.utils.json_to_sheet(patientRows);
   const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
+  const wsHistory = XLSX.utils.json_to_sheet(historyRows);
 
   // Set column widths for better readability
   wsPatients['!cols'] = [
     { wch: 6 },  // ลำดับ
-    { wch: 12 }, // วันที่
+    { wch: 16 }, // จำนวนครั้ง
+    { wch: 14 }, // วันที่
     { wch: 24 }, // กลุ่มคัดกรอง (ส่วนที่ 1)
     { wch: 22 }, // ชื่อสกุล
     { wch: 18 }, // บัตร
@@ -160,6 +207,14 @@ export const exportPatientDataToExcel = (
     { wch: 20 }, // ผู้ดูแล
     { wch: 16 }, // ความสัมพันธ์
     { wch: 14 }, // โทรผู้ดูแล
+    { wch: 24 }, // ความเครียด
+    { wch: 16 }, // OAS วาจา
+    { wch: 16 }, // OAS สิ่งของ
+    { wch: 16 }, // OAS ตนเอง
+    { wch: 16 }, // OAS ผู้อื่น
+    { wch: 16 }, // OAS รวม
+    { wch: 24 }, // OAS ระดับ
+    { wch: 24 }, // ผู้ประเมิน OAS
     { wch: 22 }, // 2Q ผล
     { wch: 10 },
     { wch: 10 },
@@ -180,7 +235,32 @@ export const exportPatientDataToExcel = (
     { wch: 60 },
   ];
 
+  wsHistory['!cols'] = [
+    { wch: 14 }, // รหัสคนไข้
+    { wch: 22 }, // ชื่อ-สกุล
+    { wch: 18 }, // หมู่บ้าน
+    { wch: 14 }, // ตำบล
+    { wch: 14 }, // ครั้งที่
+    { wch: 14 }, // วันที่
+    { wch: 22 }, // กลุ่มคัดกรอง
+    { wch: 22 }, // ความเครียด
+    { wch: 16 }, // 2Q
+    { wch: 16 }, // OAS รวม
+    { wch: 10 },
+    { wch: 10 },
+    { wch: 10 },
+    { wch: 10 },
+    { wch: 24 }, // OAS ระดับ
+    { wch: 12 }, // 8Q
+    { wch: 24 }, // 8Q ระดับ
+    { wch: 22 }, // สถานะ
+    { wch: 20 }, // ผู้ประเมิน
+    { wch: 22 },
+    { wch: 32 }, // หมายเหตุ
+  ];
+
   XLSX.utils.book_append_sheet(wb, wsPatients, 'ทะเบียนคัดกรองคนไข้');
+  XLSX.utils.book_append_sheet(wb, wsHistory, 'ประวัติประเมินรายครั้ง');
   XLSX.utils.book_append_sheet(wb, wsSummary, 'สรุปภาพรวมสถิติ');
 
   // Trigger download

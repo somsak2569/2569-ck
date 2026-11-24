@@ -3,6 +3,7 @@ import { PatientScreening, User, RiskLevel, StressLevel, ScreeningGroupType } fr
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
 import { getRiskColorBadge, STRESS_LEVEL_OPTIONS, getOASRiskBadge, OAS_CATEGORIES } from '../utils/assessment';
 import { exportPatientDataToExcel } from '../utils/excelExport';
+import { OverallComparisonCharts } from './AssessmentComparisonCharts';
 import { 
   Users, 
   AlertOctagon, 
@@ -35,6 +36,7 @@ interface DashboardViewProps {
   patients: PatientScreening[];
   onStartScreening: () => void;
   onViewPatient: (patient: PatientScreening) => void;
+  onViewPatientCompare?: (patient: PatientScreening) => void;
   onViewPatientList: () => void;
 }
 
@@ -43,6 +45,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   patients,
   onStartScreening,
   onViewPatient,
+  onViewPatientCompare,
   onViewPatientList,
 }) => {
   const [selectedTambonFilter, setSelectedTambonFilter] = useState<string>('ทั้งหมด');
@@ -1398,6 +1401,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               );
             })}
           </div>
+        </div>
+
+        {/* Multi-Round Overall Comparison Charts Section */}
+        <div className="lg:col-span-2">
+          <OverallComparisonCharts
+            patients={displayPatients}
+            onViewPatientCompare={onViewPatientCompare || onViewPatient}
+            title="เปรียบเทียบผลการประเมินหลายครั้งในภาพรวมทั้งหมด (ครั้งที่ 1 vs 2 vs 3...)"
+          />
         </div>
       </div>
     </div>

@@ -1,30 +1,42 @@
 import React, { useState } from 'react';
-import { PatientScreening, User, RiskLevel } from '../types';
+import { PatientScreening, User } from '../types';
 import { CHIANG_KLANG_TAMBONS } from '../data/chiangklangData';
-import { getRiskColorBadge, getStressLevelDetails, getOASRiskBadge } from '../utils/assessment';
+import {
+  getRiskColorBadge,
+  getStressLevelDetails,
+  getOASRiskBadge,
+  getPatientAssessmentRounds,
+  getPatientProgressSummary,
+} from '../utils/assessment';
 import { exportPatientDataToExcel } from '../utils/excelExport';
 import { canUserModifyPatient } from '../utils/storage';
-import { 
-  Search, 
-  Filter, 
-  FileSpreadsheet, 
-  Eye, 
-  Edit3, 
-  Trash2, 
-  PhoneCall, 
-  UserPlus, 
-  AlertTriangle, 
+import { OverallComparisonCharts } from './AssessmentComparisonCharts';
+import {
+  Search,
+  FileSpreadsheet,
+  Eye,
+  Edit3,
+  Trash2,
+  PhoneCall,
+  UserPlus,
   ShieldAlert,
-  ChevronRight,
   MapPin,
   Calendar,
-  X
+  X,
+  PlusCircle,
+  BarChart3,
+  TrendingDown,
+  TrendingUp,
+  Minus,
+  Users,
 } from 'lucide-react';
 
 interface PatientListProps {
   currentUser: User;
   patients: PatientScreening[];
   onViewPatient: (patient: PatientScreening) => void;
+  onViewPatientCompare: (patient: PatientScreening) => void;
+  onAddAssessmentRound: (patient: PatientScreening) => void;
   onEditPatient: (patient: PatientScreening) => void;
   onDeletePatient: (patientId: string) => void;
   onStartNewScreening: () => void;
@@ -34,6 +46,8 @@ export const PatientList: React.FC<PatientListProps> = ({
   currentUser,
   patients,
   onViewPatient,
+  onViewPatientCompare,
+  onAddAssessmentRound,
   onEditPatient,
   onDeletePatient,
   onStartNewScreening,
@@ -42,6 +56,7 @@ export const PatientList: React.FC<PatientListProps> = ({
   const [groupFilter, setGroupFilter] = useState<string>('ALL');
   const [riskFilter, setRiskFilter] = useState<string>('ALL');
   const [tambonFilter, setTambonFilter] = useState<string>('ALL');
+  const [activeView, setActiveView] = useState<'LIST' | 'COMPARE_OVERVIEW'>('LIST');
   const [patientToDelete, setPatientToDelete] = useState<PatientScreening | null>(null);
 
   // Filtered patients
@@ -106,7 +121,7 @@ export const PatientList: React.FC<PatientListProps> = ({
               {currentUser.role === 'CITIZEN'
                 ? `บันทึกประวัติการประเมินสุขภาพใจของ คุณ${currentUser.fullName}`
                 : currentUser.role === 'ADMIN'
-                ? 'แสดงข้อมูลทุกตำบลในอำเภอเชียงกลาง (สิทธิ์แอดมิน)'
+                ? 'แสดงข้อมูลทุกตำบลในอำเภอเชียงกลาง (สิทธิ์แอดมิน) • รองรับการบันทึกประเมินติดตามหลายครั้ง'
                 : `แสดงข้อมูลในเขตรับผิดชอบ: ตำบล${currentUser.tambon} (${currentUser.hospital})`}
             </p>
           </div>
@@ -114,14 +129,14 @@ export const PatientList: React.FC<PatientListProps> = ({
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleExport}
-              className="px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
               <span>ดาวน์โหลด Excel ({filteredPatients.length})</span>
             </button>
             <button
               onClick={onStartNewScreening}
-              className="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
               <span>{currentUser.role === 'CITIZEN' ? '+ ทำแบบประเมินตนเองใหม่' : '+ เพิ่มคนไข้ใหม่'}</span>
@@ -129,8 +144,37 @@ export const PatientList: React.FC<PatientListProps> = ({
           </div>
         </div>
 
+        {/* Sub-view Switcher: Patient List vs Overall Multi-Round Comparison Charts */}
+        <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveView('LIST')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer border ${
+              activeView === 'LIST'
+                ? 'bg-rose-700 text-white border-rose-700 shadow-xs'
+                : 'bg-rose-50/70 text-rose-900 border-rose-200 hover:bg-rose-100'
+            }`}
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span>รายชื่อทะเบียนคนไข้ ({filteredPatients.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveView('COMPARE_OVERVIEW')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer border ${
+              activeView === 'COMPARE_OVERVIEW'
+                ? 'bg-rose-700 text-white border-rose-700 shadow-xs'
+                : 'bg-rose-50/70 text-rose-900 border-rose-200 hover:bg-rose-100'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            <span>กราฟเปรียบเทียบภาพรวมทั้งหมด</span>
+          </button>
+        </div>
+
         {/* Filter controls */}
-        <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="mt-3 pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           {/* Search box */}
           <div className={`${currentUser.role === 'ADMIN' ? 'lg:col-span-2' : 'sm:col-span-2 lg:col-span-3'} relative`}>
             <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
@@ -144,7 +188,7 @@ export const PatientList: React.FC<PatientListProps> = ({
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -199,8 +243,14 @@ export const PatientList: React.FC<PatientListProps> = ({
         </div>
       </div>
 
-      {/* Patient Cards / Table */}
-      {filteredPatients.length === 0 ? (
+      {/* Overall Comparison Charts View */}
+      {activeView === 'COMPARE_OVERVIEW' ? (
+        <OverallComparisonCharts
+          patients={filteredPatients}
+          onViewPatientCompare={onViewPatientCompare}
+          title="เปรียบเทียบผลการประเมินหลายครั้งในภาพรวมทั้งหมด (ตามตัวกรองปัจจุบัน)"
+        />
+      ) : filteredPatients.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-3">
           <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
             <Search className="w-6 h-6" />
@@ -211,7 +261,7 @@ export const PatientList: React.FC<PatientListProps> = ({
           </p>
           <button
             onClick={onStartNewScreening}
-            className="px-4 py-2 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white text-xs font-bold rounded-xl transition inline-flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white text-xs font-bold rounded-xl transition inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <UserPlus className="w-4 h-4" />
             <span>บันทึกคัดกรองคนไข้ใหม่</span>
@@ -223,6 +273,8 @@ export const PatientList: React.FC<PatientListProps> = ({
             const riskLevel = patient.eightQ?.riskLevel || 'NONE';
             const riskBadge = getRiskColorBadge(riskLevel);
             const canModify = canUserModifyPatient(currentUser, patient);
+            const rounds = getPatientAssessmentRounds(patient);
+            const progress = getPatientProgressSummary(patient);
 
             return (
               <div
@@ -241,6 +293,36 @@ export const PatientList: React.FC<PatientListProps> = ({
                       <span className="text-xs text-slate-500">
                         ({patient.gender}, {patient.age} ปี)
                       </span>
+                      <span
+                        className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200"
+                        title={`บันทึกแล้ว ${rounds.length} รอบการประเมิน`}
+                      >
+                        ประเมิน {rounds.length} ครั้ง
+                      </span>
+                      {rounds.length >= 2 && (
+                        <span
+                          className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1 ${
+                            progress.trend === 'IMPROVED'
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              : progress.trend === 'WORSENED'
+                              ? 'bg-rose-50 text-rose-800 border-rose-200'
+                              : 'bg-slate-50 text-slate-700 border-slate-200'
+                          }`}
+                          title={`เปรียบเทียบครั้งที่ 1 vs ครั้งที่ ${rounds.length}: 8Q ${progress.firstEightQ}→${progress.latestEightQ}, OAS ${progress.firstOAS}→${progress.latestOAS}`}
+                        >
+                          {progress.trend === 'IMPROVED' && <TrendingDown className="w-3 h-3" />}
+                          {progress.trend === 'WORSENED' && <TrendingUp className="w-3 h-3" />}
+                          {progress.trend === 'STABLE' && <Minus className="w-3 h-3" />}
+                          <span>
+                            {progress.trend === 'IMPROVED'
+                              ? 'ดีขึ้น'
+                              : progress.trend === 'WORSENED'
+                              ? 'เฝ้าระวังเพิ่ม'
+                              : 'คงที่'}{' '}
+                            (8Q {progress.firstEightQ}→{progress.latestEightQ})
+                          </span>
+                        </span>
+                      )}
                       {patient.screeningGroup && (
                         <span
                           className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
@@ -309,16 +391,39 @@ export const PatientList: React.FC<PatientListProps> = ({
                       )}
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        ประเมินเมื่อ {patient.screeningDate}
+                        ล่าสุดเมื่อ {patient.screeningDate}
                       </span>
                     </div>
                   </div>
 
                   {/* Quick Action Buttons */}
-                  <div className="flex items-center gap-1.5 self-end sm:self-start">
+                  <div className="flex flex-wrap items-center gap-1.5 self-end sm:self-start">
+                    {canModify && (
+                      <button
+                        type="button"
+                        onClick={() => onAddAssessmentRound(patient)}
+                        className="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition flex items-center gap-1 shadow-2xs cursor-pointer"
+                        title={`บันทึกผลประเมินรอบใหม่ (ครั้งที่ ${rounds.length + 1})`}
+                      >
+                        <PlusCircle className="w-3.5 h-3.5" />
+                        <span>+ ครั้งที่ {rounds.length + 1}</span>
+                      </button>
+                    )}
+
                     <button
+                      type="button"
+                      onClick={() => onViewPatientCompare(patient)}
+                      className="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
+                      title="ดูกราฟเปรียบเทียบรายบุคคล"
+                    >
+                      <BarChart3 className="w-3.5 h-3.5" />
+                      <span>กราฟเปรียบเทียบ</span>
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={() => onViewPatient(patient)}
-                      className="px-2.5 py-1.5 rounded-lg bg-pink-50 hover:bg-pink-100 text-rose-800 text-xs font-semibold transition flex items-center gap-1"
+                      className="px-2.5 py-1.5 rounded-lg bg-pink-50 hover:bg-pink-100 text-rose-800 text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
                       title="ดูรายละเอียดฉบับเต็ม"
                     >
                       <Eye className="w-3.5 h-3.5" />
@@ -328,17 +433,19 @@ export const PatientList: React.FC<PatientListProps> = ({
                     {canModify && (
                       <>
                         <button
+                          type="button"
                           onClick={() => onEditPatient(patient)}
-                          className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold transition flex items-center gap-1"
-                          title="แก้ไขข้อมูล"
+                          className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
+                          title="แก้ไขข้อมูลรอบล่าสุด"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                           <span className="hidden xs:inline">แก้ไข</span>
                         </button>
 
                         <button
+                          type="button"
                           onClick={() => setPatientToDelete(patient)}
-                          className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 transition"
+                          className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 transition cursor-pointer"
                           title="ลบข้อมูล"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -414,13 +521,13 @@ export const PatientList: React.FC<PatientListProps> = ({
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 onClick={() => setPatientToDelete(null)}
-                className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition"
+                className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition cursor-pointer"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-xs"
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
               >
                 ยืนยันลบข้อมูล
               </button>
@@ -431,3 +538,4 @@ export const PatientList: React.FC<PatientListProps> = ({
     </div>
   );
 };
+

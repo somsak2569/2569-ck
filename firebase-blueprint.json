@@ -54,7 +54,8 @@
         "surveyorUserId": { "type": "string", "maxLength": 128 },
         "followUpStatus": { "type": "string", "maxLength": 100 },
         "notes": { "type": "string", "maxLength": 1000 },
-        "updatedAt": { "type": "string", "maxLength": 50 }
+        "updatedAt": { "type": "string", "maxLength": 50 },
+        "assessmentHistory": { "type": "array" }
       },
       "required": ["id", "fullName", "screeningDate", "villageName", "tambon", "mentorHospital", "surveyorUserId"]
     }

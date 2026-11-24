@@ -10,6 +10,7 @@ import {
   getAccessiblePatients,
   isUserSomsak
 } from './utils/storage';
+import { getPatientAssessmentRounds, syncPatientLatestRound } from './utils/assessment';
 import { testConnection, auth, logOutFirebase } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { 
@@ -54,7 +55,10 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [editingPatient, setEditingPatient] = useState<PatientScreening | null>(null);
+  const [screeningFormMode, setScreeningFormMode] = useState<'NEW_PATIENT' | 'NEW_ROUND' | 'EDIT_PATIENT'>('NEW_PATIENT');
+  const [editingRoundId, setEditingRoundId] = useState<string | undefined>(undefined);
   const [viewingPatient, setViewingPatient] = useState<PatientScreening | null>(null);
+  const [patientDetailInitialTab, setPatientDetailInitialTab] = useState<'DETAIL' | 'COMPARE' | 'HISTORY'>('DETAIL');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [loginModalMode, setLoginModalMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
   const [isEmergencyGuideOpen, setIsEmergencyGuideOpen] = useState(false);
@@ -250,8 +254,11 @@ export default function App() {
     if (existingIndex >= 0) {
       updated = [...patients];
       updated[existingIndex] = savedPatient;
+      const totalRounds = getPatientAssessmentRounds(savedPatient).length;
       showToast(
-        currentUser.role === 'CITIZEN'
+        screeningFormMode === 'NEW_ROUND'
+          ? `บันทึกผลประเมินครั้งที่ ${totalRounds} ของ ${savedPatient.fullName} เรียบร้อยแล้ว`
+          : currentUser.role === 'CITIZEN'
           ? 'แก้ไขผลการประเมินตนเองเรียบร้อยแล้ว'
           : `บันทึกการแก้ไขข้อมูลของ ${savedPatient.fullName} เรียบร้อยแล้ว`,
         'success'
@@ -269,7 +276,12 @@ export default function App() {
     setPatientsState(updated);
     savePatients(updated);
     savePatientToFirestore(savedPatient).catch((e) => console.warn('Saved locally, Firestore sync pending:', e));
+    if (viewingPatient?.id === savedPatient.id) {
+      setViewingPatient(savedPatient);
+    }
     setEditingPatient(null);
+    setEditingRoundId(undefined);
+    setScreeningFormMode('NEW_PATIENT');
     if (currentUser.role === 'CITIZEN') {
       setActiveTab('dashboard'); // Takes citizen straight to their results portal
     } else {
@@ -291,13 +303,65 @@ export default function App() {
 
   const handleStartScreening = () => {
     setEditingPatient(null);
+    setEditingRoundId(undefined);
+    setScreeningFormMode('NEW_PATIENT');
+    setActiveTab('new_screening');
+  };
+
+  const handleAddAssessmentRound = (patient: PatientScreening) => {
+    setEditingPatient(patient);
+    setEditingRoundId(undefined);
+    setScreeningFormMode('NEW_ROUND');
+    setViewingPatient(null);
     setActiveTab('new_screening');
   };
 
   const handleEditPatient = (patient: PatientScreening) => {
+    const rounds = getPatientAssessmentRounds(patient);
+    const latestRound = rounds[rounds.length - 1];
     setEditingPatient(patient);
+    setEditingRoundId(latestRound?.roundId);
+    setScreeningFormMode('EDIT_PATIENT');
     setViewingPatient(null);
     setActiveTab('new_screening');
+  };
+
+  const handleEditPatientRound = (patient: PatientScreening, roundId: string) => {
+    setEditingPatient(patient);
+    setEditingRoundId(roundId);
+    setScreeningFormMode('EDIT_PATIENT');
+    setViewingPatient(null);
+    setActiveTab('new_screening');
+  };
+
+  const handleDeletePatientRound = (patient: PatientScreening, roundId: string) => {
+    const existingRounds = getPatientAssessmentRounds(patient);
+    if (existingRounds.length <= 1) {
+      showToast('ไม่สามารถลบได้ ต้องมีผลการประเมินอย่างน้อย 1 ครั้ง', 'error');
+      return;
+    }
+    const remainingRounds = existingRounds.filter((r) => r.roundId !== roundId);
+    const updatedPatient = syncPatientLatestRound(patient, remainingRounds);
+    const updatedList = patients.map((p) => (p.id === updatedPatient.id ? updatedPatient : p));
+    setPatientsState(updatedList);
+    savePatients(updatedList);
+    savePatientToFirestore(updatedPatient).catch((e) =>
+      console.warn('Updated locally, Firestore sync pending:', e)
+    );
+    if (viewingPatient?.id === updatedPatient.id) {
+      setViewingPatient(updatedPatient);
+    }
+    showToast(`ลบผลการประเมินรอบดังกล่าวของ ${patient.fullName} เรียบร้อยแล้ว`, 'info');
+  };
+
+  const handleViewPatientDetail = (patient: PatientScreening) => {
+    setPatientDetailInitialTab('DETAIL');
+    setViewingPatient(patient);
+  };
+
+  const handleViewPatientCompare = (patient: PatientScreening) => {
+    setPatientDetailInitialTab('COMPARE');
+    setViewingPatient(patient);
   };
 
   return (
@@ -317,6 +381,8 @@ export default function App() {
         onChangeTab={(tab) => {
           if (tab === 'new_screening') {
             setEditingPatient(null);
+            setEditingRoundId(undefined);
+            setScreeningFormMode('NEW_PATIENT');
           }
           setActiveTab(tab);
         }}
@@ -354,14 +420,15 @@ export default function App() {
               currentUser={currentUser}
               patients={accessiblePatients}
               onStartScreening={handleStartScreening}
-              onViewPatient={(p) => setViewingPatient(p)}
+              onViewPatient={handleViewPatientDetail}
             />
           ) : (
             <DashboardView
               currentUser={currentUser}
               patients={accessiblePatients}
               onStartScreening={handleStartScreening}
-              onViewPatient={(p) => setViewingPatient(p)}
+              onViewPatient={handleViewPatientDetail}
+              onViewPatientCompare={handleViewPatientCompare}
               onViewPatientList={() => setActiveTab('patient_list')}
             />
           )
@@ -371,9 +438,13 @@ export default function App() {
           <ScreeningForm
             currentUser={currentUser}
             editingPatient={editingPatient}
+            formMode={screeningFormMode}
+            editingRoundId={editingRoundId}
             onSave={handleSavePatient}
             onCancel={() => {
               setEditingPatient(null);
+              setEditingRoundId(undefined);
+              setScreeningFormMode('NEW_PATIENT');
               setActiveTab(currentUser.role === 'CITIZEN' ? 'dashboard' : 'patient_list');
             }}
           />
@@ -383,7 +454,9 @@ export default function App() {
           <PatientList
             currentUser={currentUser}
             patients={accessiblePatients}
-            onViewPatient={(p) => setViewingPatient(p)}
+            onViewPatient={handleViewPatientDetail}
+            onViewPatientCompare={handleViewPatientCompare}
+            onAddAssessmentRound={handleAddAssessmentRound}
             onEditPatient={handleEditPatient}
             onDeletePatient={handleDeletePatient}
             onStartNewScreening={handleStartScreening}
@@ -409,8 +482,12 @@ export default function App() {
         <PatientDetailModal
           patient={viewingPatient}
           currentUser={currentUser}
+          initialTab={patientDetailInitialTab}
           onClose={() => setViewingPatient(null)}
           onEdit={handleEditPatient}
+          onAddNewRound={handleAddAssessmentRound}
+          onEditRound={handleEditPatientRound}
+          onDeleteRound={handleDeletePatientRound}
         />
       )}
 
@@ -441,6 +518,8 @@ export default function App() {
         onChangeTab={(tab) => {
           if (tab === 'new_screening') {
             setEditingPatient(null);
+            setEditingRoundId(undefined);
+            setScreeningFormMode('NEW_PATIENT');
           }
           setActiveTab(tab);
         }}

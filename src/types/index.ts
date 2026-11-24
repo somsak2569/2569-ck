@@ -72,6 +72,26 @@ export interface OASAssessment {
   notes?: string;
 }
 
+// บันทึกผลการประเมินแต่ละครั้ง (รองรับการประเมินซ้ำหลายครั้งและเปรียบเทียบแนวโน้ม)
+export interface AssessmentRound {
+  roundId: string;
+  roundNumber: number; // ครั้งที่ 1, 2, 3, ...
+  screeningDate: string;
+  screeningGroup?: ScreeningGroupType;
+  stressAssessment?: StressAssessment;
+  oasAssessment?: OASAssessment;
+  twoQ: TwoQPlusAnswers;
+  eightQTriggered: boolean;
+  eightQ?: EightQAnswers;
+  followUpStatus: 'ปกติไม่ต้องติดตาม' | 'ติดตามเฝ้าระวัง' | 'ส่งต่อ รพ.สต.' | 'ส่งต่อด่วน รพ.เชียงกลาง';
+  notes?: string;
+  surveyorName: string;
+  surveyorRole: string;
+  surveyorPhone?: string;
+  surveyorUserId: string;
+  recordedAt: string;
+}
+
 export interface PatientScreening {
   id: string;
   screeningDate: string;
@@ -121,6 +141,9 @@ export interface PatientScreening {
   followUpStatus: 'ปกติไม่ต้องติดตาม' | 'ติดตามเฝ้าระวัง' | 'ส่งต่อ รพ.สต.' | 'ส่งต่อด่วน รพ.เชียงกลาง';
   notes?: string;
   updatedAt: string;
+
+  // ประวัติการประเมินทั้งหมดเรียงตามครั้งที่ 1, 2, 3...
+  assessmentHistory?: AssessmentRound[];
 }
 
 export interface TambonInfo {

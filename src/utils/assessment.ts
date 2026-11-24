@@ -1,4 +1,4 @@
-import { EightQAnswers, RiskLevel, TwoQPlusAnswers, StressLevel, StressAssessment, OASAssessment } from '../types';
+import { EightQAnswers, RiskLevel, TwoQPlusAnswers, StressLevel, StressAssessment, OASAssessment, AssessmentRound, PatientScreening } from '../types';
 
 export interface StressLevelOption {
   level: StressLevel;
@@ -407,3 +407,143 @@ export const getOASRiskBadge = (riskLevel: RiskLevel) => {
   }
 };
 
+// ==========================================
+// Multi-round assessment helpers (รองรับการบันทึกประเมินหลายครั้งและเปรียบเทียบ)
+// ==========================================
+
+export const createRoundFromPatient = (patient: PatientScreening, roundNumber = 1): AssessmentRound => ({
+  roundId: `${patient.id}-round-${roundNumber}`,
+  roundNumber,
+  screeningDate: patient.screeningDate,
+  screeningGroup: patient.screeningGroup,
+  stressAssessment: patient.stressAssessment,
+  oasAssessment: patient.oasAssessment,
+  twoQ: patient.twoQ,
+  eightQTriggered: patient.eightQTriggered,
+  eightQ: patient.eightQ,
+  followUpStatus: patient.followUpStatus,
+  notes: patient.notes,
+  surveyorName: patient.surveyorName,
+  surveyorRole: patient.surveyorRole,
+  surveyorPhone: patient.surveyorPhone,
+  surveyorUserId: patient.surveyorUserId,
+  recordedAt: patient.updatedAt || patient.screeningDate,
+});
+
+export const getPatientAssessmentRounds = (patient: PatientScreening): AssessmentRound[] => {
+  if (patient.assessmentHistory && patient.assessmentHistory.length > 0) {
+    return [...patient.assessmentHistory]
+      .sort((a, b) => {
+        if (a.roundNumber !== b.roundNumber) return a.roundNumber - b.roundNumber;
+        return (a.screeningDate || '').localeCompare(b.screeningDate || '');
+      })
+      .map((r, idx) => ({
+        ...r,
+        roundNumber: r.roundNumber || idx + 1,
+      }));
+  }
+  return [createRoundFromPatient(patient, 1)];
+};
+
+export const syncPatientLatestRound = (
+  patient: PatientScreening,
+  rounds: AssessmentRound[]
+): PatientScreening => {
+  const normalizedRounds = [...rounds]
+    .sort((a, b) => {
+      const dateCmp = (a.screeningDate || '').localeCompare(b.screeningDate || '');
+      if (dateCmp !== 0) return dateCmp;
+      return (a.recordedAt || '').localeCompare(b.recordedAt || '');
+    })
+    .map((r, idx) => ({
+      ...r,
+      roundNumber: idx + 1,
+    }));
+
+  const latest = normalizedRounds[normalizedRounds.length - 1];
+  if (!latest) return patient;
+
+  return {
+    ...patient,
+    screeningDate: latest.screeningDate,
+    screeningGroup: latest.screeningGroup ?? patient.screeningGroup,
+    stressAssessment: latest.stressAssessment,
+    oasAssessment: latest.oasAssessment,
+    twoQ: latest.twoQ,
+    eightQTriggered: latest.eightQTriggered,
+    eightQ: latest.eightQ,
+    followUpStatus: latest.followUpStatus,
+    notes: latest.notes,
+    surveyorName: latest.surveyorName || patient.surveyorName,
+    surveyorRole: latest.surveyorRole || patient.surveyorRole,
+    surveyorPhone: latest.surveyorPhone || patient.surveyorPhone,
+    surveyorUserId: latest.surveyorUserId || patient.surveyorUserId,
+    updatedAt: latest.recordedAt || new Date().toISOString(),
+    assessmentHistory: normalizedRounds,
+  };
+};
+
+export type ProgressTrend = 'IMPROVED' | 'WORSENED' | 'STABLE' | 'SINGLE';
+
+export interface PatientProgressSummary {
+  roundCount: number;
+  firstRound: AssessmentRound;
+  latestRound: AssessmentRound;
+  firstEightQ: number;
+  latestEightQ: number;
+  eightQDelta: number;
+  firstOAS: number;
+  latestOAS: number;
+  oasDelta: number;
+  firstStressScore: number;
+  latestStressScore: number;
+  stressDelta: number;
+  trend: ProgressTrend;
+}
+
+export const getPatientProgressSummary = (patient: PatientScreening): PatientProgressSummary => {
+  const rounds = getPatientAssessmentRounds(patient);
+  const firstRound = rounds[0];
+  const latestRound = rounds[rounds.length - 1];
+
+  const firstEightQ = firstRound.eightQ?.totalScore ?? 0;
+  const latestEightQ = latestRound.eightQ?.totalScore ?? 0;
+  const eightQDelta = latestEightQ - firstEightQ;
+
+  const firstOAS = firstRound.oasAssessment?.totalScore ?? 0;
+  const latestOAS = latestRound.oasAssessment?.totalScore ?? 0;
+  const oasDelta = latestOAS - firstOAS;
+
+  const firstStressScore = getStressLevelDetails(firstRound.stressAssessment?.level || 'NONE').score;
+  const latestStressScore = getStressLevelDetails(latestRound.stressAssessment?.level || 'NONE').score;
+  const stressDelta = latestStressScore - firstStressScore;
+
+  let trend: ProgressTrend = 'SINGLE';
+  if (rounds.length >= 2) {
+    // Negative delta means risk/stress score decreased (improved)
+    const compositeDelta = eightQDelta + oasDelta + stressDelta;
+    if (eightQDelta < 0 || oasDelta < 0 || (eightQDelta <= 0 && oasDelta <= 0 && stressDelta < 0)) {
+      trend = 'IMPROVED';
+    } else if (eightQDelta > 0 || oasDelta > 0 || compositeDelta > 0) {
+      trend = 'WORSENED';
+    } else {
+      trend = 'STABLE';
+    }
+  }
+
+  return {
+    roundCount: rounds.length,
+    firstRound,
+    latestRound,
+    firstEightQ,
+    latestEightQ,
+    eightQDelta,
+    firstOAS,
+    latestOAS,
+    oasDelta,
+    firstStressScore,
+    latestStressScore,
+    stressDelta,
+    trend,
+  };
+};
